@@ -5,6 +5,8 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 /**
  * Internal User Representation
  * This class composes the internal representation of the user and defines how
@@ -31,7 +33,7 @@ public class User implements Serializable {
 	@Column(nullable = false, unique = false)
 	private String password;
 
-	@Column(nullable = false, unique = false)
+	@Column(nullable = true, unique = false) //own: bio CAN be optional
 	private String bio;
 
 	@Column(nullable = false, unique = true)
@@ -40,7 +42,8 @@ public class User implements Serializable {
 	@Column(nullable = false)
 	private UserStatus status;
 
-	@Column(nullable = false, unique = false)
+	@Column(nullable = false, unique = false, updatable = false)
+	@CreationTimestamp
 	private Date creationDate;
 
 	public Long getId() {

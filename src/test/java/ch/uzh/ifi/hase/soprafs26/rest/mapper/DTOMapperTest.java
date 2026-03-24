@@ -4,10 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Date;
 
 /**
  * DTOMapperTest
@@ -19,14 +22,12 @@ public class DTOMapperTest {
 	public void testCreateUser_fromUserPostDTO_toUser_success() {
 		// create UserPostDTO
 		UserPostDTO userPostDTO = new UserPostDTO();
-		userPostDTO.setName("name");
 		userPostDTO.setUsername("username");
 
 		// MAP -> Create user
 		User user = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
 
 		// check content
-		assertEquals(userPostDTO.getName(), user.getName());
 		assertEquals(userPostDTO.getUsername(), user.getUsername());
 	}
 
@@ -34,7 +35,6 @@ public class DTOMapperTest {
 	public void testGetUser_fromUser_toUserGetDTO_success() {
 		// create User
 		User user = new User();
-		user.setName("Firstname Lastname");
 		user.setUsername("firstname@lastname");
 		user.setStatus(UserStatus.OFFLINE);
 		user.setToken("1");
@@ -44,8 +44,32 @@ public class DTOMapperTest {
 
 		// check content
 		assertEquals(user.getId(), userGetDTO.getId());
-		assertEquals(user.getName(), userGetDTO.getName());
 		assertEquals(user.getUsername(), userGetDTO.getUsername());
 		assertEquals(user.getStatus(), userGetDTO.getStatus());
+	}
+
+	@Test
+	public void testUserDTO_fromUser_toUserDTO_success() {
+		// create User
+		User user = new User();
+		user.setId(1L);
+		user.setToken("validToken");
+		user.setUsername("testUser");
+		user.setBio("hey everyone!");
+		user.setStatus(UserStatus.ONLINE);
+
+		Date date = new Date();
+		user.setCreationDate(date);
+
+		// MAP -> Create UserDTO
+		UserDTO userDTO = DTOMapper.INSTANCE.convertEntityToUserDTO(user);
+
+		// check content
+		assertEquals(user.getId(), userDTO.getId());
+		assertEquals(user.getToken(), userDTO.getToken());
+		assertEquals(user.getUsername(), userDTO.getUsername());
+		assertEquals(user.getBio(), userDTO.getBio());
+		assertEquals(user.getStatus(), userDTO.getStatus());
+		assertEquals(user.getCreationDate(), userDTO.getCreationDate()); //own: be careful with testing date-objects
 	}
 }
