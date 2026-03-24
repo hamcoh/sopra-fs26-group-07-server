@@ -2,14 +2,14 @@ package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
 public class ChangePassDTO {
 
-    private String newPassord;
+    private String newPassword;
 
-    public String getNewPassord() {
-        return newPassord;
+    public String getNewPassword() {
+        return newPassword;
     }
 
-    public void setNewPassord(String newPassord) {
-        this.newPassord = newPassord;
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
     
 }
