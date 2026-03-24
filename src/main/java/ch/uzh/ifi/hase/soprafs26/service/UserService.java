@@ -41,7 +41,7 @@ public class UserService {
 	public User createUser(User newUser) {
 		newUser.setToken(UUID.randomUUID().toString());
 		newUser.setStatus(UserStatus.OFFLINE);
-		checkIfUserExists(newUser);
+		// checkIfUserExists(newUser);
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -49,6 +49,57 @@ public class UserService {
 
 		log.debug("Created Information for User: {}", newUser);
 		return newUser;
+	}
+
+	public User getUserbyId(Long userId) {
+		
+		return userRepository.findById(userId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+	}
+
+	public User getUserbyToken(String token) {
+	
+		User user = userRepository.findByToken(token);
+
+    	if (user == null) {
+        	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+    	}
+
+    	return user;
+	}
+
+	public void verifyToken(String token) {
+		if (token == null || token.trim().isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is missing");
+		}
+		User user = userRepository.findByToken(token);
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
+		}
+	}
+
+
+	public void verifyTokenAndUserId(String token, Long userId) {
+		getUserbyId(userId);
+		verifyToken(token);
+		User user = userRepository.findByToken(token);
+		if (!user.getId().equals(userId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token/User mismatch"); 
+		}	
+	}
+
+	public void changePassword(User userInput, Long userId, String token) {
+
+		verifyTokenAndUserId(token, userId);
+
+		if (userInput.getPassword() == null || userInput.getPassword().trim().isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cant be empty");
+		}
+		User user = getUserbyId(userId);
+		user.setPassword(userInput.getPassword());
+
+		userRepository.save(user);
+		userRepository.flush();
 	}
 
 	/**
@@ -61,18 +112,17 @@ public class UserService {
 	 * @throws org.springframework.web.server.ResponseStatusException
 	 * @see User
 	 */
-	private void checkIfUserExists(User userToBeCreated) {
-		User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-		User userByName = userRepository.findByName(userToBeCreated.getName());
+	// private void checkIfUserExists(User userToBeCreated) {
+	// 	User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
 
-		String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-		if (userByUsername != null && userByName != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					String.format(baseErrorMessage, "username and the name", "are"));
-		} else if (userByUsername != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-		} else if (userByName != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
-		}
-	}
+	// 	String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
+	// 	if (userByUsername != null && userByName != null) {
+	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+	// 				String.format(baseErrorMessage, "username and the name", "are"));
+	// 	} else if (userByUsername != null) {
+	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
+	// 	} else if (userByName != null) {
+	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
+	// 	}
+	// }
 }
