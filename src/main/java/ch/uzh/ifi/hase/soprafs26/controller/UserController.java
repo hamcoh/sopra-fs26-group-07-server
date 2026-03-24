@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
@@ -11,6 +12,10 @@ import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 /**
  * User Controller
@@ -54,6 +59,16 @@ public class UserController {
 		User createdUser = userService.createUser(userInput);
 		// convert internal representation of user back to API
 		return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+	}
+
+	@PutMapping("users/{userId}/password")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void changePassword(@PathVariable Long userId, @RequestBody ChangePassDTO changePassDTO,
+		 						@RequestHeader(value = "token", required = false)  String token) {
+		userService.verifyTokenAndUserId(token, userId);
+		User userInput = DTOMapper.INSTANCE.convertChangePassDTOtoEntity(changePassDTO);
+		userService.changePassword(userInput, userId, token);	
+
 	}
 }
 
