@@ -57,19 +57,6 @@ public class UserServiceTest {
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 	}
 
-	// @Test
-	// public void createUser_duplicateName_throwsException() {
-	// 	// given -> a first user has already been created
-	// 	userService.createUser(testUser);
-
-	// 	// when -> setup additional mocks for UserRepository
-	// 	Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(null);
-
-	// 	// then -> attempt to create second user with same user -> check that an error
-	// 	// is thrown
-	// 	assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
-	// }
-
 	@Test
 	public void createUser_duplicateUsername_throwsException() {
 		// given -> a first user has already been created
@@ -81,6 +68,64 @@ public class UserServiceTest {
 		// then -> attempt to create second user with same user -> check that an error
 		// is thrown
 		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
+	}
+
+	@Test
+	public void loginUser_validInputs_success() {
+		// given 
+		testUser.setStatus(UserStatus.OFFLINE);
+
+		// when
+		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+		User loggedInUser = userService.loginUser(testUser);
+
+		// then
+		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
+		assertNotNull(loggedInUser.getToken());
+	}
+
+	@Test
+	public void loginUser_userAlreadyLoggedIn_success() {
+		// given 
+		testUser.setStatus(UserStatus.ONLINE);
+
+		// when
+		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+		User loggedInUser = userService.loginUser(testUser);
+
+		// then
+		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
+		assertEquals(testUser.getToken(), loggedInUser.getToken()); //same session-token
+	}
+
+	@Test
+	public void loginUser_passwordMismatch_throwsException() {
+
+		//given: wrong password
+		User loginAttempt = new User();
+		loginAttempt.setUsername("testUsername");
+		loginAttempt.setPassword("wrongPassword");
+
+		//when
+		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+		
+		//then
+		assertThrows(ResponseStatusException.class, () -> userService.loginUser(loginAttempt));
+	}
+
+	@Test
+	public void loginUser_usernameNotFound_throwsException() {
+
+		//given: unknown username
+		User loginAttempt = new User();
+		loginAttempt.setUsername("wrongUsername");
+		loginAttempt.setPassword("testPassword");
+
+		//when
+		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+		
+		//then
+		assertThrows(ResponseStatusException.class, () -> userService.loginUser(loginAttempt));
 	}
 
 	@Test

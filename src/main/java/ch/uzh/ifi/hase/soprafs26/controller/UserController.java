@@ -13,9 +13,6 @@ import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
 
 
 /**
@@ -60,6 +57,18 @@ public class UserController {
 		User createdUser = userService.createUser(userInput);
 		// convert internal representation of user back to API
 		return DTOMapper.INSTANCE.convertEntityToUserDTO(createdUser);
+	}
+
+	@PostMapping("/users/login")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public UserDTO loginUser(@RequestBody UserPostDTO userPostDTO) { 
+		
+		User userCredentials = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+
+		User user = userService.loginUser(userCredentials);
+
+		return DTOMapper.INSTANCE.convertEntityToUserDTO(user);
 	}
 
 	@PutMapping("users/{userId}/password")

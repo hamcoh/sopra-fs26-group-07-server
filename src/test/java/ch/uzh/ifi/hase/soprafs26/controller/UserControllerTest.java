@@ -73,7 +73,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
 	}
 
-	//own: Happy Test: /users/register; expect: 201
+	//Happy Test: /users/register; expect: 201
 	@Test
 	public void registerUser_validInput_userCreated() throws Exception {
 		// given
@@ -150,6 +150,88 @@ public class UserControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.detail", is(errorReason)));
 	}
+
+	//Happy Test: /users/login; expect: 200
+	@Test
+	public void loginUser_validInput_userLoggedIn() throws Exception {
+		// given
+		User user = new User();
+		user.setId(5432L);
+		user.setUsername("testUser");
+		user.setPassword("myPassword123");
+		user.setBio("I love Bad Bunny!");
+		user.setToken("validToken");
+		user.setStatus(UserStatus.OFFLINE);
+
+		Date date = new Date();
+		user.setCreationDate(date);
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setUsername("testUser");
+		userPostDTO.setPassword("myPassword123");
+
+		given(userService.loginUser(Mockito.any())).willReturn(user);
+
+		// when/then -> do the request + validate the result
+		MockHttpServletRequestBuilder postRequest = post("/users/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		// then
+		mockMvc.perform(postRequest)
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is(user.getId().intValue())))
+				.andExpect(jsonPath("$.username", is(user.getUsername())))
+				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
+				.andExpect(jsonPath("$.creationDate").isNotEmpty())
+				.andExpect(jsonPath("$.bio", is(user.getBio())))
+				.andExpect(jsonPath("$.token", is(user.getToken())));		
+	}
+
+	//Negative Test: /users/login; expect: 404 (user to login not found)
+	@Test
+	public void failedLoginUser_invalidUserInput1() throws Exception {
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setUsername("thisUsernameDoesNotExist");
+		userPostDTO.setUsername("testPassword");
+
+		String errorReason = "Login failed: No user found with given username!";
+		given(userService.loginUser(Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+	}
+
+	//Negative Test: /users/login; expect: 401 (password entered does not match saved one)
+	@Test
+	public void failedLoginUser_invalidUserInput2() throws Exception {
+
+		User user = new User();
+		user.setUsername("thisUsernameExists");
+		user.setPassword("myPassword123");
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setUsername("thisUsernameExists");
+		userPostDTO.setUsername("myPassword1234");
+
+		String errorReason = "Login failed: Invalid credentials!";
+		given(userService.loginUser(Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorReason));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+	}
+
 
 	// /users/logout/{userId}; expect: 204 (logout successful)
 	@Test

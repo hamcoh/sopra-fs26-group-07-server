@@ -55,6 +55,31 @@ public class UserService {
 		return newUser;
 	}
 
+	public User loginUser(User loginUser) {
+
+		User user = userRepository.findByUsername(loginUser.getUsername());
+
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Login failed: No user found with given username!");
+		}
+		else if (!user.getPassword().equals(loginUser.getPassword())){
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login failed: Invalid credentials!");
+		}
+		else if (user.getStatus().equals(UserStatus.ONLINE)){
+			//user is already logged-in
+			return user;
+		}
+
+		user.setStatus(UserStatus.ONLINE);
+		user.setToken(UUID.randomUUID().toString());
+
+		user = userRepository.save(user);
+		userRepository.flush();
+
+		log.debug("Successfully logged in User: {}", user);
+		return user;
+	}
+
 	public User getUserbyId(Long userId) {
 		
 		return userRepository.findById(userId)
