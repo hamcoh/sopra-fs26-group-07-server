@@ -51,7 +51,7 @@ public class Submission implements Serializable { // Careful submission doesn't 
      * that action to the ExecutionsResult, this is because Submission
      * is the boss of ExecutionResult and "owns it". Think about it an ExecutionResult can't exist
      * without a submission.
-     * Refer to UML class diagram
+     * Refer to UML class diagram 
      */  
     @OneToOne(cascade = CascadeType.ALL) 
     @JoinColumn(name = "execution_result_id", referencedColumnName = "resultId")
@@ -85,9 +85,15 @@ public class Submission implements Serializable { // Careful submission doesn't 
         return submittedAt;
     }
 
-    public void setSubmittedAt(LocalDateTime submittedAt) { // to change perhaps
-        this.submittedAt = submittedAt;
+    // Set date automatically on creation
+    @PrePersist
+    protected void onCreate() {
+    if (this.submittedAt == null) {
+        this.submittedAt = LocalDateTime.now();
+        }
     }
+
+    
 
     public SubmissionType getType() {
         return type;
