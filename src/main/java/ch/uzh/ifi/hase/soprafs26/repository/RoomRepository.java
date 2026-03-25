@@ -7,7 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Room;
 
 @Repository("roomRepository")
 public interface RoomRepository extends JpaRepository<Room, Long> {
-    Room findRoomById(Long roomId);
-    Room findRoomByRoomJoinCode(String roomJoinCode);
+    Room findByRoomId(Long roomId);
+    Room findByRoomJoinCode(String roomJoinCode);
 }
 

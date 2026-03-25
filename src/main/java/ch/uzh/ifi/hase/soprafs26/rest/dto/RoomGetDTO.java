@@ -9,8 +9,8 @@ public class RoomGetDTO {
     private int maxNumPlayers;
     private int currentNumPlayers;
     private boolean isRoomOpen;
-    private Long userIdHost;
-    private Set<Long> playersIds;
+    private Long hostUserId;
+    private Set<Long> playerIds;
     private String gameDifficulty;
     private String gameLanguage;
     private String gameMode;
@@ -58,20 +58,20 @@ public class RoomGetDTO {
         this.isRoomOpen = isRoomOpen;
     }
 
-    public Long getUserIdHost() {
-        return userIdHost;
+    public Long getHostUserId() {
+        return hostUserId;
     }
 
-    public void setUserIdHost(Long userIdHost) {
-        this.userIdHost = userIdHost;
+    public void setHostUserId(Long hostUserId) {
+        this.hostUserId = hostUserId;
     }
 
-    public Set<Long> getPlayersIds() {
-        return playersIds;
+    public Set<Long> getPlayerIds() {
+        return playerIds;
     }
 
-    public void setPlayersIds(Set<Long> playersIds) {
-        this.playersIds = playersIds;
+    public void setPlayerIds(Set<Long> playerIds) {
+        this.playerIds = playerIds;
     }
 
     public String getGameDifficulty() {
