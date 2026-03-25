@@ -46,6 +46,18 @@ public class User implements Serializable {
 	@CreationTimestamp
 	private Date creationDate;
 
+	@Column(nullable = false)
+	private int winCount;
+
+	@Column(nullable = false)
+	private double winRatePercentage;
+
+	@Column(nullable = false)
+	private int totalGamesPlayed;
+
+	@Column(nullable = false)
+	private long totalPoints;
+
 	public Long getId() {
 		return id;
 	}
@@ -100,5 +112,37 @@ public class User implements Serializable {
 
 	public void setCreationDate(Date creationDate) {
 		this.creationDate = creationDate;
+	}
+
+	public int getWinCount() {
+		return winCount;
+	}
+
+	public void setWinCount(int winCount) {
+		this.winCount = winCount;
+	}
+
+	public double getWinRatePercentage() {
+		return winRatePercentage;
+	}
+
+	public void setWinRatePercentage(double winRatePercentage) {
+		this.winRatePercentage = winRatePercentage;
+	}
+
+	public int getTotalGamesPlayed() {
+		return totalGamesPlayed;
+	}
+
+	public void setTotalGamesPlayed(int totalGamesPlayed) {
+		this.totalGamesPlayed = totalGamesPlayed;
+	}
+
+	public long getTotalPoints() {
+		return totalPoints;
+	}
+
+	public void setTotalPoints(long totalPoints) {
+		this.totalPoints = totalPoints;
 	}
 }

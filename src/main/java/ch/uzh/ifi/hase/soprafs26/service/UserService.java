@@ -46,6 +46,8 @@ public class UserService {
 		checkIfPasswordIsValid(newUser.getPassword());
 		checkIfBioIsValid(newUser.getBio());
 
+		initialiseGameStats(newUser);
+
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -185,5 +187,12 @@ public class UserService {
 		if(bio != null && bio.length() > 255){
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bio is invalid: bio cannot exceed 255 characters!");
 		}
+	}
+
+	private void initialiseGameStats(User user){
+		user.setWinCount(0);
+		user.setWinRatePercentage(0.0);
+		user.setTotalGamesPlayed(0);
+		user.setTotalPoints(0L);
 	}
 }
