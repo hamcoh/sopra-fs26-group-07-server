@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
@@ -71,5 +72,15 @@ public class DTOMapperTest {
 		assertEquals(user.getBio(), userDTO.getBio());
 		assertEquals(user.getStatus(), userDTO.getStatus());
 		assertEquals(user.getCreationDate(), userDTO.getCreationDate()); //own: be careful with testing date-objects
+	}
+
+	@Test
+	public void userInput_from_ChangePassDTO_success() {
+		// create ChangePassDTO
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("newValidPassword");
+
+		User userInput = DTOMapper.INSTANCE.convertChangePassDTOtoEntity(changePassDTO);
+		assertEquals(changePassDTO.getNewPassword(), userInput.getPassword());
 	}
 }

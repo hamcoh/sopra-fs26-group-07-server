@@ -104,6 +104,16 @@ public class UserService {
 
 		userRepository.save(user);
 		userRepository.flush();
+
+		logoutUser(userId);
+	}
+
+	public void logoutUser(Long userId) {
+		User user = getUserbyId(userId);
+		user.setStatus(UserStatus.OFFLINE);
+		user.setToken(UUID.randomUUID().toString()); // invalidate the token by assigning a new random token
+		userRepository.save(user);
+		userRepository.flush();
 	}
 
 	/**
