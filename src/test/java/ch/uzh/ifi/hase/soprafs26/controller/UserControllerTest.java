@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Date;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -50,7 +51,6 @@ public class UserControllerTest {
 	public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
 		// given
 		User user = new User();
-		user.setName("Firstname Lastname");
 		user.setUsername("firstname@lastname");
 		user.setStatus(UserStatus.OFFLINE);
 
@@ -66,29 +66,34 @@ public class UserControllerTest {
 		// then
 		mockMvc.perform(getRequest).andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].name", is(user.getName())))
 				.andExpect(jsonPath("$[0].username", is(user.getUsername())))
 				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
 	}
 
+	//own: Happy Test: /users/register; expect: 201
 	@Test
-	public void createUser_validInput_userCreated() throws Exception {
+	public void registerUser_validInput_userCreated() throws Exception {
 		// given
 		User user = new User();
 		user.setId(1L);
-		user.setName("Test User");
 		user.setUsername("testUsername");
+		user.setPassword("testPassword");
+		user.setBio("testBio");
 		user.setToken("1");
 		user.setStatus(UserStatus.ONLINE);
 
+		Date date = new Date();
+		user.setCreationDate(date);
+
 		UserPostDTO userPostDTO = new UserPostDTO();
-		userPostDTO.setName("Test User");
 		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("testPassword");
+		userPostDTO.setBio("testBio");
 
 		given(userService.createUser(Mockito.any())).willReturn(user);
 
 		// when/then -> do the request + validate the result
-		MockHttpServletRequestBuilder postRequest = post("/users")
+		MockHttpServletRequestBuilder postRequest = post("/users/register")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(asJsonString(userPostDTO));
 
@@ -96,9 +101,51 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest)
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id", is(user.getId().intValue())))
-				.andExpect(jsonPath("$.name", is(user.getName())))
 				.andExpect(jsonPath("$.username", is(user.getUsername())))
-				.andExpect(jsonPath("$.status", is(user.getStatus().toString())));
+				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
+				.andExpect(jsonPath("$.creationDate").isNotEmpty())
+				.andExpect(jsonPath("$.bio", is(user.getBio())))
+				.andExpect(jsonPath("$.token", is(user.getToken())));		
+	}
+
+	//Negative Test: /users/register; expect: 409 (username already exists)
+	@Test
+	public void failedRegisterUser_usernameAlreadyExists() throws Exception {
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setUsername("user1");
+		userPostDTO.setPassword("newPassword");
+		userPostDTO.setBio("hello world!");
+
+		String errorReason = "Provided username is not unique. Therefore, the user could not be created!";
+		given(userService.createUser(Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.CONFLICT, errorReason));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/register")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+	}
+
+	//Negative Test: /users/register; expect: 400 (username cannot be empty/blank)
+	@Test
+	public void failedRegisterUser_invalidUserInput() throws Exception {
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setUsername("");
+
+		String errorReason = "Username is invalid: username cannot be empty or contain only spaces!";
+		given(userService.createUser(Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/register")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
 	}
 
 	/**

@@ -40,8 +40,12 @@ public class UserService {
 
 	public User createUser(User newUser) {
 		newUser.setToken(UUID.randomUUID().toString());
-		newUser.setStatus(UserStatus.OFFLINE);
-		// checkIfUserExists(newUser);
+		newUser.setStatus(UserStatus.ONLINE);
+		checkIfUserExists(newUser);
+		checkIfUsernameIsValid(newUser.getUsername());
+		checkIfPasswordIsValid(newUser.getPassword());
+		checkIfBioIsValid(newUser.getBio());
+
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -112,17 +116,39 @@ public class UserService {
 	 * @throws org.springframework.web.server.ResponseStatusException
 	 * @see User
 	 */
-	// private void checkIfUserExists(User userToBeCreated) {
-	// 	User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
 
-	// 	String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-	// 	if (userByUsername != null && userByName != null) {
-	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-	// 				String.format(baseErrorMessage, "username and the name", "are"));
-	// 	} else if (userByUsername != null) {
-	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-	// 	} else if (userByName != null) {
-	// 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
-	// 	}
-	// }
+	private void checkIfUserExists(User userToBeCreated) {
+		User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername()); //own: case-sensitive atm
+		if (userByUsername != null) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Provided username is not unique. Therefore, the user could not be created!");
+		}
+	}
+
+	/**
+	 * OWN Helper Methods, such as checking for valid user-inputs.
+	 */
+
+	private void checkIfUsernameIsValid(String username) {
+		if(username == null || username.isBlank()){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is invalid: username cannot be empty or contain only spaces!");
+		}
+		else if (username.length() > 255) { //own: H2-db stores a string by default as VARCHAR(255), hence, check for safety
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is invalid: username cannot exceed 255 characters!");
+		}
+	}
+
+	private void checkIfPasswordIsValid(String password) {
+		if(password == null || password.isBlank()){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password cannot be empty or contain only spaces!");
+		}
+		else if (password.length() > 255) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password cannot exceed 255 characters!");
+		}
+	} 
+
+	private void checkIfBioIsValid(String bio) {
+		if(bio != null && bio.length() > 255){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bio is invalid: bio cannot exceed 255 characters!");
+		}
+	}
 }
