@@ -14,6 +14,8 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Optional;
+
 public class UserServiceTest {
 
 	@Mock
@@ -81,4 +83,52 @@ public class UserServiceTest {
 		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
 	}
 
+	@Test
+	public void logoutUser_statusOffline() {
+		// given
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUsername");
+		user.setPassword("testPassword");
+		user.setStatus(UserStatus.ONLINE);
+		
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+		// when
+		userService.logoutUser(user.getId());
+
+		// then
+
+		Mockito.verify(userRepository).save(user); // Verify that the user is saved with the updated status
+		Mockito.verify(userRepository).flush(); // Verify that flush is called to persist the changes
+		assertEquals(UserStatus.OFFLINE, user.getStatus());
+	
+	}
+
+	@Test void logoutUser_afterPasswordChange() {
+		// given
+		User user = new User();
+		user.setId(1L);
+		user.setPassword("oldPassword");
+		user.setStatus(UserStatus.ONLINE);
+		user.setToken("oldToken");
+
+		User userInput = new User();
+		userInput.setPassword("newPassword");
+		
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		Mockito.when(userRepository.findByToken("oldToken")).thenReturn(user);
+
+		// when
+		userService.changePassword(userInput, user.getId(), user.getToken());
+		
+
+		// then
+		assertEquals("newPassword", user.getPassword());
+		assertEquals(UserStatus.OFFLINE, user.getStatus());
+		assertNotEquals("oldToken", user.getToken());
+
+		Mockito.verify(userRepository, Mockito.times(2)).save(user); // Verify that the user is saved two times (once for password change, once for status update)
+		Mockito.verify(userRepository, Mockito.times(2)).flush(); // Verify that flush is called two times to persist the changes
+	}
 }

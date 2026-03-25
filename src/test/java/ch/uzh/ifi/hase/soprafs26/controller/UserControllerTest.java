@@ -6,9 +6,11 @@ import tools.jackson.databind.ObjectMapper;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
+import org.h2.mvstore.tx.TransactionStore.Change;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -146,6 +149,199 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest)
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.detail", is(errorReason)));
+	}
+
+	// /users/logout/{userId}; expect: 204 (logout successful)
+	@Test
+	public void logoutUser_validInput_logoutSuccessful() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isNoContent());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId); // verify that verifyTokenAndUserId was called
+		Mockito.verify(userService).logoutUser(userId); // verify that logoutUser was called
+	}
+
+	// /users/logout/{userId}; expect: 403 (token/user mismatch)
+	@Test
+	public void logoutUser_invalidToken_userMismatch() throws Exception {
+		Long userId = 1L;
+		String token = "invalidToken";
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed"))
+				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isForbidden());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId); // verify that verifyTokenAndUserId was called
+		Mockito.verify(userService, Mockito.never()).logoutUser(userId); // verify that logoutUser was NOT called
+	}
+
+	// /users/logout/{userId}; expect: 401 (token is missing)
+	@Test
+	public void logoutUser_missingToken_unauthorized() throws Exception {
+		Long userId = 1L;
+		String token = null;
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
+				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+
+		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
+				.contentType(MediaType.APPLICATION_JSON);
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isUnauthorized());
+		
+		Mockito.verify(userService).verifyTokenAndUserId(null, userId); // verify that verifyTokenAndUserId was called with null token
+		Mockito.verify(userService, Mockito.never()).logoutUser(userId); // verify that logoutUser was NOT called
+	}
+
+	// /users/logout/{userId}; expect: 404 (user not found)
+	@Test
+	public void logoutUser_userNotFound() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+
+		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isNotFound());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).logoutUser(userId);
+	}
+
+	// /users/{userId}/password; expect: 204 (password change successful)
+	@Test
+	public void changePassword_validInput_passwordChangeSuccessful() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";	
+
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("newValidPassword");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changePassDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isNoContent());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+	}
+
+	// /users/{userId}/password; expect: 400 (new password is empty)
+	@Test
+	public void changePassword_emptyNewPassword_badRequest() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password is empty"))
+				.when(userService).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changePassDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isBadRequest());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+	}
+
+	// /users/{userId}/password; expect: 401 (token is missing)
+	@Test
+	public void changePassword_missingToken_unauthorized() throws Exception {
+		Long userId = 1L;
+		String token = null;
+
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("newValidPassword");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changePassDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isUnauthorized());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+	}
+
+	// /users/{userId}/password; expect: 403 (token/user mismatch)
+	@Test
+	public void changePassword_invalidToken_userMismatch() throws Exception {
+		Long userId = 1L;
+		String token = "invalidToken";
+
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("newValidPassword");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed"))
+				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changePassDTO));
+		
+		mockMvc.perform(putRequest)
+				.andExpect(status().isForbidden());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+	}
+
+	// /users/{userId}/password; expect: 404 (user not found)
+	@Test
+	public void changePassword_userNotFound() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangePassDTO changePassDTO = new ChangePassDTO();
+		changePassDTO.setNewPassword("newValidPassword");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changePassDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isNotFound());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
 	}
 
 	/**

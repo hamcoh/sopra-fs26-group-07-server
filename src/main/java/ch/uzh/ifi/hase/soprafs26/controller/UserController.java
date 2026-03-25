@@ -71,6 +71,14 @@ public class UserController {
 		userService.changePassword(userInput, userId, token);	
 
 	}
+
+	@PostMapping("/users/logout/{userId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void logoutUser(@PathVariable Long userId, @RequestHeader(value = "token", required = false)  String token) {
+		userService.verifyTokenAndUserId(token, userId);
+		userService.logoutUser(userId);
+	}
+
 }
 
 // trigger docker build 
