@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,7 +24,6 @@ public class RoomController {
 
     @PostMapping("/rooms")
     @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
     public RoomGetDTO createRoom(@RequestBody RoomPostDTO roomPostDTO, 
                                  @RequestHeader(value = "userId", required = false) Long userId, 
                                  @RequestHeader(value = "token", required = false) String token) {

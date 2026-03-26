@@ -17,14 +17,12 @@ import jakarta.transaction.Transactional;
 public class RoomService {
     
     private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService) {
         this.roomRepository = roomRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
     }
 

@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * This tests if the UserController works.
  */
 @WebMvcTest(UserController.class)
-public class UserControllerTest {
+class UserControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -51,7 +51,7 @@ public class UserControllerTest {
 	private UserService userService;
 
 	@Test
-	public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
+	void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
 		// given
 		User user = new User();
 		user.setUsername("firstname@lastname");
@@ -75,7 +75,7 @@ public class UserControllerTest {
 
 	//Happy Test: /users/register; expect: 201
 	@Test
-	public void registerUser_validInput_userCreated() throws Exception {
+	void registerUser_validInput_userCreated() throws Exception {
 		// given
 		User user = new User();
 		user.setId(1L);
@@ -113,7 +113,7 @@ public class UserControllerTest {
 
 	//Negative Test: /users/register; expect: 409 (username already exists)
 	@Test
-	public void failedRegisterUser_usernameAlreadyExists() throws Exception {
+	void failedRegisterUser_usernameAlreadyExists() throws Exception {
 
 		UserPostDTO userPostDTO = new UserPostDTO();
 		userPostDTO.setUsername("user1");
@@ -134,7 +134,7 @@ public class UserControllerTest {
 
 	//Negative Test: /users/register; expect: 400 (username cannot be empty/blank)
 	@Test
-	public void failedRegisterUser_invalidUserInput() throws Exception {
+	void failedRegisterUser_invalidUserInput() throws Exception {
 
 		UserPostDTO userPostDTO = new UserPostDTO();
 		userPostDTO.setUsername("");
@@ -153,7 +153,7 @@ public class UserControllerTest {
 
 	//Happy Test: /users/login; expect: 200
 	@Test
-	public void loginUser_validInput_userLoggedIn() throws Exception {
+	void loginUser_validInput_userLoggedIn() throws Exception {
 		// given
 		User user = new User();
 		user.setId(5432L);
@@ -190,7 +190,7 @@ public class UserControllerTest {
 
 	//Negative Test: /users/login; expect: 404 (user to login not found)
 	@Test
-	public void failedLoginUser_invalidUserInput1() throws Exception {
+	void failedLoginUser_invalidUserInput1() throws Exception {
 
 		UserPostDTO userPostDTO = new UserPostDTO();
 		userPostDTO.setUsername("thisUsernameDoesNotExist");
@@ -210,7 +210,7 @@ public class UserControllerTest {
 
 	//Negative Test: /users/login; expect: 401 (password entered does not match saved one)
 	@Test
-	public void failedLoginUser_invalidUserInput2() throws Exception {
+	void failedLoginUser_invalidUserInput2() throws Exception {
 
 		User user = new User();
 		user.setUsername("thisUsernameExists");
@@ -235,7 +235,7 @@ public class UserControllerTest {
 
 	// /users/logout/{userId}; expect: 204 (logout successful)
 	@Test
-	public void logoutUser_validInput_logoutSuccessful() throws Exception {
+	void logoutUser_validInput_logoutSuccessful() throws Exception {
 		Long userId = 1L;
 		String token = "validToken";
 
@@ -252,7 +252,7 @@ public class UserControllerTest {
 
 	// /users/logout/{userId}; expect: 403 (token/user mismatch)
 	@Test
-	public void logoutUser_invalidToken_userMismatch() throws Exception {
+	void logoutUser_invalidToken_userMismatch() throws Exception {
 		Long userId = 1L;
 		String token = "invalidToken";
 
@@ -272,7 +272,7 @@ public class UserControllerTest {
 
 	// /users/logout/{userId}; expect: 401 (token is missing)
 	@Test
-	public void logoutUser_missingToken_unauthorized() throws Exception {
+	void logoutUser_missingToken_unauthorized() throws Exception {
 		Long userId = 1L;
 		String token = null;
 
@@ -291,7 +291,7 @@ public class UserControllerTest {
 
 	// /users/logout/{userId}; expect: 404 (user not found)
 	@Test
-	public void logoutUser_userNotFound() throws Exception {
+	void logoutUser_userNotFound() throws Exception {
 		Long userId = 1L;
 		String token = "validToken";
 
@@ -312,7 +312,7 @@ public class UserControllerTest {
 
 	// /users/{userId}/password; expect: 204 (password change successful)
 	@Test
-	public void changePassword_validInput_passwordChangeSuccessful() throws Exception {
+	void changePassword_validInput_passwordChangeSuccessful() throws Exception {
 		Long userId = 1L;
 		String token = "validToken";	
 
@@ -333,7 +333,7 @@ public class UserControllerTest {
 
 	// /users/{userId}/password; expect: 400 (new password is empty)
 	@Test
-	public void changePassword_emptyNewPassword_badRequest() throws Exception {
+	void changePassword_emptyNewPassword_badRequest() throws Exception {
 		Long userId = 1L;
 		String token = "validToken";
 
@@ -357,7 +357,7 @@ public class UserControllerTest {
 
 	// /users/{userId}/password; expect: 401 (token is missing)
 	@Test
-	public void changePassword_missingToken_unauthorized() throws Exception {
+	void changePassword_missingToken_unauthorized() throws Exception {
 		Long userId = 1L;
 		String token = null;
 
@@ -380,7 +380,7 @@ public class UserControllerTest {
 
 	// /users/{userId}/password; expect: 403 (token/user mismatch)
 	@Test
-	public void changePassword_invalidToken_userMismatch() throws Exception {
+	void changePassword_invalidToken_userMismatch() throws Exception {
 		Long userId = 1L;
 		String token = "invalidToken";
 
@@ -404,7 +404,7 @@ public class UserControllerTest {
 
 	// /users/{userId}/password; expect: 404 (user not found)
 	@Test
-	public void changePassword_userNotFound() throws Exception {
+	void changePassword_userNotFound() throws Exception {
 		Long userId = 1L;
 		String token = "validToken";
 
