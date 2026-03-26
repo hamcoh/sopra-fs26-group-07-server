@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
-public class UserRepositoryIntegrationTest {
+class UserRepositoryIntegrationTest {
 
 	@Autowired
 	private TestEntityManager entityManager;
@@ -21,7 +21,7 @@ public class UserRepositoryIntegrationTest {
 	private UserRepository userRepository;
 
 	@Test
-	public void findByUsername_success() {
+	void findByUsername_success() {
 		// given
 		User user = new User();
 		user.setUsername("firstname@lastname");
