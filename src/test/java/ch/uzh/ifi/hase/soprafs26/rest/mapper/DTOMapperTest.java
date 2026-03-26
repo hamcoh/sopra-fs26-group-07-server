@@ -3,24 +3,29 @@ package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import org.junit.jupiter.api.Test;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.Set;
 
 /**
  * DTOMapperTest
  * Tests if the mapping between the internal and the external/API representation
  * works.
  */
-public class DTOMapperTest {
+class DTOMapperTest {
 	@Test
-	public void testCreateUser_fromUserPostDTO_toUser_success() {
+	void testCreateUser_fromUserPostDTO_toUser_success() {
 		// create UserPostDTO
 		UserPostDTO userPostDTO = new UserPostDTO();
 		userPostDTO.setUsername("username");
@@ -33,7 +38,7 @@ public class DTOMapperTest {
 	}
 
 	@Test
-	public void testGetUser_fromUser_toUserGetDTO_success() {
+	void testGetUser_fromUser_toUserGetDTO_success() {
 		// create User
 		User user = new User();
 		user.setUsername("firstname@lastname");
@@ -50,7 +55,7 @@ public class DTOMapperTest {
 	}
 
 	@Test
-	public void testUserDTO_fromUser_toUserDTO_success() {
+	void testUserDTO_fromUser_toUserDTO_success() {
 		// create User
 		User user = new User();
 		user.setId(1L);
@@ -75,7 +80,7 @@ public class DTOMapperTest {
 	}
 
 	@Test
-	public void userInput_from_ChangePassDTO_success() {
+	void userInput_from_ChangePassDTO_success() {
 		// create ChangePassDTO
 		ChangePassDTO changePassDTO = new ChangePassDTO();
 		changePassDTO.setNewPassword("newValidPassword");
@@ -83,4 +88,57 @@ public class DTOMapperTest {
 		User userInput = DTOMapper.INSTANCE.convertChangePassDTOtoEntity(changePassDTO);
 		assertEquals(changePassDTO.getNewPassword(), userInput.getPassword());
 	}
+
+    @Test
+    void convertRoomPostDTOtoEntity_validInput_success() {
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setMaxNumPlayers(2);
+        roomPostDTO.setGameDifficulty("easy");
+        roomPostDTO.setGameLanguage("java");
+        roomPostDTO.setGameMode("race");
+        roomPostDTO.setMaxSkips(2);
+        roomPostDTO.setTimeLimitSeconds(600);
+        roomPostDTO.setNumOfProblems(3);
+
+        Room room = DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO);
+
+        assertEquals(2, room.getMaxNumPlayers());
+        assertEquals("easy", room.getGameDifficulty());
+        assertEquals("java", room.getGameLanguage());
+        assertEquals("race", room.getGameMode());
+        assertEquals(2, room.getMaxSkips());
+        assertEquals(600, room.getTimeLimitSeconds());
+        assertEquals(3, room.getNumOfProblems());
+    }
+
+    @Test
+    void convertEntityToRoomGetDTO_validInput_success() {
+        Room room = new Room();
+        room.setRoomId(1L);
+        room.setRoomJoinCode("ABC123");
+        room.setMaxNumPlayers(2);
+        room.setCurrentNumPlayers(1);
+        room.setRoomOpen(true);
+        room.setHostUserId(10L);
+        room.setPlayerIds(Set.of(10L));
+        room.setGameDifficulty("easy");
+        room.setGameLanguage("java");
+        room.setGameMode("race");
+        room.setMaxSkips(2);
+        room.setTimeLimitSeconds(600);
+        room.setNumOfProblems(3);
+
+        RoomGetDTO roomGetDTO = DTOMapper.INSTANCE.convertEntityToRoomGetDTO(room);
+
+        assertEquals(1L, roomGetDTO.getRoomId());
+        assertEquals("ABC123", roomGetDTO.getRoomJoinCode());
+        assertEquals(2, roomGetDTO.getMaxNumPlayers());
+        assertEquals(1, roomGetDTO.getCurrentNumPlayers());
+        assertTrue(roomGetDTO.getIsRoomOpen());
+        assertEquals(10L, roomGetDTO.getHostUserId());
+        assertEquals(Set.of(10L), roomGetDTO.getPlayerIds());
+        assertEquals("easy", roomGetDTO.getGameDifficulty());
+    }
 }
+
+

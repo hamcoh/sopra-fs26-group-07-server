@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 
-public class UserServiceTest {
+class UserServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -27,7 +27,7 @@ public class UserServiceTest {
 	private User testUser;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		MockitoAnnotations.openMocks(this);
 
 		// given
@@ -42,7 +42,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void createUser_validInputs_success() {
+	void createUser_validInputs_success() {
 		// when -> any object is being save in the userRepository -> return the dummy
 		// testUser
 		User createdUser = userService.createUser(testUser);
@@ -58,7 +58,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void createUser_duplicateUsername_throwsException() {
+	void createUser_duplicateUsername_throwsException() {
 		// given -> a first user has already been created
 		userService.createUser(testUser);
 
@@ -71,7 +71,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void loginUser_validInputs_success() {
+	void loginUser_validInputs_success() {
 		// given 
 		testUser.setStatus(UserStatus.OFFLINE);
 
@@ -85,7 +85,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void loginUser_userAlreadyLoggedIn_success() {
+	void loginUser_userAlreadyLoggedIn_success() {
 		// given 
 		testUser.setStatus(UserStatus.ONLINE);
 
@@ -99,7 +99,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void loginUser_passwordMismatch_throwsException() {
+	void loginUser_passwordMismatch_throwsException() {
 
 		//given: wrong password
 		User loginAttempt = new User();
@@ -114,7 +114,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void loginUser_usernameNotFound_throwsException() {
+	void loginUser_usernameNotFound_throwsException() {
 
 		//given: unknown username
 		User loginAttempt = new User();
@@ -129,7 +129,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void logoutUser_statusOffline() {
+	void logoutUser_statusOffline() {
 		// given
 		User user = new User();
 		user.setId(1L);
@@ -150,7 +150,8 @@ public class UserServiceTest {
 	
 	}
 
-	@Test void logoutUser_afterPasswordChange() {
+	@Test
+	void logoutUser_afterPasswordChange() {
 		// given
 		User user = new User();
 		user.setId(1L);
