@@ -41,6 +41,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.boot:spring-boot-h2console'
 
+    implementation(platform("com.google.cloud:libraries-bom:26.78.0"))
+    implementation("com.google.cloud:google-cloud-secretmanager")
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'
 
