@@ -50,27 +50,64 @@ class UserControllerTest {
 	@MockitoBean
 	private UserService userService;
 
+	//Happy Test: /users/leaderboard; expect: 200
 	@Test
-	void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
+	void givenUsers_getGlobalUsersLeaderboard_thenReturnJsonArray() throws Exception {
 		// given
 		User user = new User();
+		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setStatus(UserStatus.OFFLINE);
+		user.setBio("testBio");
+		user.setWinCount(0);
+		user.setWinRatePercentage(0.0);
+		user.setTotalGamesPlayed(0);
+		user.setTotalPoints(0L);
+		user.setRank(1); //rank 1, only one user
+
+		Date date = new Date();
+		user.setCreationDate(date);
 
 		List<User> allUsers = Collections.singletonList(user);
 
 		// this mocks the UserService -> we define above what the userService should
 		// return when getUsers() is called
-		given(userService.getUsers()).willReturn(allUsers);
+		given(userService.getGlobalUsersLeaderboard()).willReturn(allUsers);
 
 		// when
-		MockHttpServletRequestBuilder getRequest = get("/users").contentType(MediaType.APPLICATION_JSON);
+		MockHttpServletRequestBuilder getRequest = get("/users/leaderboard").contentType(MediaType.APPLICATION_JSON);
 
 		// then
 		mockMvc.perform(getRequest).andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(1)))
+				.andExpect(jsonPath("$[0].id", is(user.getId().intValue())))
 				.andExpect(jsonPath("$[0].username", is(user.getUsername())))
-				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
+				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())))
+				.andExpect(jsonPath("$[0].creationDate").isNotEmpty())
+				.andExpect(jsonPath("$[0].bio", is(user.getBio())))
+				.andExpect(jsonPath("$[0].winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$[0].winRatePercentage", is(user.getWinRatePercentage())))
+				.andExpect(jsonPath("$[0].totalGamesPlayed", is(user.getTotalGamesPlayed())))
+				.andExpect(jsonPath("$[0].totalPoints", is(user.getTotalPoints().intValue())))
+				.andExpect(jsonPath("$[0].rank", is(user.getRank())));
+	}
+
+	//Unhappy Test: /users/leaderboard; expect: 401
+	@Test
+	void failedToGetGlobalUsersLeaderboard_userUnauthorized() throws Exception {
+		User user = new User();
+		user.setToken("invalidToken");
+
+		String errorReason = "Token is invalid";
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorReason))
+				.when(userService).verifyToken(Mockito.any());
+
+		MockHttpServletRequestBuilder getRequest = get("/users/leaderboard").contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(getRequest)
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+
 	}
 
 	//Happy Test: /users/register; expect: 201

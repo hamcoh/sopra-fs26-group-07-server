@@ -31,11 +31,15 @@ public class UserController {
 		this.userService = userService;
 	}
 
-	@GetMapping("/users")
+	@GetMapping("/users/leaderboard")
 	@ResponseStatus(HttpStatus.OK)
-	public List<UserGetDTO> getAllUsers() {
-		// fetch all users in the internal representation
-		List<User> users = userService.getUsers();
+	public List<UserGetDTO> getGlobalLeaderboard(@RequestHeader(value = "token", required = false)  String token) {
+		
+		//check for permission
+		userService.verifyToken(token);
+
+		// fetch all users in the internal representation and sort them by totalPoints
+		List<User> users = userService.getGlobalUsersLeaderboard();
 		List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
 		// convert each user to the API representation
