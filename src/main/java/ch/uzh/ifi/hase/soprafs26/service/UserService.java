@@ -149,6 +149,17 @@ public class UserService {
 		userRepository.flush();
 	}
 
+	public User getUserById(Long userId){
+		
+		User user = userRepository.findUserById(userId);
+
+		if (user == null){
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource was not found!");
+		}
+		
+		return user;
+	}
+
 	/**
 	 * This is a helper method that will check the uniqueness criteria of the
 	 * username and the name

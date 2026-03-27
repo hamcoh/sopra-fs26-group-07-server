@@ -12,6 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	User findByUsername(String username);
 	User findByToken(String token);
+	User findUserById(Long userId);
 
 	List<User> findAllByOrderByTotalPointsDesc(); //JPA transforms it into SQL query: 'SELECT * FROM users ORDER BY totalPoints DESC;'
 }
