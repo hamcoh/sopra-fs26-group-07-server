@@ -49,6 +49,18 @@ public class UserController {
 		return userGetDTOs;
 	}
 
+	@GetMapping("/users/{userId}")
+	@ResponseStatus(HttpStatus.OK) 
+	@ResponseBody
+	public UserGetDTO getUserInfo(@PathVariable("userId") Long userId, @RequestHeader(value = "token", required = false) String token) {
+		
+		userService.verifyToken(token);
+
+		User user = userService.getUserById(userId);
+
+		return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+	}
+
 	@PostMapping("/users/register")
 	@ResponseStatus(HttpStatus.CREATED)
 	public UserDTO createUser(@RequestBody UserPostDTO userPostDTO) {
