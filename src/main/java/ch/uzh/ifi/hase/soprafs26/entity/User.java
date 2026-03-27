@@ -56,7 +56,7 @@ public class User implements Serializable {
 	private int totalGamesPlayed;
 
 	@Column(nullable = false)
-	private long totalPoints;
+	private Long totalPoints;
 
 	public Long getId() {
 		return id;
@@ -138,11 +138,11 @@ public class User implements Serializable {
 		this.totalGamesPlayed = totalGamesPlayed;
 	}
 
-	public long getTotalPoints() {
+	public Long getTotalPoints() {
 		return totalPoints;
 	}
 
-	public void setTotalPoints(long totalPoints) {
+	public void setTotalPoints(Long totalPoints) {
 		this.totalPoints = totalPoints;
 	}
 }

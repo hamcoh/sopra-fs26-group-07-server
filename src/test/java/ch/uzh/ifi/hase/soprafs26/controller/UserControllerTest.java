@@ -84,6 +84,10 @@ class UserControllerTest {
 		user.setBio("testBio");
 		user.setToken("1");
 		user.setStatus(UserStatus.ONLINE);
+		user.setWinCount(0);
+		user.setWinRatePercentage(0.0);
+		user.setTotalGamesPlayed(0);
+		user.setTotalPoints(0L);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -108,7 +112,11 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
 				.andExpect(jsonPath("$.creationDate").isNotEmpty())
 				.andExpect(jsonPath("$.bio", is(user.getBio())))
-				.andExpect(jsonPath("$.token", is(user.getToken())));		
+				.andExpect(jsonPath("$.token", is(user.getToken())))
+				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
+				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
+				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())));		
 	}
 
 	//Negative Test: /users/register; expect: 409 (username already exists)
@@ -162,6 +170,10 @@ class UserControllerTest {
 		user.setBio("I love Bad Bunny!");
 		user.setToken("validToken");
 		user.setStatus(UserStatus.OFFLINE);
+		user.setWinCount(10);
+		user.setWinRatePercentage(50.0);
+		user.setTotalGamesPlayed(20);
+		user.setTotalPoints(450L);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -185,7 +197,11 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
 				.andExpect(jsonPath("$.creationDate").isNotEmpty())
 				.andExpect(jsonPath("$.bio", is(user.getBio())))
-				.andExpect(jsonPath("$.token", is(user.getToken())));		
+				.andExpect(jsonPath("$.token", is(user.getToken())))
+				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
+				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
+				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())));	
 	}
 
 	//Negative Test: /users/login; expect: 404 (user to login not found)
