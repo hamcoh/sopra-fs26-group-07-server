@@ -55,6 +55,10 @@ class UserServiceTest {
 		assertEquals(testUser.getPassword(), createdUser.getPassword());
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
+		assertEquals(0, createdUser.getWinCount());
+		assertEquals(0.0, createdUser.getWinRatePercentage());
+		assertEquals(0, createdUser.getTotalGamesPlayed());
+		assertEquals(0L, createdUser.getTotalPoints());
 	}
 
 	@Test

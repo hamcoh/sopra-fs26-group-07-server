@@ -12,6 +12,10 @@ public class UserDTO {
     private String bio;
     private UserStatus status;
     private Date creationDate;
+    private int winCount;
+    private double winRatePercentage;
+    private int totalGamesPlayed;
+    private long totalPoints;
 
     public Long getId() {
         return id;
@@ -48,5 +52,29 @@ public class UserDTO {
     }
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+    public int getWinCount() {
+        return winCount;
+    }
+    public void setWinCount(int winCount) {
+        this.winCount = winCount;
+    }
+    public double getWinRatePercentage() {
+        return winRatePercentage;
+    }
+    public void setWinRatePercentage(double winRatePercentage) {
+        this.winRatePercentage = winRatePercentage;
+    }
+    public int getTotalGamesPlayed() {
+        return totalGamesPlayed;
+    }
+    public void setTotalGamesPlayed(int totalGamesPlayed) {
+        this.totalGamesPlayed = totalGamesPlayed;
+    }
+    public long getTotalPoints() {
+        return totalPoints;
+    }
+    public void setTotalPoints(long totalPoints) {
+        this.totalPoints = totalPoints;
     }
 }
