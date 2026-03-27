@@ -15,6 +15,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
+import java.util.List;
 
 class UserServiceTest {
 
@@ -181,4 +182,39 @@ class UserServiceTest {
 		Mockito.verify(userRepository, Mockito.times(2)).save(user); // Verify that the user is saved two times (once for password change, once for status update)
 		Mockito.verify(userRepository, Mockito.times(2)).flush(); // Verify that flush is called two times to persist the changes
 	}
+
+	@Test
+	void getGlobalUsersLeaderboard_assignsRanksCorrectly() {
+		
+		// given
+		User user1 = new User();
+		user1.setTotalPoints(29L);
+
+		User user2 = new User();
+		user2.setTotalPoints(30L);
+
+		User user3 = new User();
+		user3.setTotalPoints(90L);
+
+		List<User> users = List.of(user1, user2, user3);
+		Mockito.when(userRepository.findAllByOrderByTotalPointsDesc()).thenReturn(users);
+
+		// when
+		List<User> result = userService.getGlobalUsersLeaderboard();
+
+		// then
+		assertEquals(1, result.get(0).getRank());
+		assertEquals(2, result.get(1).getRank());
+		assertEquals(3, result.get(2).getRank());
+	}
+
+	@Test
+	void getGlobalUsersLeaderboard_noUsers_returnsEmptyList() { // function does not break when no users stored
+
+		Mockito.when(userRepository.findAllByOrderByTotalPointsDesc()).thenReturn(List.of()); //return empty list
+		
+		List<User> users = userService.getGlobalUsersLeaderboard();
+		
+		assertTrue(users.isEmpty());
+}
 }

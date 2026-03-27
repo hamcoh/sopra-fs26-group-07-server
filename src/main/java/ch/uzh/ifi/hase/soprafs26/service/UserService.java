@@ -34,8 +34,14 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public List<User> getUsers() {
-		return this.userRepository.findAll();
+	public List<User> getGlobalUsersLeaderboard() {
+
+		List<User> users = userRepository.findAllByOrderByTotalPointsDesc();
+
+		for (int i = 0; i < users.size(); i++) {
+			users.get(i).setRank(i + 1);
+		}
+		return users;
 	}
 
 	public User createUser(User newUser) {

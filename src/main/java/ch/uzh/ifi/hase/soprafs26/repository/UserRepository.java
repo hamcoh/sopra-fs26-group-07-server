@@ -5,11 +5,13 @@ import org.springframework.stereotype.Repository;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
+import java.util.List;
+
 @Repository("userRepository")
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	
-
 	User findByUsername(String username);
 	User findByToken(String token);
+
+	List<User> findAllByOrderByTotalPointsDesc(); //JPA transforms it into SQL query: 'SELECT * FROM users ORDER BY totalPoints DESC;'
 }

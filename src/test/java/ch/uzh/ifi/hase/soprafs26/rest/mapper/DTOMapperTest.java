@@ -13,6 +13,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
@@ -37,13 +38,23 @@ class DTOMapperTest {
 		assertEquals(userPostDTO.getUsername(), user.getUsername());
 	}
 
+
 	@Test
 	void testGetUser_fromUser_toUserGetDTO_success() {
 		// create User
 		User user = new User();
+		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setStatus(UserStatus.OFFLINE);
-		user.setToken("1");
+		user.setBio("borbone is goated");
+		user.setWinCount(10);
+		user.setWinRatePercentage(100.0);
+		user.setTotalGamesPlayed(10);
+		user.setTotalPoints(1000L);
+		user.setRank(1);
+
+		Date date = new Date();
+		user.setCreationDate(date);
 
 		// MAP -> Create UserGetDTO
 		UserGetDTO userGetDTO = DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
@@ -52,6 +63,13 @@ class DTOMapperTest {
 		assertEquals(user.getId(), userGetDTO.getId());
 		assertEquals(user.getUsername(), userGetDTO.getUsername());
 		assertEquals(user.getStatus(), userGetDTO.getStatus());
+		assertEquals(user.getBio(), userGetDTO.getBio());
+		assertEquals(user.getWinCount(), userGetDTO.getWinCount());
+		assertEquals(user.getWinRatePercentage(), userGetDTO.getWinRatePercentage());
+		assertEquals(user.getTotalGamesPlayed(), userGetDTO.getTotalGamesPlayed());
+		assertEquals(user.getTotalPoints(), userGetDTO.getTotalPoints());
+		assertEquals(user.getRank(), userGetDTO.getRank());
+		assertNotNull(userGetDTO.getCreationDate());
 	}
 
 	@Test
