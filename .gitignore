@@ -44,3 +44,8 @@ local.properties
 .xcode*
 
 /bin
+
+# don't track solutions of problems and test cases + cache
+src/main/resources/problems/**/solution.py
+src/main/resources/problems/**/tests.py
+**/__pycache__/

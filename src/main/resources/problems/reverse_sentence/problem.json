@@ -1,0 +1,14 @@
+{
+    "id": 6,
+    "title": "Reverse Sentence",
+    "description": "Given a sentence s containing only lowercase English letters and spaces, return the sentence with the order of words reversed. For instance: Input='hello world', Output='world hello'",
+    "inputFormat": "A sentence s containing only lowercase English letters and spaces",
+    "outputFormat": "string",
+    "constraints": "0 < len(s) < 30",
+    "testCases": [
+        { "input": "spring boot", "expectedOutput": "boot spring" },
+        { "input": "the sky is blue", "expectedOutput": "blue is sky the" },
+        { "input": "python", "expectedOutput": "python" },
+        { "input": "one two three", "expectedOutput": "three two one" }
+    ]
+}

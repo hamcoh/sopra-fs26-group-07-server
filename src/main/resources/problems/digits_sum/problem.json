@@ -1,0 +1,16 @@
+{
+    "id": 8,
+    "title": "Digits Sum",
+    "description": "Given a non-negative integer n, return the sum of its digits (i.e., the checksum). For instance: Input=5432, Output=14",
+    "inputFormat": "non-negative integer",
+    "outputFormat": "non-negative integer",
+    "constraints": "0 <= n < 100000",
+    "testCases": [
+        { "input": 158, "expectedOutput": 14 },
+        { "input": 7777, "expectedOutput": 28 },
+        { "input": 0, "expectedOutput": 0 },
+        { "input": 8, "expectedOutput": 8 },
+        { "input": 98765, "expectedOutput": 35 }
+
+    ]
+}
