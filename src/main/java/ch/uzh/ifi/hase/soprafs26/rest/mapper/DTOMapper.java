@@ -5,12 +5,21 @@ import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.Problem;
+import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
+
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ProblemGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ProblemPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.TestCaseGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.TestCasePostDTO;
+
+
 
 /**
  * DTOMapper
@@ -85,4 +94,32 @@ public interface DTOMapper {
 	@Mapping(source = "timeLimitSeconds", target = "timeLimitSeconds")
 	@Mapping(source = "numOfProblems", target = "numOfProblems")
 	RoomGetDTO convertEntityToRoomGetDTO(Room room);
+
+	@Mapping(source = "title", target = "title")
+	@Mapping(source = "description", target = "description")
+	@Mapping(source = "inputFormat", target = "inputFormat")
+	@Mapping(source = "outputFormat", target = "outputFormat")
+	@Mapping(source = "constraints", target = "constraints")
+	@Mapping(source = "testCases", target = "testCases")
+	Problem convertProblemPostDTOtoEntity(ProblemPostDTO problemPostDTO);
+
+	@Mapping(source = "problemId", target = "problemId")
+	@Mapping(source = "title", target = "title")
+	@Mapping(source = "description", target = "description")
+	@Mapping(source = "inputFormat", target = "inputFormat")
+	@Mapping(source = "outputFormat", target = "outputFormat")
+	@Mapping(source = "constraints", target = "constraints")
+	@Mapping(source = "testCases", target = "testCases")
+	ProblemGetDTO convertEntityToProblemGetDTO(Problem problem);
+
+	@Mapping(source = "input", target = "input")
+	@Mapping(source = "expectedOutput", target = "expectedOutput")
+	TestCase convertTestCasePostDTOtoEntity(TestCasePostDTO testCasePostDTO);
+
+	@Mapping(source = "testCaseId", target = "testCaseId")
+	@Mapping(source = "input", target = "input")
+	@Mapping(source = "expectedOutput", target = "expectedOutput")
+	TestCaseGetDTO convertEntityToTestCaseGetDTO(TestCase testCase);
+
+
 }
