@@ -10,5 +10,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Problem;
  */
 @Repository("problemRepository")
 public interface ProblemRepository extends JpaRepository<Problem, Long> {
-    
+
+    Problem findByProblemId(Long problemId);
 }

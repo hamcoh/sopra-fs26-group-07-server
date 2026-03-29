@@ -5,12 +5,14 @@ import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+
 
 /**
  * DTOMapper
@@ -85,4 +87,5 @@ public interface DTOMapper {
 	@Mapping(source = "timeLimitSeconds", target = "timeLimitSeconds")
 	@Mapping(source = "numOfProblems", target = "numOfProblems")
 	RoomGetDTO convertEntityToRoomGetDTO(Room room);
+
 }
