@@ -29,6 +29,8 @@ import java.util.Date;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -106,6 +108,93 @@ class UserControllerTest {
 
 		mockMvc.perform(getRequest)
 				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+
+	}
+
+	//Happy Test: /users/{userId}; expect: 200
+	@Test
+	void retrieveUser_validRequest_thenReturnJsonArray() throws Exception {
+		// given
+		User user = new User();
+		user.setId(1L);
+		user.setToken("validToken");
+		user.setUsername("testUser");
+		user.setStatus(UserStatus.ONLINE);
+		user.setBio("testBio");
+		user.setWinCount(0);
+		user.setWinRatePercentage(0.0);
+		user.setTotalGamesPlayed(0);
+		user.setTotalPoints(0L);
+		user.setRank(1); //rank 1, only one user
+
+		Date date = new Date();
+		user.setCreationDate(date);
+
+		Long userId = user.getId();
+		String token = user.getToken();
+
+		doNothing().when(userService).verifyToken(Mockito.any()); //token is valid (simulated)
+		given(userService.getUserById(Mockito.any())).willReturn(user);
+
+		// when
+		MockHttpServletRequestBuilder getRequest = get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).header("token", token);
+
+		// then
+		mockMvc.perform(getRequest).andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is(user.getId().intValue())))
+				.andExpect(jsonPath("$.username", is(user.getUsername())))
+				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
+				.andExpect(jsonPath("$.creationDate").isNotEmpty())
+				.andExpect(jsonPath("$.bio", is(user.getBio())))
+				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
+				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
+				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
+				.andExpect(jsonPath("$.rank", is(user.getRank())));
+	}
+
+	//Unhappy Test: /users/{userId}; expect: 401 (request unauthorized)
+	@Test
+	void failedRetrieveUser_unauthorized() throws Exception {
+
+		User user = new User();
+		user.setId(1L);
+		user.setToken("invalidToken");
+
+		Long userId = user.getId();
+		String token = user.getToken();
+
+		String errorReason = "Token is invalid!";
+		doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorReason)).when(userService).verifyToken(Mockito.any());
+
+		MockHttpServletRequestBuilder getRequest = get("/users/{userId}", userId).contentType(MediaType.APPLICATION_JSON).header("token", token);
+
+		mockMvc.perform(getRequest)
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+
+	}
+
+	//Unhappy Test: /users/{userId}; expect: 404 (userId not found)
+	@Test
+	void failedRetrieveUser_notFound() throws Exception {
+
+		User user = new User();
+		user.setId(1L);
+		user.setToken("validToken");
+
+		String token = user.getToken();
+
+		Long notExistingUserId = 5432L;
+
+		String errorReason = "Resource was not found!";
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason)).when(userService).verifyToken(Mockito.any());
+
+		MockHttpServletRequestBuilder getRequest = get("/users/{userId}", notExistingUserId).contentType(MediaType.APPLICATION_JSON).header("token", token);
+
+		mockMvc.perform(getRequest)
+				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.detail", is(errorReason)));
 
 	}
