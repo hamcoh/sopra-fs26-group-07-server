@@ -1,13 +1,13 @@
 {
     "id": 5,
     "title": "Longest Word",
-    "description": "Given a sentence s containing only lowercase English letters and spaces, return the longest word. If two words have the same length, return the first one. For instace: Input='I love Python', Output='Python'",
-    "inputFormat": "A sentence s containing only lowercase English letters and spaces",
+    "description": "Given a sentence s containing only lowercase alphabetic characters and spaces, return the longest word. If two words have the same length, return the first one. For instace: Input='i love python', Output='python'",
+    "inputFormat": "A sentence s containing only lowercase alphabetic characters and spaces",
     "outputFormat": "string",
     "constraints": "0 < len(s) < 30",
     "testCases": [
         { "input": "hello everyone i am here", "expectedOutput": "everyone" },
-        { "input": "I love Python", "expectedOutput": "Python" },
+        { "input": "i love python", "expectedOutput": "python" },
         { "input": "hey bye nay", "expectedOutput": "hey" },
         { "input": "single", "expectedOutput": "single" },
         { "input": "a word", "expectedOutput": "word" }

@@ -1,8 +1,8 @@
 {
     "id": 11,
     "title": "Reverse String (Sample Problem)",
-    "description": "Given a string s containing only lowercase English letters, return the string reversed. For instance: Input='python', Output='nohtyp'",
-    "inputFormat": "A string of lowercase English letters",
+    "description": "Given a string s containing only lowercase alphabetic characters (with no spaces), return the string reversed. For instance: Input='python', Output='nohtyp'",
+    "inputFormat": "A string s of lowercase alphabetic characters (with no spaces)",
     "outputFormat": "A string",
     "constraints": "0 < len(s) < 30",
     "testCases": [
