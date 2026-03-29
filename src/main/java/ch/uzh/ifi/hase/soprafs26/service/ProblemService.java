@@ -3,7 +3,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;  
@@ -12,6 +11,16 @@ import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
 import java.util.List;
 
+/**
+ * If we use seeding, we can use this service to create the problems and test cases 
+ * that we want to have in our database when the application starts.
+ * So this is only for internal seeding use and has nothing to do with the frontend / REST Api controller etc.
+ * 
+ * !! Also please not that we don't need a TestService because test cases are always created 
+ * together with a problem and are then stored in the database via the cascade = CascadeType.ALL option
+ * in the Problem entity. So we can just use the ProblemService to create problems 
+ * and test cases at the same time. !!
+ */
 
 @Service
 @Transactional
@@ -31,22 +40,22 @@ public class ProblemService {
         
         if (newProblem.getTestCases() == null || newProblem.getTestCases().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have at least one test case.");
-        } else if (newProblem.getTitle() == null || newProblem.getTitle().isEmpty()) {
+        } else if (newProblem.getTitle() == null || newProblem.getTitle().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have a title.");
-        } else if (newProblem.getDescription() == null || newProblem.getDescription().isEmpty()) {
+        } else if (newProblem.getDescription() == null || newProblem.getDescription().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have a description.");
-        } else if (newProblem.getInputFormat() == null || newProblem.getInputFormat().isEmpty()) {
+        } else if (newProblem.getInputFormat() == null || newProblem.getInputFormat().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have an input format.");
-        } else if (newProblem.getOutputFormat() == null || newProblem.getOutputFormat().isEmpty()) {
+        } else if (newProblem.getOutputFormat() == null || newProblem.getOutputFormat().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have an output format.");
-        } else if (newProblem.getConstraints() == null || newProblem.getConstraints().isEmpty()) {
+        } else if (newProblem.getConstraints() == null || newProblem.getConstraints().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have constraints.");
-        } else { // no edge cases then we can save the problem and save it testcasees.
+        } else { // no edge cases then we can save the problem and save its testcasees.
             for (int i = 0; i < newProblem.getTestCases().size(); i++) {
                 TestCase testCase = newProblem.getTestCases().get(i);
-                if (testCase.getInput() == null || testCase.getInput().isEmpty()) {
+                if (testCase.getInput() == null || testCase.getInput().isBlank()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an input.");
-                } else if (testCase.getExpectedOutput() == null || testCase.getExpectedOutput().isEmpty()) {
+                } else if (testCase.getExpectedOutput() == null || testCase.getExpectedOutput().isBlank()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an expected output.");
                 }
                 
