@@ -1,0 +1,15 @@
+{
+    "title": "Anagram Check",
+    "description": "Given two strings a and b containing only alphabetic characters and spaces, return True if they are anagrams of each other, or False otherwise. Two strings are anagrams if they contain the same letters the same number of times, ignoring case and spaces. For instance: Input=(a=meteor, b=remote), Output=True",
+    "inputFormat": "Two strings a and b containing only alphabetic characters and spaces",
+    "outputFormat": "Boolean: True if strings are anagrams, False otherwise",
+    "constraints": "0 < len(a) < 30 and 0 < len(b) < 30",
+    "testCases": [
+        { "input": "'listen', 'silent'", "expectedOutput": "True" },
+        { "input": "'python', 'java'", "expectedOutput": "False" },
+        { "input": "'the classroom', 'Schoolmaster'", "expectedOutput": "True" },
+        { "input": "'meal for one', 'for me alone'", "expectedOutput": "True" },
+        { "input": "'', ''", "expectedOutput": "True" },
+        { "input": "'fcz', 'fc'", "expectedOutput": "False" }
+    ]
+}
