@@ -1,9 +1,8 @@
 {
-    "id": 3,
     "title": "Count Vowels",
     "description": "Given a string s containing only lowercase alphabetic characters, return the number of vowels (i.e., a, e, i, o, u) in the string as integer. For instance: Input='borbone', Output=3",
     "inputFormat": "String s containing only lowercase alphabetic characters",
-    "outputFormat": "Integer",
+    "outputFormat": "Integer capturing the number of vowels in s",
     "constraints": "0 < len(s) < 30",
     "testCases": [
         { "input": "python", "expectedOutput": 1 },

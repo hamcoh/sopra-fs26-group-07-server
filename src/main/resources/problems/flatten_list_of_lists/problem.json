@@ -1,9 +1,8 @@
 {
-    "id": 9,
     "title": "Flatten a List of Lists",
     "description": "Given a nested list a where each element is a list of integers (list can be empty), return a single flat list (i.e., not nested) containing all the integers in order. For instance: Input=[[1, 2, 3], [4, 5], [6, 7]], Output=[1, 2, 3, 4, 5, 6, 7]",
-    "inputFormat": "A list of lists of integers.",
-    "outputFormat": "A single flat list of integers.",
+    "inputFormat": "A list of lists of integers (i.e., a nested list)",
+    "outputFormat": "A single flat list of integers",
     "constraints": "0 <= number of sublists <= 10",
     "testCases": [
         { "input": "[[5,12],[33,4],[87]]", "expectedOutput": "[5,12,33,4,87]" },

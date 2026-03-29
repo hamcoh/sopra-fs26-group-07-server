@@ -1,9 +1,8 @@
 {
-    "id": 2,
     "title": "Fizz Buzz",
     "description": "Given a positive integer n, return a list of strings for each number/integer from 1 to n (n included). For multiples of 3 output 'Fizz', for multiples of 5 output 'Buzz' and for multiples of both 3 and 5 output 'FizzBuzz'; for all other numbers output the number itself as a string. For instance: Given n=6, Output=['1', '2', 'Fizz', '4', 'Buzz', '6']",
-    "inputFormat": "An integer n",
-    "outputFormat": "List of strings",
+    "inputFormat": "A positive integer n",
+    "outputFormat": "List of strings whereby the strings are either the numbers itself (as strings), 'Fizz', 'Buzz' or 'FizzBuzz'",
     "constraints": "0 < len(n) < 47",
     "testCases": [ 
         { "input": 3, "expectedOutput": "['1', '2', 'Fizz']" },

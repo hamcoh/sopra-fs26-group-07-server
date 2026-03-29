@@ -1,9 +1,8 @@
 {
-    "id": 7,
     "title": "Is Prime",
     "description": "Given a positive integer n, return True if n is a prime number or False otherwise. A prime number is a number greater than 1 that has no divisors other than 1 and itself. For instance, Input=10, Output=False",
-    "inputFormat": "Integer",
-    "outputFormat": "Boolean",
+    "inputFormat": "A positive integer n",
+    "outputFormat": "Boolean: True if n is prime, otherwise False",
     "constraints": "0 < n < 100",
     "testCases": [
         { "input": 13, "expectedOutput": "True" },

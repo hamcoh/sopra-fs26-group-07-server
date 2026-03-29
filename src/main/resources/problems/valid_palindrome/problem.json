@@ -1,9 +1,8 @@
 {
-    "id": 1,
     "title": "Valid Palindrome",
     "description": "Given a lowercase string s containing only alphabetic characters (with no spaces), return True if it is a palindrome, False otherwise. A string is a palindrome if it reads the same forward and backward. For instance, 'radar' is a palindrome while 'python' is not",
     "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
-    "outputFormat": "Boolean",
+    "outputFormat": "Boolean: True if s is palindrome, otherwise False",
     "constraints": "0 < len(s) < 50",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "True" },

@@ -1,9 +1,8 @@
 {
-    "id": 8,
     "title": "Digits Sum",
     "description": "Given a non-negative integer n, return the sum of its digits (i.e., the checksum). For instance: Input=5432, Output=14",
     "inputFormat": "non-negative integer",
-    "outputFormat": "non-negative integer",
+    "outputFormat": "non-negative integer (i.e., the sum of digits)",
     "constraints": "0 <= n < 100000",
     "testCases": [
         { "input": 158, "expectedOutput": 14 },
