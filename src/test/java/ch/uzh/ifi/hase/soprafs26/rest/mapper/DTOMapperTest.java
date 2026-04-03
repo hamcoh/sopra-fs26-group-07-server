@@ -19,6 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.Set;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
+
 /**
  * DTOMapperTest
  * Tests if the mapping between the internal and the external/API representation
@@ -110,20 +114,18 @@ class DTOMapperTest {
     @Test
     void convertRoomPostDTOtoEntity_validInput_success() {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
-        roomPostDTO.setMaxNumPlayers(2);
-        roomPostDTO.setGameDifficulty("easy");
-        roomPostDTO.setGameLanguage("java");
-        roomPostDTO.setGameMode("race");
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.JAVA);
+        roomPostDTO.setGameMode(GameMode.SPRINT);
         roomPostDTO.setMaxSkips(2);
         roomPostDTO.setTimeLimitSeconds(600);
         roomPostDTO.setNumOfProblems(3);
 
         Room room = DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO);
 
-        assertEquals(2, room.getMaxNumPlayers());
-        assertEquals("easy", room.getGameDifficulty());
-        assertEquals("java", room.getGameLanguage());
-        assertEquals("race", room.getGameMode());
+        assertEquals("EASY", room.getGameDifficulty().toString());
+        assertEquals("JAVA", room.getGameLanguage().toString());
+        assertEquals("SPRINT", room.getGameMode().toString());
         assertEquals(2, room.getMaxSkips());
         assertEquals(600, room.getTimeLimitSeconds());
         assertEquals(3, room.getNumOfProblems());
@@ -139,9 +141,9 @@ class DTOMapperTest {
         room.setRoomOpen(true);
         room.setHostUserId(10L);
         room.setPlayerIds(Set.of(10L));
-        room.setGameDifficulty("easy");
-        room.setGameLanguage("java");
-        room.setGameMode("race");
+        room.setGameDifficulty(GameDifficulty.EASY);
+        room.setGameLanguage(GameLanguage.JAVA);
+        room.setGameMode(GameMode.RACE);
         room.setMaxSkips(2);
         room.setTimeLimitSeconds(600);
         room.setNumOfProblems(3);
@@ -155,7 +157,12 @@ class DTOMapperTest {
         assertTrue(roomGetDTO.getIsRoomOpen());
         assertEquals(10L, roomGetDTO.getHostUserId());
         assertEquals(Set.of(10L), roomGetDTO.getPlayerIds());
-        assertEquals("easy", roomGetDTO.getGameDifficulty());
+        assertEquals("EASY", roomGetDTO.getGameDifficulty().toString());
+		assertEquals("JAVA", roomGetDTO.getGameLanguage().toString());
+		assertEquals("RACE", roomGetDTO.getGameMode().toString());
+		assertEquals(2, roomGetDTO.getMaxSkips());
+		assertEquals(600, roomGetDTO.getTimeLimitSeconds());
+		assertEquals(3, roomGetDTO.getNumOfProblems());
     }
 }
 

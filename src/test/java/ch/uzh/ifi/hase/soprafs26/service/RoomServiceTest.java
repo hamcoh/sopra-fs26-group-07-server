@@ -20,6 +20,10 @@ import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
+
 class RoomServiceTest {
 
     @Mock
@@ -45,10 +49,9 @@ class RoomServiceTest {
         host.setUsername("hostUser");
 
         RoomPostDTO roomPostDTO = new RoomPostDTO();
-        roomPostDTO.setMaxNumPlayers(2);
-        roomPostDTO.setGameDifficulty("easy");
-        roomPostDTO.setGameLanguage("borbone");
-        roomPostDTO.setGameMode("race");
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
         roomPostDTO.setNumOfProblems(10);  
@@ -64,7 +67,7 @@ class RoomServiceTest {
         Room createdRoom = roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
         
         assertEquals(host.getId(), createdRoom.getHostUserId());
-        assertEquals(roomPostDTO.getMaxNumPlayers(), createdRoom.getMaxNumPlayers());
+        assertEquals(2, createdRoom.getMaxNumPlayers());
         assertEquals(roomPostDTO.getGameDifficulty(), createdRoom.getGameDifficulty());
         assertEquals(roomPostDTO.getGameLanguage(), createdRoom.getGameLanguage());
         assertEquals(roomPostDTO.getGameMode(), createdRoom.getGameMode());

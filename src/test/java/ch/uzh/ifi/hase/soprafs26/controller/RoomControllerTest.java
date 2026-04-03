@@ -25,6 +25,10 @@ import ch.uzh.ifi.hase.soprafs26.service.RoomService;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
+
 @WebMvcTest(RoomController.class)
 class RoomControllerTest {
 
@@ -44,19 +48,17 @@ class RoomControllerTest {
     room.setRoomOpen(true);
     room.setHostUserId(1L);
     room.setPlayerIds(new HashSet<>(Set.of(1L)));
-    room.setGameDifficulty("easy");
-    room.setGameLanguage("borbone");
-    room.setGameMode("race");
+    room.setGameDifficulty(GameDifficulty.EASY);
+    room.setGameLanguage(GameLanguage.PYTHON);
+    room.setGameMode(GameMode.RACE);
     room.setMaxSkips(3);
     room.setTimeLimitSeconds(60);
-    room.setNumOfProblems(10);
-
+    room.setNumOfProblems(10); 
 
     RoomPostDTO roomPostDTO = new RoomPostDTO();
-    roomPostDTO.setMaxNumPlayers(2);
-    roomPostDTO.setGameDifficulty("easy");
-    roomPostDTO.setGameLanguage("borbone");
-    roomPostDTO.setGameMode("race");
+    room.setGameDifficulty(GameDifficulty.EASY);
+    room.setGameLanguage(GameLanguage.PYTHON);
+    room.setGameMode(GameMode.RACE);
     roomPostDTO.setMaxSkips(3);
     roomPostDTO.setTimeLimitSeconds(60);
     roomPostDTO.setNumOfProblems(10);
@@ -69,7 +71,6 @@ class RoomControllerTest {
         .contentType("application/json")
         .content(asJsonString(roomPostDTO));
 
-
      mockMvc.perform(postRequest)
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.roomId", is(1)))
@@ -80,9 +81,9 @@ class RoomControllerTest {
         .andExpect(jsonPath("$.hostUserId", is(1)))
         .andExpect(jsonPath("$.playerIds", hasSize(1)))
         .andExpect(jsonPath("$.playerIds[0]", is(1)))
-        .andExpect(jsonPath("$.gameDifficulty", is("easy")))
-        .andExpect(jsonPath("$.gameLanguage", is("borbone")))
-        .andExpect(jsonPath("$.gameMode", is("race")))
+        .andExpect(jsonPath("$.gameDifficulty", is(room.getGameDifficulty().toString())))
+        .andExpect(jsonPath("$.gameLanguage", is(room.getGameLanguage().toString())))
+        .andExpect(jsonPath("$.gameMode", is(room.getGameMode().toString())))
         .andExpect(jsonPath("$.maxSkips", is(3)))
         .andExpect(jsonPath("$.timeLimitSeconds", is(60)))
         .andExpect(jsonPath("$.numOfProblems", is(10)));
@@ -92,10 +93,9 @@ class RoomControllerTest {
     @Test
     void createRoom_invalidToken_unauthorized() throws Exception {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
-        roomPostDTO.setMaxNumPlayers(2);
-        roomPostDTO.setGameDifficulty("easy");
-        roomPostDTO.setGameLanguage("java");
-        roomPostDTO.setGameMode("race");
+        roomPostDTO.setGameDifficulty(GameDifficulty.HARD);
+        roomPostDTO.setGameLanguage(GameLanguage.JAVA);
+        roomPostDTO.setGameMode(GameMode.SPRINT);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
         roomPostDTO.setNumOfProblems(10);
@@ -114,31 +114,36 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$.detail", is("Token is invalid")));
 }
 
-// Create Room Bad Request 400 - Missing Required Field
+// Create Room Bad Request 400 - given invalid parameter
 @Test
 void createRoom_missingRequiredField_badRequest() throws Exception {
-    RoomPostDTO roomPostDTO = new RoomPostDTO();
-    roomPostDTO.setMaxNumPlayers(2);
-    roomPostDTO.setGameDifficulty("easy");
-    roomPostDTO.setGameLanguage("java");
-    roomPostDTO.setGameMode("race");
-    roomPostDTO.setMaxSkips(3);
-    roomPostDTO.setTimeLimitSeconds(60);
-    // roomPostDTO.setNumOfProblems(10); - Missing required field
+        
+        String invalidGameSettings = """
+        {
+        "gameDifficulty": "INVALID",
+        "gameLanguage": "PYTHON",
+        "gameMode": "SPRINT"
+        }
+        """;
 
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing required fields."))
-            .when(roomService).createRoom(Mockito.any(Room.class), Mockito.anyLong(), Mockito.anyString());
+        String errorReason = "Room creation failed: Invalid value provided";
+        String errorHandling = "Check that all room settings fields have valid values!";
 
-    MockHttpServletRequestBuilder postRequest = post("/rooms")
-            .header("token", "valid_token")
-            .header("userId", "1")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(roomPostDTO));
 
-    mockMvc.perform(postRequest)
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.detail", is("Missing required fields.")));
-    }
+        Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason))
+                .when(roomService).createRoom(Mockito.any(Room.class), Mockito.anyLong(), Mockito.anyString());
+
+        MockHttpServletRequestBuilder postRequest = post("/rooms")
+                .header("token", "valid_token")
+                .header("userId", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidGameSettings);
+
+        mockMvc.perform(postRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.reason", is(errorReason)))
+                .andExpect(jsonPath("$.message", is(errorHandling)));
+        }
 
     /**
 	 * @param object
