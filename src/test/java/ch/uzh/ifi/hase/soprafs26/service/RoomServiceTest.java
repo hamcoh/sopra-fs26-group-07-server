@@ -81,5 +81,4 @@ class RoomServiceTest {
         assertNotNull(createdRoom.getRoomId());
         assertTrue(createdRoom.getPlayerIds().contains(host.getId()));
     }
-
 }

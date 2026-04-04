@@ -19,7 +19,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 
 @Entity
-@Table(name = "Room")
+@Table(name = "rooms")
 public class Room implements Serializable {
 
     private static final long serialVersionUID = 1L;
