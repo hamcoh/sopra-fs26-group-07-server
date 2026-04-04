@@ -81,6 +81,20 @@ public class RoomService {
         return targetRoom;
     }
 
+    public Room getRoomDetails(Long roomId, Long userId, String token) {
+        userService.verifyTokenAndUserId(token, userId);
+        Room room = roomRepository.findByRoomId(roomId);
+
+        if (room == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room was not found!");
+        }
+        else if (!room.getPlayerIds().contains(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Player must be in Lobby to have access to room details!");
+        }
+
+        return room;
+    }
+
     private String generateRoomCode() {
         return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }

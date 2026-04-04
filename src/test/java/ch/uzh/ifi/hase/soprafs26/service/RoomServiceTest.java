@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -14,12 +17,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
-
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
@@ -80,5 +83,86 @@ class RoomServiceTest {
         assertEquals(1, createdRoom.getCurrentNumPlayers());
         assertNotNull(createdRoom.getRoomId());
         assertTrue(createdRoom.getPlayerIds().contains(host.getId()));
+    }
+
+    // getRoomDetails Player in room success 200
+    @Test
+    void getRoomDetails_playerInRoom_success() {
+        // given
+        Long roomId = 1L;
+        Long userId = 1L;
+        String token = "validToken";
+
+        Room room = new Room();
+        room.setRoomId(roomId);
+        room.setHostUserId(userId);
+        Set<Long> playerIds = new HashSet<>();
+        playerIds.add(userId);
+        room.setPlayerIds(playerIds);
+        room.setCurrentNumPlayers(playerIds.size());
+
+        doNothing().when(userService).verifyTokenAndUserId(token, userId);
+        Mockito.when(roomRepository.findByRoomId(roomId)).thenReturn(room); 
+
+        Room retrievedRoom = roomService.getRoomDetails(roomId, userId, token);
+
+        assertEquals(roomId, retrievedRoom.getRoomId());
+        assertEquals(userId, retrievedRoom.getHostUserId());
+        assertTrue(retrievedRoom.getPlayerIds().contains(userId));
+        assertEquals(1, retrievedRoom.getCurrentNumPlayers());
+        assertNotNull(retrievedRoom);
+
+        verify(userService).verifyTokenAndUserId(token, userId);
+        verify(roomRepository).findByRoomId(roomId);
+    }
+
+    // getRoomDetails Player not in room failure 403
+    @Test
+    void getRoomDetails_playerNotInRoom_failure() {
+        // given
+        Long roomId = 1L;
+        Long userId = 69L; // different user
+        String token = "validToken";
+
+        Room room = new Room();
+        room.setRoomId(roomId);
+        room.setHostUserId(1L); // different host
+        Set<Long> playerIds = new HashSet<>();
+        playerIds.add(1L); // different player
+        room.setPlayerIds(playerIds);
+        room.setCurrentNumPlayers(playerIds.size());
+
+        doNothing().when(userService).verifyTokenAndUserId(token, userId);
+        Mockito.when(roomRepository.findByRoomId(roomId)).thenReturn(room);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            roomService.getRoomDetails(roomId, userId, token);
+        });
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+
+        verify(userService).verifyTokenAndUserId(token, userId);
+        verify(roomRepository).findByRoomId(roomId);
+    }
+
+    // getRoomDetails Room not found failure 404
+    @Test
+    void getRoomDetails_roomNotFound_failure() {
+        // given
+        Long roomId = 999L;
+        Long userId = 1L;
+        String token = "validToken";
+
+        doNothing().when(userService).verifyTokenAndUserId(token, userId);
+        Mockito.when(roomRepository.findByRoomId(roomId)).thenReturn(null);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            roomService.getRoomDetails(roomId, userId, token);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+
+        verify(userService).verifyTokenAndUserId(token, userId);
+        verify(roomRepository).findByRoomId(roomId);
     }
 }

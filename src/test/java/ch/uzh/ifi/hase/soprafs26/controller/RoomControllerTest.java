@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -15,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.hamcrest.Matchers.is;
@@ -188,6 +190,88 @@ class RoomControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason", is(errorReason)))
                 .andExpect(jsonPath("$.message", is(errorHandling)));
+        }
+
+        // Get Room Details Success 200
+        @Test
+        void getRoomDetails_validInput_success() throws Exception {
+                long roomId = 1L;
+                Long userId = 1L;
+                String token = "valid_token";
+
+                Room room = new Room();
+                room.setRoomId(roomId);
+                room.setRoomJoinCode("ABC123");
+                room.setMaxNumPlayers(2);
+                room.setCurrentNumPlayers(1);
+                room.setRoomOpen(true);
+                room.setHostUserId(userId);
+                room.setPlayerIds(new HashSet<>(Set.of(1L)));
+                room.setGameDifficulty(GameDifficulty.EASY);
+                room.setGameLanguage(GameLanguage.PYTHON);
+                room.setGameMode(GameMode.RACE);
+                room.setMaxSkips(3);
+                room.setTimeLimitSeconds(120);
+                room.setNumOfProblems(5);
+
+                Mockito.when(roomService.getRoomDetails(roomId, userId, token)).thenReturn(room);
+
+                MockHttpServletRequestBuilder getRequest = get("/rooms/{roomId}", roomId)
+                        .header("token", token)
+                        .header("userId", userId);
+
+                mockMvc.perform(getRequest)
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.roomId", is(1)))
+                        .andExpect(jsonPath("$.roomJoinCode", is("ABC123")))
+                        .andExpect(jsonPath("$.maxNumPlayers", is(2)))
+                        .andExpect(jsonPath("$.currentNumPlayers", is(1)))
+                        .andExpect(jsonPath("$.isRoomOpen", is(true)))
+                        .andExpect(jsonPath("$.hostUserId", is(1)))
+                        .andExpect(jsonPath("$.playerIds", hasSize(1)))
+                        .andExpect(jsonPath("$.playerIds[0]", is(1)))
+                        .andExpect(jsonPath("$.gameDifficulty", is(room.getGameDifficulty().toString())))
+                        .andExpect(jsonPath("$.gameLanguage", is(room.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$.gameMode", is(room.getGameMode().toString())))
+                        .andExpect(jsonPath("$.maxSkips", is(3)))
+                        .andExpect(jsonPath("$.timeLimitSeconds", is(120)))
+                        .andExpect(jsonPath("$.numOfProblems", is(5)));
+        }
+
+        // Get Room Details user not in room 403
+        @Test
+        void getRoomDetails_userNotInRoom_forbidden() throws Exception {
+                long roomId = 1L;
+                Long userId = 2L; // user not in room
+                String token = "valid_token";
+
+                Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "User does not have permission to access room details"))
+                        .when(roomService).getRoomDetails(roomId, userId, token);
+
+                MockHttpServletRequestBuilder getRequest = get("/rooms/{roomId}", roomId)
+                        .header("token", token)
+                        .header("userId", userId);
+
+                mockMvc.perform(getRequest)
+                        .andExpect(status().isForbidden());
+        }
+
+        // Get Room Details room not found 404
+        @Test
+        void getRoomDetails_roomNotFound_notFound() throws Exception {
+                long roomId = 8953L; // non-existent room
+                Long userId = 1L;
+                String token = "valid_token";
+
+                Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found"))
+                        .when(roomService).getRoomDetails(roomId, userId, token);
+
+                MockHttpServletRequestBuilder getRequest = get("/rooms/{roomId}", roomId)
+                        .header("token", token)
+                        .header("userId", userId);
+
+                mockMvc.perform(getRequest)
+                        .andExpect(status().isNotFound());
         }
 
     /**
