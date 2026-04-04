@@ -36,58 +36,104 @@ class RoomControllerTest {
 
     @MockitoBean
     private RoomService roomService;
-
+    
     // Create Room Success 201
     @Test
     void createRoom_validInput_success() throws Exception {
-    Room room = new Room();
-    room.setRoomId(1L);
-    room.setRoomJoinCode("ABC123");
-    room.setMaxNumPlayers(2);
-    room.setCurrentNumPlayers(1);
-    room.setRoomOpen(true);
-    room.setHostUserId(1L);
-    room.setPlayerIds(new HashSet<>(Set.of(1L)));
-    room.setGameDifficulty(GameDifficulty.EASY);
-    room.setGameLanguage(GameLanguage.PYTHON);
-    room.setGameMode(GameMode.RACE);
-    room.setMaxSkips(3);
-    room.setTimeLimitSeconds(60);
-    room.setNumOfProblems(10); 
+        Room room = new Room();
+        room.setRoomId(1L);
+        room.setRoomJoinCode("ABC123");
+        room.setMaxNumPlayers(2);
+        room.setCurrentNumPlayers(1);
+        room.setRoomOpen(true);
+        room.setHostUserId(1L);
+        room.setPlayerIds(new HashSet<>(Set.of(1L)));
+        room.setGameDifficulty(GameDifficulty.EASY);
+        room.setGameLanguage(GameLanguage.PYTHON);
+        room.setGameMode(GameMode.RACE);
+        room.setMaxSkips(3);
+        room.setTimeLimitSeconds(60);
+        room.setNumOfProblems(10); 
 
-    RoomPostDTO roomPostDTO = new RoomPostDTO();
-    room.setGameDifficulty(GameDifficulty.EASY);
-    room.setGameLanguage(GameLanguage.PYTHON);
-    room.setGameMode(GameMode.RACE);
-    roomPostDTO.setMaxSkips(3);
-    roomPostDTO.setTimeLimitSeconds(60);
-    roomPostDTO.setNumOfProblems(10);
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setMaxSkips(3);
+        roomPostDTO.setTimeLimitSeconds(60);
+        roomPostDTO.setNumOfProblems(10);
 
-    Mockito.when(roomService.createRoom(Mockito.any(), Mockito.anyLong(), Mockito.anyString())).thenReturn(room);
+        Mockito.when(roomService.createRoom(Mockito.any(), Mockito.anyLong(), Mockito.anyString())).thenReturn(room);
 
-    MockHttpServletRequestBuilder postRequest = post("/rooms")
-        .header("token", "valid_token")
-        .header("userId", "1")
-        .contentType("application/json")
-        .content(asJsonString(roomPostDTO));
+        MockHttpServletRequestBuilder postRequest = post("/rooms")
+                .header("token", "valid_token")
+                .header("userId", "1")
+                .contentType("application/json")
+                .content(asJsonString(roomPostDTO));
 
-     mockMvc.perform(postRequest)
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.roomId", is(1)))
-        .andExpect(jsonPath("$.roomJoinCode", is("ABC123")))
-        .andExpect(jsonPath("$.maxNumPlayers", is(2)))
-        .andExpect(jsonPath("$.currentNumPlayers", is(1)))
-        .andExpect(jsonPath("$.isRoomOpen", is(true)))
-        .andExpect(jsonPath("$.hostUserId", is(1)))
-        .andExpect(jsonPath("$.playerIds", hasSize(1)))
-        .andExpect(jsonPath("$.playerIds[0]", is(1)))
-        .andExpect(jsonPath("$.gameDifficulty", is(room.getGameDifficulty().toString())))
-        .andExpect(jsonPath("$.gameLanguage", is(room.getGameLanguage().toString())))
-        .andExpect(jsonPath("$.gameMode", is(room.getGameMode().toString())))
-        .andExpect(jsonPath("$.maxSkips", is(3)))
-        .andExpect(jsonPath("$.timeLimitSeconds", is(60)))
-        .andExpect(jsonPath("$.numOfProblems", is(10)));
+        mockMvc.perform(postRequest)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.roomId", is(1)))
+                .andExpect(jsonPath("$.roomJoinCode", is("ABC123")))
+                .andExpect(jsonPath("$.maxNumPlayers", is(2)))
+                .andExpect(jsonPath("$.currentNumPlayers", is(1)))
+                .andExpect(jsonPath("$.isRoomOpen", is(true)))
+                .andExpect(jsonPath("$.hostUserId", is(1)))
+                .andExpect(jsonPath("$.playerIds", hasSize(1)))
+                .andExpect(jsonPath("$.playerIds[0]", is(1)))
+                .andExpect(jsonPath("$.gameDifficulty", is(room.getGameDifficulty().toString())))
+                .andExpect(jsonPath("$.gameLanguage", is(room.getGameLanguage().toString())))
+                .andExpect(jsonPath("$.gameMode", is(room.getGameMode().toString())))
+                .andExpect(jsonPath("$.maxSkips", is(3)))
+                .andExpect(jsonPath("$.timeLimitSeconds", is(60)))
+                .andExpect(jsonPath("$.numOfProblems", is(10)));
     }
+
+    // Create Room Success 201 (without optional params)
+    @Test
+    void createRoom_validInputWithoutOptionalParams_success() throws Exception {
+        Room room = new Room();
+        room.setRoomId(1L);
+        room.setRoomJoinCode("ABC123");
+        room.setMaxNumPlayers(2);
+        room.setCurrentNumPlayers(1);
+        room.setRoomOpen(true);
+        room.setHostUserId(1L);
+        room.setPlayerIds(new HashSet<>(Set.of(1L)));
+        room.setGameDifficulty(GameDifficulty.EASY);
+        room.setGameLanguage(GameLanguage.PYTHON);
+        room.setGameMode(GameMode.RACE);
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+        
+        Mockito.when(roomService.createRoom(Mockito.any(), Mockito.anyLong(), Mockito.anyString())).thenReturn(room);
+        
+        MockHttpServletRequestBuilder postRequest = post("/rooms")
+                .header("token", "valid_token")
+                .header("userId", "1")
+                .contentType("application/json")
+                .content(asJsonString(roomPostDTO));
+        
+        mockMvc.perform(postRequest)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.roomId", is(1)))
+                .andExpect(jsonPath("$.roomJoinCode", is("ABC123")))
+                .andExpect(jsonPath("$.maxNumPlayers", is(2)))
+                .andExpect(jsonPath("$.currentNumPlayers", is(1)))
+                .andExpect(jsonPath("$.isRoomOpen", is(true)))
+                .andExpect(jsonPath("$.hostUserId", is(1)))
+                .andExpect(jsonPath("$.playerIds", hasSize(1)))
+                .andExpect(jsonPath("$.playerIds[0]", is(1)))
+                .andExpect(jsonPath("$.gameDifficulty", is(room.getGameDifficulty().toString())))
+                .andExpect(jsonPath("$.gameLanguage", is(room.getGameLanguage().toString())))
+                .andExpect(jsonPath("$.gameMode", is(room.getGameMode().toString())))
+                .andExpect(jsonPath("$.maxSkips").isEmpty())
+                .andExpect(jsonPath("$.timeLimitSeconds").isEmpty())
+                .andExpect(jsonPath("$.numOfProblems").isEmpty());
+        }
 
     // Create Room UnAuthorized 401 - Invalid Token
     @Test
@@ -112,23 +158,22 @@ class RoomControllerTest {
         mockMvc.perform(postRequest)
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.detail", is("Token is invalid")));
-}
-
-// Create Room Bad Request 400 - given invalid parameter
-@Test
-void createRoom_missingRequiredField_badRequest() throws Exception {
+        }
+        
+     // Create Room Bad Request 400 - given invalid parameter
+     @Test
+     void createRoom_inavlidRequiredField_badRequest() throws Exception {
         
         String invalidGameSettings = """
         {
-        "gameDifficulty": "INVALID",
-        "gameLanguage": "PYTHON",
-        "gameMode": "SPRINT"
+                "gameDifficulty": "INVALID",
+                "gameLanguage": "PYTHON",
+                "gameMode": "SPRINT"
         }
         """;
 
         String errorReason = "Room creation failed: Invalid value provided";
         String errorHandling = "Check that all room settings fields have valid values!";
-
 
         Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason))
                 .when(roomService).createRoom(Mockito.any(Room.class), Mockito.anyLong(), Mockito.anyString());
