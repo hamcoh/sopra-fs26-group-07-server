@@ -64,7 +64,6 @@ public interface DTOMapper {
 	@Mapping(source = "newPassword", target = "password")
 	User convertChangePassDTOtoEntity(ChangePassDTO changePassDTO);
 
-	@Mapping(source = "maxNumPlayers", target = "maxNumPlayers")
 	@Mapping(source = "gameDifficulty", target = "gameDifficulty")
 	@Mapping(source = "gameLanguage", target = "gameLanguage")
 	@Mapping(source = "gameMode", target = "gameMode")

@@ -1,44 +1,39 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
+
 public class RoomPostDTO {
 
-    private int maxNumPlayers;
-    private String gameDifficulty;
-    private String gameLanguage;
-    private String gameMode;
+    private GameDifficulty gameDifficulty;
+    private GameLanguage gameLanguage;
+    private GameMode gameMode;
     private Integer maxSkips;
     private Integer timeLimitSeconds;
     private Integer numOfProblems;
 
-    public int getMaxNumPlayers() {
-        return maxNumPlayers;
-    }
-
-    public void setMaxNumPlayers(int maxNumPlayers) {
-        this.maxNumPlayers = maxNumPlayers;
-    }
-
-    public String getGameDifficulty() {
+    public GameDifficulty getGameDifficulty() {
         return gameDifficulty;
     }
 
-    public void setGameDifficulty(String gameDifficulty) {
+    public void setGameDifficulty(GameDifficulty gameDifficulty) {
         this.gameDifficulty = gameDifficulty;
     }
 
-    public String getGameLanguage() {
+    public GameLanguage getGameLanguage() {
         return gameLanguage;
     }
 
-    public void setGameLanguage(String gameLanguage) {
+    public void setGameLanguage(GameLanguage gameLanguage) {
         this.gameLanguage = gameLanguage;
     }
 
-    public String getGameMode() {
+    public GameMode getGameMode() {
         return gameMode;
     }
 
-    public void setGameMode(String gameMode) {
+    public void setGameMode(GameMode gameMode) {
         this.gameMode = gameMode;
     }
 

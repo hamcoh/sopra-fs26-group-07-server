@@ -34,6 +34,10 @@ public class RoomService {
         roomInput.setRoomJoinCode(generateRoomCode());
         roomInput.setRoomOpen(true);
         roomInput.setCurrentNumPlayers(1);
+        roomInput.setMaxNumPlayers(2); //In the beginning, only allow 1v1 (later stage: no hard-coding, send field from frontend)
+        // roomInput.setNumOfProblems(10); //all problems so far
+        // roomInput.setMaxSkips(2); // arbitrary
+        // roomInput.setTimeLimitSeconds(600); //10 mins
 
         HashSet<Long> playerIds = new HashSet<>();
         playerIds.add(host.getId());
