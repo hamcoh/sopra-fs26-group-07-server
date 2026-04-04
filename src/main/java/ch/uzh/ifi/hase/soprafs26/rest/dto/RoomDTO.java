@@ -4,13 +4,17 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 
-public class RoomGetDTO {
+import java.util.Set;
+
+public class RoomDTO {
 
     private Long roomId;
     private String roomJoinCode;
     private int maxNumPlayers;
     private int currentNumPlayers;
     private boolean isRoomOpen;
+    private Long hostUserId;
+    private Set<Long> playerIds;
     private GameDifficulty gameDifficulty;
     private GameLanguage gameLanguage;
     private GameMode gameMode;
@@ -56,6 +60,22 @@ public class RoomGetDTO {
 
     public void setIsRoomOpen(boolean isRoomOpen) {
         this.isRoomOpen = isRoomOpen;
+    }
+
+    public Long getHostUserId() {
+        return hostUserId;
+    }
+
+    public void setHostUserId(Long hostUserId) {
+        this.hostUserId = hostUserId;
+    }
+
+    public Set<Long> getPlayerIds() {
+        return playerIds;
+    }
+
+    public void setPlayerIds(Set<Long> playerIds) {
+        this.playerIds = playerIds;
     }
 
     public GameDifficulty getGameDifficulty() {
