@@ -67,7 +67,7 @@ public class RoomService {
         else if(!targetRoom.isRoomOpen()){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot join room: already full!");
         }
-        else if(!(targetRoom.getCurrentNumPlayers() == 1) || !(targetRoom.getPlayerIds().size() == 1)) {
+        else if(targetRoom.getCurrentNumPlayers() != 1 || targetRoom.getPlayerIds().size() != 1) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Room is in an invalid state: expected exactly 1 player (=host) before joining.");
         }
 

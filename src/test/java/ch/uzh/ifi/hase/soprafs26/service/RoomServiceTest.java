@@ -9,6 +9,8 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +40,24 @@ class RoomServiceTest {
     @InjectMocks
     private RoomService roomService;
 
+    private Room testRoom;
+    private User testUser;
+
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+
+        testUser = new User();
+        testUser.setId(2L);
+
+        testRoom = new Room();
+        testRoom.setRoomId(9L);
+        testRoom.setRoomJoinCode("ALE123");
+        testRoom.setRoomOpen(true);
+        testRoom.setCurrentNumPlayers(1);
+        Set<Long> playerIds = new HashSet<>();
+        playerIds.add(1L); //host with hostId=1L
+        testRoom.setPlayerIds(playerIds);
     }
 
     // Create Room Success 201
@@ -164,5 +181,62 @@ class RoomServiceTest {
 
         verify(userService).verifyTokenAndUserId(token, userId);
         verify(roomRepository).findByRoomId(roomId);
+    }
+
+    //Join room success (200)
+    @Test
+    void joinRoom_validInputs_success() {
+
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+
+        Room resultRoom = roomService.joinRoom(9L, "ALE123", 2L, "validToken");
+
+        assertTrue(resultRoom.getPlayerIds().contains(2L));
+        assertEquals(2, resultRoom.getPlayerIds().size());
+        assertEquals(2, resultRoom.getCurrentNumPlayers());
+        assertFalse(resultRoom.isRoomOpen());
+        verify(roomRepository).save(testRoom);
+    }
+
+    //Join room fail (404)
+    @Test
+    void failedjoinRoom_roomNotFound_throwsNotFound() {
+        given(roomRepository.findByRoomId(any())).willReturn(null);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom(19L, "ALE123", 2L, "validToken"));
+    }
+
+    //Join room fail (403)
+    @Test
+    void failedjoinRoom_invalidRoomJoinCode_throwsForbidden() {
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom(9L, "wrongRoomJoinCode", 2L, "validToken"));
+    }
+
+    //Join room fail (409)
+    @Test
+    void failedjoinRoom_roomIsNotOpen_throwsConflict() {
+        testRoom.setRoomOpen(false); //room already closed, no entry possible anymore
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom(9L, "ALE123", 2L, "validToken"));
+    }
+
+    //Join room fail (500; very defensive coding, this should never happen!)
+    @Test
+    void failedjoinRoom_roomIsInInvalidState_throwsInteralServerError() {
+        testRoom.setCurrentNumPlayers(2); //should be only 1, since only host in room when another player joins
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom(9L, "ALE123", 2L, "validToken"));
     }
 }
