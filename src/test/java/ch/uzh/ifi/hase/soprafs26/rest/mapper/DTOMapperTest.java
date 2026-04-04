@@ -6,6 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
@@ -155,14 +156,46 @@ class DTOMapperTest {
         assertEquals(2, roomGetDTO.getMaxNumPlayers());
         assertEquals(1, roomGetDTO.getCurrentNumPlayers());
         assertTrue(roomGetDTO.getIsRoomOpen());
-        assertEquals(10L, roomGetDTO.getHostUserId());
-        assertEquals(Set.of(10L), roomGetDTO.getPlayerIds());
         assertEquals("EASY", roomGetDTO.getGameDifficulty().toString());
 		assertEquals("JAVA", roomGetDTO.getGameLanguage().toString());
 		assertEquals("RACE", roomGetDTO.getGameMode().toString());
 		assertEquals(2, roomGetDTO.getMaxSkips());
 		assertEquals(600, roomGetDTO.getTimeLimitSeconds());
 		assertEquals(3, roomGetDTO.getNumOfProblems());
+    }
+
+	@Test
+    void convertEntityToRoomDTO_validInput_success() {
+        Room room = new Room();
+        room.setRoomId(1L);
+        room.setRoomJoinCode("ABC123");
+        room.setMaxNumPlayers(2);
+        room.setCurrentNumPlayers(1);
+        room.setRoomOpen(true);
+        room.setHostUserId(10L);
+        room.setPlayerIds(Set.of(10L));
+        room.setGameDifficulty(GameDifficulty.HARD);
+        room.setGameLanguage(GameLanguage.JAVA);
+        room.setGameMode(GameMode.SPRINT);
+        room.setMaxSkips(2);
+        room.setTimeLimitSeconds(600);
+        room.setNumOfProblems(3);
+
+        RoomDTO roomDTO = DTOMapper.INSTANCE.convertEntityToRoomDTO(room);
+
+        assertEquals(1L, roomDTO.getRoomId());
+        assertEquals("ABC123", roomDTO.getRoomJoinCode());
+        assertEquals(2, roomDTO.getMaxNumPlayers());
+        assertEquals(1, roomDTO.getCurrentNumPlayers());
+        assertTrue(roomDTO.getIsRoomOpen());
+		assertEquals(10L, roomDTO.getHostUserId());
+        assertEquals(Set.of(10L), roomDTO.getPlayerIds());
+        assertEquals("HARD", roomDTO.getGameDifficulty().toString());
+		assertEquals("JAVA", roomDTO.getGameLanguage().toString());
+		assertEquals("SPRINT", roomDTO.getGameMode().toString());
+		assertEquals(2, roomDTO.getMaxSkips());
+		assertEquals(600, roomDTO.getTimeLimitSeconds());
+		assertEquals(3, roomDTO.getNumOfProblems());
     }
 }
 

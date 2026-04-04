@@ -1,10 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
@@ -47,6 +50,35 @@ public class RoomService {
         roomRepository.flush();
 
         return createdRoom;
+    }
+
+    public Room joinRoom(Long roomId, String roomJoinCode, Long userId, String token) {
+        userService.verifyTokenAndUserId(token, userId);
+        User newPlayer = userService.getUserbyId(userId);
+
+        Room targetRoom = roomRepository.findByRoomId(roomId);
+
+        if (targetRoom == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room was not found!");
+        }
+        else if (!targetRoom.getRoomJoinCode().equals(roomJoinCode)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient permission to join room!");
+        }
+        else if(!targetRoom.isRoomOpen()){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot join room: already full!");
+        }
+        else if(!(targetRoom.getCurrentNumPlayers() == 1) || !(targetRoom.getPlayerIds().size() == 1)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Room is in an invalid state: expected exactly 1 player (=host) before joining.");
+        }
+
+        targetRoom.getPlayerIds().add(newPlayer.getId());
+        targetRoom.setCurrentNumPlayers(targetRoom.getPlayerIds().size());
+        targetRoom.setRoomOpen(false);
+
+        roomRepository.save(targetRoom);
+        roomRepository.flush();
+
+        return targetRoom;
     }
 
     private String generateRoomCode() {
