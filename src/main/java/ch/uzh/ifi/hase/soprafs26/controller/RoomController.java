@@ -10,6 +10,9 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.RoomService;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 public class RoomController {
@@ -50,4 +53,16 @@ public class RoomController {
                 Room joinedRoom = roomService.joinRoom(roomId, roomJoinCode, userId, token);
                 return DTOMapper.INSTANCE.convertEntityToRoomDTO(joinedRoom);
             }
-        }
+
+
+    @GetMapping("/rooms/{roomId}")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomDTO getRoomDetails(@PathVariable("roomId") Long roomId,
+                                  @RequestHeader(value = "userId", required = false) Long userId, 
+                                  @RequestHeader(value = "token", required = false) String token) {
+
+        Room room = roomService.getRoomDetails(roomId, userId, token);
+        return DTOMapper.INSTANCE.convertEntityToRoomDTO(room);      
+    }
+    
+}
