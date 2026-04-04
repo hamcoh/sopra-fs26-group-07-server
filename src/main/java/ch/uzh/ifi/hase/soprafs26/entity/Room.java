@@ -41,7 +41,7 @@ public class Room implements Serializable {
     private boolean isRoomOpen;
 
     @Column(nullable = false, unique = false, updatable = false)
-    private long hostUserId;
+    private Long hostUserId;
     
     @ElementCollection
     private Set<Long> playerIds = new HashSet<>();
@@ -113,11 +113,11 @@ public class Room implements Serializable {
         isRoomOpen = roomOpen;
     }
 
-    public long getHostUserId() {
+    public Long getHostUserId() {
         return hostUserId;
     }
 
-    public void setHostUserId(long id) {
+    public void setHostUserId(Long id) {
         this.hostUserId = id;
     }
 
