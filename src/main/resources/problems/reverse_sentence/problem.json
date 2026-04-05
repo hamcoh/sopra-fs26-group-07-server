@@ -4,6 +4,9 @@
     "inputFormat": "A sentence s containing only lowercase alphabetic characters and spaces",
     "outputFormat": "Sentence s reversed (as a string)",
     "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    words = s.split()\n    return ' '.join(reversed(words))",
     "testCases": [
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },

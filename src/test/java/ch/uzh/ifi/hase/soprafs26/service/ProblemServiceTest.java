@@ -1,5 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
 import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
@@ -12,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -225,6 +229,9 @@ class ProblemServiceTest {
         problem.setInputFormat("An array of integers.");
         problem.setOutputFormat("The sorted array.");
         problem.setConstraints("1 <= n <= 100000");
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setSampleSolution("def solve(x):\n    return x");
 
         TestCase tc1 = new TestCase();
         tc1.setInput("5\n3 1 4 2 5");

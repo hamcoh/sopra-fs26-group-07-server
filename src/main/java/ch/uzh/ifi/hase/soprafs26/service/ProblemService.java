@@ -50,6 +50,12 @@ public class ProblemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have an output format.");
         } else if (newProblem.getConstraints() == null || newProblem.getConstraints().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have constraints.");
+        } else if (newProblem.getGameDifficulty() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have a game difficulty.");
+        } else if (newProblem.getGameLanguage() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have a game language.");
+        } else if (newProblem.getSampleSolution() == null || newProblem.getSampleSolution().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A problem must have a sample solution.");
         } else { // no edge cases then we can save the problem and save its testcasees.
             for (int i = 0; i < newProblem.getTestCases().size(); i++) {
                 TestCase testCase = newProblem.getTestCases().get(i);
