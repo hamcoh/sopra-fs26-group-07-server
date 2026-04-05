@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import jakarta.persistence.*;
 
 /**
@@ -34,6 +36,16 @@ public class Problem implements Serializable{
     @Column(nullable = false, columnDefinition = "TEXT")
     private String constraints;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GameDifficulty gameDifficulty;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GameLanguage gameLanguage;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String sampleSolution;
 
     /**
      *  Relationship of 1:M between Problem and TestCase 
@@ -98,6 +110,31 @@ public class Problem implements Serializable{
     public void setProblemId(Long problemId) {
         this.problemId = problemId;
     }
+
+    public GameDifficulty getGameDifficulty() {
+        return gameDifficulty;
+    }
+
+    public void setGameDifficulty(GameDifficulty gameDifficulty) {
+        this.gameDifficulty = gameDifficulty;
+    }
+
+    public GameLanguage getGameLanguage() {
+        return gameLanguage;
+    }
+
+    public void setGameLanguage(GameLanguage gameLanguage) {
+        this.gameLanguage = gameLanguage;
+    }
+
+    public String getSampleSolution() {
+        return sampleSolution;
+    }
+
+    public void setSampleSolution(String sampleSolution) {
+        this.sampleSolution = sampleSolution;
+    }
+
 
 
 

@@ -4,6 +4,9 @@
     "inputFormat": "A list of integers",
     "outputFormat": "A dictionary with keys 'even' and 'odd', each mapping to a list of integers (or empty list)",
     "constraints": "0 < len(a) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(a):\n    result = {'even': [], 'odd': []}\n    for num in a:\n        if num % 2 == 0:\n            result['even'].append(num)\n        else:\n            result['odd'].append(num)\n    return result",
     "testCases": [
         { "input": "[7,14,33,48,91]",  "expectedOutput": "{'even': [14,48], 'odd': [7,33,91]}" },
         { "input": "[12,36,78]", "expectedOutput": "{'even': [12,36,78], 'odd': []}" },
