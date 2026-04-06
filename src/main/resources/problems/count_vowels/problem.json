@@ -4,6 +4,9 @@
     "inputFormat": "String s containing only lowercase alphabetic characters",
     "outputFormat": "Integer capturing the number of vowels in s",
     "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    count = 0\n    for char in s:\n        if char in vowels:\n            count += 1\n    return count",
     "testCases": [
         { "input": "python", "expectedOutput": 1 },
         { "input": "java", "expectedOutput": 2 },

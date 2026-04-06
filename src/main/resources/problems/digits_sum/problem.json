@@ -4,6 +4,9 @@
     "inputFormat": "non-negative integer",
     "outputFormat": "non-negative integer (i.e., the sum of digits)",
     "constraints": "0 <= n < 100000",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(n):\n    total = 0\n    for digit in str(n):\n        total += int(digit)\n    return total",
     "testCases": [
         { "input": 158, "expectedOutput": 14 },
         { "input": 7777, "expectedOutput": 28 },

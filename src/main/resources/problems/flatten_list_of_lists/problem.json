@@ -4,6 +4,9 @@
     "inputFormat": "A list of lists of integers (i.e., a nested list)",
     "outputFormat": "A single flat list of integers",
     "constraints": "0 <= number of sublists <= 10",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(a):\n    flat = []\n    for sublist in a:\n        for value in sublist:\n            flat.append(value)\n    return flat",
     "testCases": [
         { "input": "[[5,12],[33,4],[87]]", "expectedOutput": "[5,12,33,4,87]" },
         { "input": "[[42],[7],[19]]", "expectedOutput": "[42,7,19]" },

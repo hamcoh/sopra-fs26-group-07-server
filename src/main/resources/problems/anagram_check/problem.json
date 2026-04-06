@@ -4,6 +4,9 @@
     "inputFormat": "Two strings a and b containing only alphabetic characters and spaces",
     "outputFormat": "Boolean: True if strings are anagrams, False otherwise",
     "constraints": "0 < len(a) < 30 and 0 < len(b) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(a, b):\n    normalized_a = sorted(a.replace(' ', '').lower())\n    normalized_b = sorted(b.replace(' ', '').lower())\n    return normalized_a == normalized_b",
     "testCases": [
         { "input": "'listen', 'silent'", "expectedOutput": "True" },
         { "input": "'python', 'java'", "expectedOutput": "False" },

@@ -4,6 +4,9 @@
     "inputFormat": "A string s of lowercase alphabetic characters (with no spaces)",
     "outputFormat": "The string s reversed",
     "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    return s[::-1]",
     "testCases": [
         { "input": "java",     "expectedOutput": "avaj" },
         { "input": "pythonic", "expectedOutput": "cinohtyp" },

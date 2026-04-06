@@ -4,6 +4,9 @@
     "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
     "outputFormat": "Boolean: True if s is palindrome, otherwise False",
     "constraints": "0 < len(s) < 50",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    return s == s[::-1]",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "True" },
         { "input": "borbone",     "expectedOutput": "False" },
