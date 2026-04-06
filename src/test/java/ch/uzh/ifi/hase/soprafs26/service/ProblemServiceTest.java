@@ -14,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
-import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 
 import java.util.ArrayList;
 import java.util.List;
