@@ -148,6 +148,45 @@ class ProblemServiceTest {
     }
 
     @Test
+    void createProblem_withoutGameDifficulty_throwsBadRequest() {
+        validProblem.setGameDifficulty(null);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> problemService.createProblem(validProblem)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(problemRepository, never()).save(any());
+    }
+
+    @Test
+    void createProblem_withoutGameLanguage_throwsBadRequest() {
+        validProblem.setGameLanguage(null);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> problemService.createProblem(validProblem)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(problemRepository, never()).save(any());
+    }
+
+    @Test
+    void createProblem_withoutSampleSolution_throwsBadRequest() {
+        validProblem.setSampleSolution("");
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> problemService.createProblem(validProblem)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(problemRepository, never()).save(any());
+    }
+
+    @Test
     void createProblem_testCaseWithoutInput_throwsBadRequest() {
         validProblem.getTestCases().get(0).setInput("");
 
