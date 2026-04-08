@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -390,6 +391,73 @@ class RoomControllerTest {
                         .andExpect(status().isNotFound());
         }
 
+        // Get All Rooms Success 200
+        @Test
+        void getAllRooms_validInput_success() throws Exception {
+                Long userId = 1L;
+                String token = "valid_token";
+
+                Room room1 = new Room();
+                room1.setRoomId(1L);
+                room1.setRoomJoinCode("ABC123");
+                room1.setMaxNumPlayers(2);
+                room1.setCurrentNumPlayers(1);
+                room1.setRoomOpen(true);
+                room1.setGameDifficulty(GameDifficulty.EASY);
+                room1.setGameLanguage(GameLanguage.PYTHON);
+                room1.setGameMode(GameMode.RACE);
+                room1.setMaxSkips(3);
+                room1.setTimeLimitSeconds(120);
+                room1.setNumOfProblems(5);
+
+
+                Room room2 = new Room();
+                room2.setRoomId(2L);
+                room2.setRoomJoinCode("XYZ789");
+                room2.setMaxNumPlayers(6);
+                room2.setCurrentNumPlayers(4);
+                room2.setRoomOpen(true);
+                room2.setGameDifficulty(GameDifficulty.EASY);
+                room2.setGameLanguage(GameLanguage.PYTHON);
+                room2.setGameMode(GameMode.RACE);
+                room2.setMaxSkips(3);
+                room2.setTimeLimitSeconds(180);
+                room2.setNumOfProblems(8);
+
+
+                List<Room> allRooms = List.of(room1, room2);
+                Mockito.when(roomService.getAllRooms(userId, token)).thenReturn(allRooms);
+
+                MockHttpServletRequestBuilder getRequest = get("/rooms")
+                        .header("token", token)
+                        .header("userId", userId);
+
+                mockMvc.perform(getRequest)
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].roomId", is(1)))
+                        .andExpect(jsonPath("$[0].roomJoinCode", is("ABC123")))
+                        .andExpect(jsonPath("$[0].maxNumPlayers", is(2)))
+                        .andExpect(jsonPath("$[0].currentNumPlayers", is(1)))
+                        .andExpect(jsonPath("$[0].isRoomOpen", is(true)))
+                        .andExpect(jsonPath("$[0].gameDifficulty", is(room1.getGameDifficulty().toString())))
+                        .andExpect(jsonPath("$[0].gameLanguage", is(room1.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$[0].gameMode", is(room1.getGameMode().toString())))
+                        .andExpect(jsonPath("$[0].maxSkips", is(3)))
+                        .andExpect(jsonPath("$[0].timeLimitSeconds", is(120)))
+                        .andExpect(jsonPath("$[0].numOfProblems", is(5)))
+                        .andExpect(jsonPath("$[1].roomId", is(2)))
+                        .andExpect(jsonPath("$[1].roomJoinCode", is("XYZ789")))
+                        .andExpect(jsonPath("$[1].maxNumPlayers", is(6)))
+                        .andExpect(jsonPath("$[1].currentNumPlayers", is(4)))
+                        .andExpect(jsonPath("$[1].isRoomOpen", is(true)))
+                        .andExpect(jsonPath("$[1].gameDifficulty", is(room2.getGameDifficulty().toString())))
+                        .andExpect(jsonPath("$[1].gameLanguage", is(room2.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$[1].gameMode", is(room2.getGameMode().toString())))
+                        .andExpect(jsonPath("$[1].maxSkips", is(3)))
+                        .andExpect(jsonPath("$[1].timeLimitSeconds", is(180)))
+                        .andExpect(jsonPath("$[1].numOfProblems", is(8)));
+        }
     /**
 	 * @param object
 	 * @return string

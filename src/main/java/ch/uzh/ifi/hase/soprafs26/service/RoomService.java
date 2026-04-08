@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -93,6 +94,16 @@ public class RoomService {
         }
 
         return room;
+    }
+
+    public List<Room> getAllRooms(Long userId, String token) {
+        userService.verifyTokenAndUserId(token, userId);
+
+        List<Room> allRooms = roomRepository.findAll();
+
+        return allRooms.stream()
+                       .filter(Room::isRoomOpen)
+                       .toList();   
     }
 
     private String generateRoomCode() {
