@@ -4,11 +4,14 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import ch.uzh.ifi.hase.soprafs26.entity.User; // <- ensure this is the correct User type
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -238,5 +241,85 @@ class RoomServiceTest {
 
         assertThrows(ResponseStatusException.class, () ->
                 roomService.joinRoom(9L, "ALE123", 2L, "validToken"));
+    }
+
+    // getAllRooms valid user, only open rooms
+    @Test
+    void getAllRooms_validUser_returnsOnlyOpenRooms() {
+        long userId = 1L;
+        String token = "validToken";
+
+        Room openRoom1 = new Room();
+        openRoom1.setRoomId(1L);
+        openRoom1.setRoomOpen(true);
+
+        Room openRoom2 = new Room();
+        openRoom2.setRoomId(2L);
+        openRoom2.setRoomOpen(true);
+
+        Room closedRoom = new Room();
+        closedRoom.setRoomId(3L);
+        closedRoom.setRoomOpen(false);
+
+        List<Room> allRooms = List.of(openRoom1, openRoom2, closedRoom);
+
+        doNothing().when(userService).verifyTokenAndUserId(token, userId);
+        Mockito.when(roomRepository.findAll()).thenReturn(allRooms);
+
+        List<Room> result = roomService.getAllRooms(userId, token);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(openRoom1));
+        assertTrue(result.contains(openRoom2));
+        assertFalse(result.contains(closedRoom));
+
+        verify(userService).verifyTokenAndUserId(token, userId);
+        verify(roomRepository).findAll();
+    }
+
+    // getAllRooms valid user, no open rooms is a empty list not NULL
+    @Test
+    public void getAllActiveRooms_noOpenRooms_returnsEmptyList() {
+        Long userId = 1L;
+        String token = "validToken";
+
+        Room closedRoom1 = new Room();
+        closedRoom1.setRoomId(1L);
+        closedRoom1.setRoomOpen(false);
+
+        Room closedRoom2 = new Room();
+        closedRoom2.setRoomId(2L);
+        closedRoom2.setRoomOpen(false);
+
+        when(roomRepository.findAll()).thenReturn(List.of(closedRoom1, closedRoom2));
+        doNothing().when(userService).verifyTokenAndUserId(token, userId);
+
+        List<Room> result = roomService.getAllRooms(userId, token);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(userService, times(1)).verifyTokenAndUserId(token, userId);
+        verify(roomRepository, times(1)).findAll();
+    }
+
+    // getAllRooms unauthenticated user failure 401
+    @Test
+    void getAllRooms_unauthenticatedUser_throwsUnauthorized() {
+        Long userId = 1L;
+        String token = "invalidToken";
+
+        Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED)).when(userService)
+                                                                     .verifyTokenAndUserId(token, userId);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            roomService.getAllRooms(userId, token);
+        });
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+
+        verify(userService).verifyTokenAndUserId(token, userId);
+        verify(roomRepository, times(0)).findAll();
     }
 }

@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.RoomService;
+
+import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,5 +67,17 @@ public class RoomController {
         Room room = roomService.getRoomDetails(roomId, userId, token);
         return DTOMapper.INSTANCE.convertEntityToRoomDTO(room);      
     }
-    
+
+    @GetMapping("/rooms")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RoomGetDTO> getAllRooms(@RequestHeader(value = "userId", required = false) Long userId,
+                                     @RequestHeader(value = "token", required = false) String token) {
+
+        List<Room> rooms = roomService.getAllRooms(userId, token);
+
+        return rooms.stream()
+                     .map(DTOMapper.INSTANCE::convertEntityToRoomGetDTO)
+                     .toList();
+    }
+
 }
