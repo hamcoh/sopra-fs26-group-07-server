@@ -10,7 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
-import org.h2.mvstore.tx.TransactionStore.Change;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
