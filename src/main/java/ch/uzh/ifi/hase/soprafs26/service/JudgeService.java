@@ -9,12 +9,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
-
-import com.google.api.client.util.Value;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 
 @Service
@@ -32,30 +33,36 @@ public class JudgeService {
     }
 
     public List<JudgeTokenDTO> submitBatch(JudgeBatchRequestDTO batchRequest) {
-        try {
-            String clientId = secretManagerService.getSecret("CF-Access-Client-Id");
-            String clientSecret = secretManagerService.getSecret("CF-Access-Client-Secret");
+    try {
+        String clientId = secretManagerService.getSecret("CF-Access-Client-Id");
+        String clientSecret = secretManagerService.getSecret("CF-Access-Client-Secret");
 
-            String url = judgeApiUrl + "/submissions/batch?base64_encoded=true&wait=false";
+        String url = judgeApiUrl + "/submissions/batch?base64_encoded=false&wait=false";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("CF-Access-Client-Id", clientId);
-            headers.set("CF-Access-Client-Secret", clientSecret);
+        // Serialize manually because it did not work before and I could not figure out why
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonBody = mapper.writeValueAsString(batchRequest);
 
-            HttpEntity<JudgeBatchRequestDTO> requestEntity = new HttpEntity<>(batchRequest, headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("CF-Access-Client-Id", clientId);
+        headers.set("CF-Access-Client-Secret", clientSecret);
 
-            ResponseEntity<List<JudgeTokenDTO>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    requestEntity,
-                    new ParameterizedTypeReference<List<JudgeTokenDTO>>() {} 
-            );
+        // Send as String instead of DTO again I dont know why but this is the only solution I found
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
 
-            return response.getBody();
-        }
-        catch (Exception e) {
-            throw new IllegalStateException("Failed to submit batch to Judge API", e);
-        }
+        ResponseEntity<List<JudgeTokenDTO>> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                new ParameterizedTypeReference<List<JudgeTokenDTO>>() {}
+        );
+
+        return response.getBody();
     }
+    catch (Exception e) {
+        throw new IllegalStateException("Failed to submit batch to Judge API: " + e.getMessage(), e); // because globalerror handler gives unuseful info
+    }
+}
+
 }

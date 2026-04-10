@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 
+
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
@@ -22,7 +23,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
@@ -32,19 +33,18 @@ public class CodeExecutionService {
     private final ProblemService problemService;
     private final JudgeService judgeService;
     private final SubmissionRepository submissionRepository;
-    private final ObjectMapper objectMapper;
 
     public CodeExecutionService(
             ProblemService problemService,
             JudgeService judgeService,
-            SubmissionRepository submissionRepository,
-            ObjectMapper objectMapper
+            SubmissionRepository submissionRepository
     ) {
         this.problemService = problemService;
         this.judgeService = judgeService;
         this.submissionRepository = submissionRepository;
-        this.objectMapper = objectMapper;
     }   
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CodeRunDTO runCode(Long gameSessionId,
                             Long problemId,
@@ -191,6 +191,15 @@ public class CodeExecutionService {
         JudgeBatchRequestDTO batchRequest = new JudgeBatchRequestDTO();
         batchRequest.setSubmissions(submissions);
 
+        try {
+            objectMapper.writeValueAsString(batchRequest); // might remove later because we serialize it again manually later
+        }
+        catch (Exception e) {
+    throw new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Failed to serialize batch request."
+            );
+        }
         return judgeService.submitBatch(batchRequest);
     }
 

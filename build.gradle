@@ -41,6 +41,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.boot:spring-boot-h2console'
 
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation(platform("com.google.cloud:libraries-bom:26.78.0"))
     implementation("com.google.cloud:google-cloud-secretmanager")
 

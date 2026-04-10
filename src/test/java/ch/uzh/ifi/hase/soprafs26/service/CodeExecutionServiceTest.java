@@ -11,7 +11,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
-import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -20,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CodeExecutionServiceTest {
@@ -36,16 +36,13 @@ class CodeExecutionServiceTest {
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
         codeExecutionService = new CodeExecutionService(
                 problemService,
                 judgeService,
-                submissionRepository,
-                objectMapper
+                submissionRepository
         );
     }
 
