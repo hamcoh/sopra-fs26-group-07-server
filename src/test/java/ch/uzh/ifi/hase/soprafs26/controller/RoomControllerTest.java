@@ -215,9 +215,9 @@ class RoomControllerTest {
         joiningUser.setId(5L);
         joiningUser.setToken("validToken");
         
-        Mockito.when(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(room);
+        Mockito.when(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(room);
         
-        MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}/players", room.getRoomId())
+        MockHttpServletRequestBuilder postRequest = post("/rooms/players")
                 .header("token", joiningUser.getToken())
                 .header("userId", joiningUser.getId())
                 .header("roomJoinCode", room.getRoomJoinCode())
@@ -240,47 +240,63 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$.numOfProblems").isEmpty());
         }
 
+        // Join Room Fail 400 (1)
+        @Test
+        void failedJoinRoom_invalidFormattedJoinRoomCode1() throws Exception {
+        
+        String badFormattedRoomJoinCode = "ABC5432"; //has to match regex expression: [A-F0-9]{6}
+
+        String errorReason = "Invalid code!";
+	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason));
+        
+        MockHttpServletRequestBuilder postRequest = post("/rooms/players")
+                .header("token", "validToken")
+                .header("userId", "1")
+                .header("roomJoinCode", badFormattedRoomJoinCode)
+                .contentType("application/json");
+
+        mockMvc.perform(postRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(errorReason)));
+        }
+
+        // Join Room Fail 400 (2)
+        @Test
+        void failedJoinRoom_invalidFormattedJoinRoomCode2() throws Exception {
+        
+        String badFormattedRoomJoinCode = "aBC456"; //has to match regex expression: [A-F0-9]{6}
+
+        String errorReason = "Invalid code!";
+	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason));
+        
+        MockHttpServletRequestBuilder postRequest = post("/rooms/players")
+                .header("token", "validToken")
+                .header("userId", "1")
+                .header("roomJoinCode", badFormattedRoomJoinCode)
+                .contentType("application/json");
+
+        mockMvc.perform(postRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", is(errorReason)));
+        }
+
         // Join Room Fail 404
         @Test
         void failedJoinRoom_roomDoesNotExist() throws Exception {
         
-        Long notExistingRoomId = 7L; //arbitrary roomId simulating a non-existing one
+        String notExistingRoomJoinCode = "ABC454"; //arbitrary well-formatted roomJoinCode that is not associated to any room
 
         String errorReason = "Room was not found!";
-	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason));
+	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason));
         
-        MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}/players", notExistingRoomId)
+        MockHttpServletRequestBuilder postRequest = post("/rooms/players")
                 .header("token", "validToken")
                 .header("userId", "1")
-                .header("roomJoinCode", "ABC456")
+                .header("roomJoinCode", notExistingRoomJoinCode)
                 .contentType("application/json");
 
         mockMvc.perform(postRequest)
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail", is(errorReason)));
-        }
-
-        // Join Room Fail 403
-        @Test
-        void failedJoinRoom_invalidRoomJoinCode() throws Exception {
-        
-        Room room = new Room();
-        room.setRoomId(2L);
-        room.setRoomJoinCode("FCZ123");
-
-        String invalidRoomJoinCode = "GCZ123"; //invalid roomJoinCode
-
-        String errorReason = "Insufficient permission to join room!";
-	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, errorReason));
-        
-        MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}/players", room.getRoomId())
-                .header("token", "validToken")
-                .header("userId", "1")
-                .header("roomJoinCode", invalidRoomJoinCode)
-                .contentType("application/json");
-
-        mockMvc.perform(postRequest)
-                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.detail", is(errorReason)));
         }
 
@@ -290,16 +306,16 @@ class RoomControllerTest {
         
         Room room = new Room();
         room.setRoomId(2L);
-        room.setRoomJoinCode("ABC170");
+        room.setRoomJoinCode("ABC123");
         room.setRoomOpen(false); //room is closed
 
         String errorReason = "Cannot join room: already full!";
-	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.CONFLICT, errorReason));
+	given(roomService.joinRoom(Mockito.any(), Mockito.any(), Mockito.any())).willThrow(new ResponseStatusException(HttpStatus.CONFLICT, errorReason));
         
-        MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}/players", room.getRoomId())
+        MockHttpServletRequestBuilder postRequest = post("/rooms/players")
                 .header("token", "validToken")
                 .header("userId", "1")
-                .header("roomJoinCode", "ABC170")
+                .header("roomJoinCode", "ABC123")
                 .contentType("application/json");
 
         mockMvc.perform(postRequest)

@@ -45,16 +45,15 @@ public class RoomController {
         );
     }
 
-    @PostMapping("/rooms/{roomId}/players")
+    @PostMapping("/rooms/players")
     @ResponseStatus(HttpStatus.OK)
-    public RoomDTO joinRoom(@PathVariable("roomId") Long roomId, 
-            @RequestHeader(value = "userId", required = false) Long userId, 
-            @RequestHeader(value = "token", required = false) String token,
-            @RequestHeader(value = "roomJoinCode", required = false) String roomJoinCode) {
-                
-                Room joinedRoom = roomService.joinRoom(roomId, roomJoinCode, userId, token);
-                return DTOMapper.INSTANCE.convertEntityToRoomDTO(joinedRoom);
-            }
+    public RoomDTO joinRoom(@RequestHeader(value = "userId", required = false) Long userId, 
+                            @RequestHeader(value = "token", required = false) String token,
+                            @RequestHeader(value = "roomJoinCode", required = false) String roomJoinCode) {
+                                
+                                Room joinedRoom = roomService.joinRoom(roomJoinCode, userId, token);
+                                return DTOMapper.INSTANCE.convertEntityToRoomDTO(joinedRoom);
+    }
 
 
     @GetMapping("/rooms/{roomId}")
