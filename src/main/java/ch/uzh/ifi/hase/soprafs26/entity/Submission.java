@@ -45,6 +45,18 @@ public class Submission implements Serializable { // Careful submission doesn't 
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status;
 
+    @Column(nullable = false)
+    private Long gameSessionId;
+
+    @Column(nullable = false)
+    private Long problemId;
+
+    @Column(nullable = false)
+    private Long playerSessionId;
+
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String judgeTokensJson;
+
     /**
      * 1:1 Relationship
      * CascadeType.ALL means if you save/delete the Submission, it will cascade 
@@ -128,4 +140,35 @@ public class Submission implements Serializable { // Careful submission doesn't 
     }
     
 
+    public String getJudgeTokensJson() {
+        return judgeTokensJson;
+    }
+
+    public void setJudgeTokensJson(String judgeTokensJson) {
+        this.judgeTokensJson = judgeTokensJson;
+    }
+
+    public Long getGameSessionId() {
+        return gameSessionId;
+    }
+
+    public void setGameSessionId(Long gameSessionId) {
+        this.gameSessionId = gameSessionId;
+    }
+
+    public Long getProblemId() {
+        return problemId;
+    }
+
+    public void setProblemId(Long problemId) {
+        this.problemId = problemId;
+    }
+
+    public Long getPlayerSessionId() {
+        return playerSessionId;
+    }
+
+    public void setPlayerSessionId(Long playerSessionId) {
+        this.playerSessionId = playerSessionId;
+    }
 }

@@ -10,7 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
-import org.h2.mvstore.tx.TransactionStore.Change;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -399,7 +399,7 @@ class UserControllerTest {
 		String token = "invalidToken";
 
 		Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed"))
-				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+				.when(userService).verifyTokenAndUserId(token, userId);
 
 		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
 				.header("token", token)
@@ -419,7 +419,7 @@ class UserControllerTest {
 		String token = null;
 
 		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
-				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+				.when(userService).verifyTokenAndUserId(token, userId);
 
 		MockHttpServletRequestBuilder postRequest = post("/users/logout/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON);
@@ -530,7 +530,7 @@ class UserControllerTest {
 		changePassDTO.setNewPassword("newValidPassword");
 
 		Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed"))
-				.when(userService).verifyTokenAndUserId(Mockito.eq(token), Mockito.eq(userId));
+				.when(userService).verifyTokenAndUserId(token, userId);
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/password", userId)
 				.header("token", token)
