@@ -2,12 +2,17 @@ package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
 import java.util.List;
 
+import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
+
 public class CodeSubmissionDTO {
 
     private Long gameSessionId;
     private Long problemId;
     private Long playerSessionId;
     private List<String> tokens;
+    private SubmissionStatus submissionStatus;  
+    private Verdict verdict;
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -40,4 +45,21 @@ public class CodeSubmissionDTO {
     public void setTokens(List<String> tokens) {
         this.tokens = tokens;
     }
+
+    public SubmissionStatus getSubmissionStatus() {
+        return submissionStatus;
+    }
+
+    public void setSubmissionStatus(SubmissionStatus submissionStatus) {
+        this.submissionStatus = submissionStatus;
+    }
+
+    public Verdict getVerdict() {
+        return verdict;
+    }
+
+    public void setVerdict(Verdict verdict) {
+        this.verdict = verdict;
+    }
+    
 }

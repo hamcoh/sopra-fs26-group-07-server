@@ -17,4 +17,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     );
 
     Submission findBySubmissionId(Long submissionId);
+
+    Submission findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc( // long long ah name part 2 💀💀
+        Long gameSessionId,
+        Long problemId,
+        Long playerSessionId,
+        SubmissionType type
+    );
 }

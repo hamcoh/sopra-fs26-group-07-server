@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
+import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 
 /**
  * Defines how submission is to be stored in the DB
@@ -24,6 +25,10 @@ public class Submission implements Serializable { // Careful submission doesn't 
     @Id
     @GeneratedValue
     private Long submissionId; // Primary key
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Verdict verdict;
 
     @Column(nullable = false, columnDefinition="TEXT") // This lets us store superlong strings
     private String sourceCode;
@@ -170,5 +175,13 @@ public class Submission implements Serializable { // Careful submission doesn't 
 
     public void setPlayerSessionId(Long playerSessionId) {
         this.playerSessionId = playerSessionId;
+    }
+
+    public Verdict getVerdict() {
+        return verdict;
+    }
+
+    public void setVerdict(Verdict verdict) {
+        this.verdict = verdict;
     }
 }
