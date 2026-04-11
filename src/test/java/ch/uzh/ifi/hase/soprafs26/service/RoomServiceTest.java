@@ -52,7 +52,7 @@ class RoomServiceTest {
 
         testRoom = new Room();
         testRoom.setRoomId(9L);
-        testRoom.setRoomJoinCode("ALE123");
+        testRoom.setRoomJoinCode("ABC123");
         testRoom.setRoomOpen(true);
         testRoom.setCurrentNumPlayers(1);
         Set<Long> playerIds = new HashSet<>();
@@ -188,9 +188,9 @@ class RoomServiceTest {
     void joinRoom_validInputs_success() {
 
         given(userService.getUserbyId(2L)).willReturn(testUser);
-        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+        given(roomRepository.findByRoomJoinCode("ABC123")).willReturn(testRoom);
 
-        Room resultRoom = roomService.joinRoom(9L, "ALE123", 2L, "validToken");
+        Room resultRoom = roomService.joinRoom("ABC123", 2L, "validToken");
 
         assertTrue(resultRoom.getPlayerIds().contains(2L));
         assertEquals(2, resultRoom.getPlayerIds().size());
@@ -199,23 +199,49 @@ class RoomServiceTest {
         verify(roomRepository).save(testRoom);
     }
 
+    //Join room fail (400) 1
+    @Test
+    void failedjoinRoom_badFormattedRoomJoinCode_throwsNotFound1() {
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom("ABc123", 2L, "validToken"));
+    }
+
+    //Join room fail (400) 2
+    @Test
+    void failedjoinRoom_badFormattedRoomJoinCode_throwsNotFound2() {
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom("ABC1234", 2L, "validToken"));
+    }
+
+    //Join room fail (400) 3
+    @Test
+    void failedjoinRoom_badFormattedRoomJoinCode_throwsNotFound3() {
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom("ABC12", 2L, "validToken"));
+    }
+
+    //Join room fail (400) 4
+    @Test
+    void failedjoinRoom_badFormattedRoomJoinCode_throwsNotFound4() {
+        given(userService.getUserbyId(2L)).willReturn(testUser);
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.joinRoom("ABG123", 2L, "validToken"));
+    }
+
     //Join room fail (404)
     @Test
     void failedjoinRoom_roomNotFound_throwsNotFound() {
-        given(roomRepository.findByRoomId(any())).willReturn(null);
+        given(roomRepository.findByRoomJoinCode(any())).willReturn(null);
 
         assertThrows(ResponseStatusException.class, () ->
-                roomService.joinRoom(19L, "ALE123", 2L, "validToken"));
-    }
-
-    //Join room fail (403)
-    @Test
-    void failedjoinRoom_invalidRoomJoinCode_throwsForbidden() {
-        given(userService.getUserbyId(2L)).willReturn(testUser);
-        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
-
-        assertThrows(ResponseStatusException.class, () ->
-                roomService.joinRoom(9L, "wrongRoomJoinCode", 2L, "validToken"));
+                roomService.joinRoom("ABC123", 2L, "validToken"));
     }
 
     //Join room fail (409)
@@ -223,10 +249,10 @@ class RoomServiceTest {
     void failedjoinRoom_roomIsNotOpen_throwsConflict() {
         testRoom.setRoomOpen(false); //room already closed, no entry possible anymore
         given(userService.getUserbyId(2L)).willReturn(testUser);
-        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+        given(roomRepository.findByRoomJoinCode("ABC123")).willReturn(testRoom);
 
         assertThrows(ResponseStatusException.class, () ->
-                roomService.joinRoom(9L, "ALE123", 2L, "validToken"));
+                roomService.joinRoom("ABC123", 2L, "validToken"));
     }
 
     //Join room fail (500; very defensive coding, this should never happen!)
@@ -234,9 +260,9 @@ class RoomServiceTest {
     void failedjoinRoom_roomIsInInvalidState_throwsInteralServerError() {
         testRoom.setCurrentNumPlayers(2); //should be only 1, since only host in room when another player joins
         given(userService.getUserbyId(2L)).willReturn(testUser);
-        given(roomRepository.findByRoomId(9L)).willReturn(testRoom);
+        given(roomRepository.findByRoomJoinCode("ABC123")).willReturn(testRoom);
 
         assertThrows(ResponseStatusException.class, () ->
-                roomService.joinRoom(9L, "ALE123", 2L, "validToken"));
+                roomService.joinRoom("ABC123", 2L, "validToken"));
     }
 }

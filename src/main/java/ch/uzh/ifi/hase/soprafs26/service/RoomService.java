@@ -52,17 +52,18 @@ public class RoomService {
         return createdRoom;
     }
 
-    public Room joinRoom(Long roomId, String roomJoinCode, Long userId, String token) {
+    public Room joinRoom(String roomJoinCode, Long userId, String token) {
         userService.verifyTokenAndUserId(token, userId);
         User newPlayer = userService.getUserbyId(userId);
 
-        Room targetRoom = roomRepository.findByRoomId(roomId);
+        if (!roomJoinCode.matches("[A-F0-9]{6}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code!");
+        }
+
+        Room targetRoom = roomRepository.findByRoomJoinCode(roomJoinCode);
 
         if (targetRoom == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room was not found!");
-        }
-        else if (!targetRoom.getRoomJoinCode().equals(roomJoinCode)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient permission to join room!");
         }
         else if(!targetRoom.isRoomOpen()){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot join room: already full!");

@@ -64,6 +64,45 @@ class RoomRepositoryIntegrationTest {
 		assertEquals(room.getTimeLimitSeconds(), foundRoom.getTimeLimitSeconds());
 		assertEquals(room.getNumOfProblems(), foundRoom.getNumOfProblems());
 	}
+
+	@Test
+	void findByRoomJoinCode_sucess() {
+		//given
+		Room room = new Room();
+		room.setRoomJoinCode("CEF879");
+		room.setMaxNumPlayers(2);
+		room.setCurrentNumPlayers(1);
+		room.setRoomOpen(true);
+		room.setHostUserId(1L);
+		room.setPlayerIds(new HashSet<>(Set.of(1L)));
+		room.setGameDifficulty(GameDifficulty.HARD);
+		room.setGameLanguage(GameLanguage.JAVA);
+		room.setGameMode(GameMode.RACE);
+		room.setMaxSkips(2);
+		room.setTimeLimitSeconds(600);
+		room.setNumOfProblems(10);
+
+		entityManager.persist(room);
+		entityManager.flush();
+
+		// when
+		Room foundRoom = roomRepository.findByRoomJoinCode(room.getRoomJoinCode());
+
+		//then
+		assertNotNull(foundRoom.getRoomId());
+		assertEquals(room.getRoomJoinCode(), foundRoom.getRoomJoinCode());
+		assertEquals(room.getMaxNumPlayers(), foundRoom.getMaxNumPlayers());
+		assertEquals(room.getCurrentNumPlayers(), foundRoom.getCurrentNumPlayers());
+		assertEquals(room.isRoomOpen(), foundRoom.isRoomOpen());
+		assertEquals(room.getHostUserId(), foundRoom.getHostUserId());
+		assertEquals(room.getPlayerIds(), foundRoom.getPlayerIds());
+		assertEquals(room.getGameDifficulty(), foundRoom.getGameDifficulty());
+		assertEquals(room.getGameLanguage(), foundRoom.getGameLanguage());
+		assertEquals(room.getGameMode(), foundRoom.getGameMode());
+		assertEquals(room.getMaxSkips(), foundRoom.getMaxSkips());
+		assertEquals(room.getTimeLimitSeconds(), foundRoom.getTimeLimitSeconds());
+		assertEquals(room.getNumOfProblems(), foundRoom.getNumOfProblems());
+	}
 	
 	@Test
 	void lockedFieldsAreNotUpdatedAfterRoomCreation_success() {
