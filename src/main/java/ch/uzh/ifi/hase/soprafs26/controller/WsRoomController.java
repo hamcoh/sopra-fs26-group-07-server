@@ -6,7 +6,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 import ch.uzh.ifi.hase.soprafs26.service.WsRoomService;
-import ch.uzh.ifi.hase.soprafs26.websocketDTO.roomMessageDTO;
+import ch.uzh.ifi.hase.soprafs26.websocket.dto.RoomMessageDTO;
 
 @Controller //handles+processes STOMP messages and delegates to wsRoomService that forwards to correct destination
 public class WsRoomController {
@@ -18,13 +18,18 @@ public class WsRoomController {
     }
     
     @MessageMapping("/room/{roomId}/join") //listens to any STOMP-message sent to '/room/{roomId}/join' and invokes method 'joinRoom'
-    //the message is sent back via 'notifyPlayerJoinedRoom' to destination '/topic/rooms/{roomId}' (~specific room subscription)
-    public void joinRoom(@DestinationVariable Long roomId, @Payload roomMessageDTO roomMessageDTO) { //extract roomId + deserialises payload of message
+    //the message is sent back via 'notifyPlayerJoinedRoom' to destination '/topic/rooms/{roomId}' (~specific room subscription) 
+    public void joinRoom(@DestinationVariable Long roomId, @Payload RoomMessageDTO roomMessageDTO) { //extract roomId + deserialises payload of message
+
+        if (roomId == null) {
+            throw new IllegalArgumentException("Received invalid destination variable!");
+        }
+        
         wsRoomService.notifyPlayerJoinedRoom(
             roomId,
             roomMessageDTO.getUsername(),
             roomMessageDTO.isHost()
-        ); //no error-checking mechanisms yet
+        );
     }
     //IMPORTANT: Method 'joinRoom' expects payload of type {username: "test1", host: true}
 }

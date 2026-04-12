@@ -14,7 +14,7 @@ public class WsRoomService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    public void notifyPlayerJoinedRoom(Long roomId, String username, Boolean isHost) {
+    public void notifyPlayerJoinedRoom(Long roomId, String username, boolean isHost) {
 
         Map<String, String> notification = Map.of(
             "type", isHost ? "HOST_CREATED" : "PLAYER_JOINED", //differentiate between host and player

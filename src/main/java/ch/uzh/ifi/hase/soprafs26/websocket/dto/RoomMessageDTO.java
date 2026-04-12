@@ -1,11 +1,11 @@
-package ch.uzh.ifi.hase.soprafs26.websocketDTO;
+package ch.uzh.ifi.hase.soprafs26.websocket.dto;
 
-public class roomMessageDTO {
+public class RoomMessageDTO {
 
     private String username;
-    private Boolean host;
+    private boolean host;
 
-    public roomMessageDTO() {}
+    public RoomMessageDTO() {}
 
     public String getUsername() {
         return username;
@@ -13,10 +13,10 @@ public class roomMessageDTO {
     public void setUsername(String username) {
         this.username = username;
     }
-    public Boolean isHost() {
+    public boolean isHost() {
         return host;
     }
-    public void setIsHost(Boolean host) {
+    public void setIsHost(boolean host) {
         this.host = host;
     }
 }
