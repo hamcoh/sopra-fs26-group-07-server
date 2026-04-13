@@ -31,7 +31,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) { 
         registry.addEndpoint("/ws") //'ws' is the endpoint where clients establish connection (controller methods are associated to this endpoint)
-                .setAllowedOrigins("*"); //CHANGE THIS SETTING when it works to prevent untrusted domains to make requests
+                .setAllowedOriginPatterns("*"); //CHANGE THIS SETTING when it works to prevent untrusted domains to make requests
                 // .withSockJS(); //fallback when native WebSockets are not supported (then: emulates HTTP-behaviour)
                 
     }
