@@ -241,7 +241,14 @@ public class CodeExecutionService {
         JudgeBatchRequestDTO batchRequest = new JudgeBatchRequestDTO();
         batchRequest.setSubmissions(submissions);
 
-        return judgeService.submitBatch(batchRequest);
+        List<JudgeTokenDTO> tokens = judgeService.submitBatch(batchRequest);
+        if (tokens == null || tokens.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Judge0 returned no submission tokens"
+            );
+        }
+        return tokens;
     }
 
     private Integer mapLanguageToJudgeCode(GameLanguage gameLanguage) {
