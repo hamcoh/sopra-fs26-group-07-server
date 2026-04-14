@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -33,6 +34,10 @@ public class CodeExecutionService {
     private final SubmissionRepository submissionRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay 
+     * of RESULT_CHECK_DELAY_MS milliseconds in between.
+     */
     private static final int MAX_RESULT_CHECKS = 3;
     private static final long RESULT_CHECK_DELAY_MS = 1000;
 
@@ -51,6 +56,8 @@ public class CodeExecutionService {
                               CodeExecutionPostDTO requestBody) {
 
         validateRequest(gameSessionId, problemId, requestBody);
+        // Check if the user has made too many run requests recently (method is defined at the end)
+        enforceRunRateLimit(gameSessionId, problemId, requestBody.getPlayerSessionId()); 
 
         Problem problem = problemService.getProblemById(problemId);
         List<JudgeTokenDTO> tokens = sendCodeToJudge(problem, requestBody.getSourceCode());
@@ -73,14 +80,8 @@ public class CodeExecutionService {
                 .toList();
 
         JudgeBatchResultDTO batchResult = pollJudgeResults(judgeTokens);
-
-        if (areAllJudgeResultsFinal(batchResult)) {
-            submission.setStatus(SubmissionStatus.FINISHED);
-            submission.setVerdict(aggregateVerdict(batchResult));
-        } else {
-            submission.setStatus(SubmissionStatus.RUNNING);
-            submission.setVerdict(Verdict.PENDING);
-        }
+        // This method updates the submission with the results from Judge0 and sets the appropriate status and verdict
+        applyJudgeBatchResultToSubmission(submission, batchResult);
 
         submissionRepository.save(submission);
         submissionRepository.flush();
@@ -91,6 +92,9 @@ public class CodeExecutionService {
         response.setPlayerSessionId(requestBody.getPlayerSessionId());
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
+        response.setPassedTestCases(submission.getPassedTestCases());
+        response.setTotalTestCases(submission.getTotalTestCases());
+        response.setJudgeResultsJson(submission.getJudgeResultsJson());
 
         return response;
     }
@@ -137,14 +141,8 @@ public class CodeExecutionService {
                 .toList();
 
         JudgeBatchResultDTO batchResult = pollJudgeResults(judgeTokens);
-
-        if (areAllJudgeResultsFinal(batchResult)) {
-            submission.setStatus(SubmissionStatus.FINISHED);
-            submission.setVerdict(aggregateVerdict(batchResult));
-        } else {
-            submission.setStatus(SubmissionStatus.RUNNING);
-            submission.setVerdict(Verdict.PENDING);
-        }
+        // This method updates the submission with the results from Judge0 and sets the appropriate status and verdict
+        applyJudgeBatchResultToSubmission(submission, batchResult);
 
         submissionRepository.save(submission);
         submissionRepository.flush();
@@ -155,6 +153,9 @@ public class CodeExecutionService {
         response.setPlayerSessionId(requestBody.getPlayerSessionId());
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
+        response.setPassedTestCases(submission.getPassedTestCases());
+        response.setTotalTestCases(submission.getTotalTestCases());
+        response.setJudgeResultsJson(submission.getJudgeResultsJson());
 
         return response;
     }
@@ -202,6 +203,8 @@ public class CodeExecutionService {
         submission.setStatus(SubmissionStatus.PENDING);
         submission.setVerdict(Verdict.PENDING);
         submission.setExecutionResult(null);
+        submission.setPassedTestCases(0);
+        submission.setJudgeResultsJson("");
 
         try {
             submission.setJudgeTokensJson(objectMapper.writeValueAsString(judgeTokens));
@@ -276,6 +279,7 @@ public class CodeExecutionService {
         }
     }
 
+    // This is basically the driver code as in leetcode but the user doesn't see it, so it doesnt clutter the screen
     private String wrapPythonCode(String userCode) {
         return userCode + "\n\n"
                 + "if __name__ == '__main__':\n"
@@ -417,21 +421,33 @@ public class CodeExecutionService {
             return submission;
         }
 
-        List<String> judgeTokens = extractJudgeTokens(submission);
-        JudgeBatchResultDTO batchResult = judgeService.getBatchSubmissionResults(judgeTokens);
+        try {
+             List<String> judgeTokens = extractJudgeTokens(submission);
+            JudgeBatchResultDTO batchResult = judgeService.getBatchSubmissionResults(judgeTokens);
+            // This method updates the submission with the results from Judge0 and sets the appropriate status and verdict
+            applyJudgeBatchResultToSubmission(submission, batchResult);
 
-        if (areAllJudgeResultsFinal(batchResult)) {
-            submission.setStatus(SubmissionStatus.FINISHED);
-            submission.setVerdict(aggregateVerdict(batchResult));
-        } else {
-            submission.setStatus(SubmissionStatus.RUNNING);
-            submission.setVerdict(Verdict.PENDING);
+            submissionRepository.save(submission);
+            submissionRepository.flush();
+
+            return submission;
+ 
+        } catch (ResponseStatusException e) {
+            submission.setStatus(SubmissionStatus.FAILED);
+            submission.setVerdict(Verdict.INTERNAL_ERROR);
+            submissionRepository.save(submission);
+            submissionRepository.flush();
+            throw e;
+        } catch (Exception e) {
+            submission.setStatus(SubmissionStatus.FAILED);
+            submission.setVerdict(Verdict.INTERNAL_ERROR);
+            submissionRepository.save(submission);
+            submissionRepository.flush();
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Failed to refresh Judge0 submission"
+            );
         }
-
-        submissionRepository.save(submission);
-        submissionRepository.flush();
-
-        return submission;
     }
 
     public CodeRunDTO getLatestRunResult(Long gameSessionId, Long problemId, Long playerSessionId) {
@@ -464,6 +480,9 @@ public class CodeExecutionService {
         response.setPlayerSessionId(playerSessionId);
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
+        response.setPassedTestCases(submission.getPassedTestCases());
+        response.setTotalTestCases(submission.getTotalTestCases());
+        response.setJudgeResultsJson(submission.getJudgeResultsJson());
 
         return response;
     }
@@ -498,7 +517,79 @@ public class CodeExecutionService {
         response.setPlayerSessionId(playerSessionId);
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
+        response.setPassedTestCases(submission.getPassedTestCases());
+        response.setTotalTestCases(submission.getTotalTestCases());
+        response.setJudgeResultsJson(submission.getJudgeResultsJson());
 
         return response;
     }
+
+    private int countPassedTestCases(JudgeBatchResultDTO batchResult) {
+        if (batchResult == null || batchResult.getSubmissions() == null || batchResult.getSubmissions().isEmpty()) {
+            return 0;
+        }
+        /**
+         * stream does: for each submission result in the batch result 
+         * check if the status is not null and if the status id is 3 
+         * (which corresponds to "Correct Answer" in Judge0)
+         * we count how many results satisfy this condition. 
+         * Finally we cast the count to an integer and return it.
+         */
+        return (int) batchResult.getSubmissions().stream()
+                .filter(result -> result.getStatus() != null
+                        && result.getStatus().getId() == 3) // 3 corresponds to "Correct Answer" in judge
+                .count();
+    }
+
+    private static final int MAX_RUN_REQUESTS_PER_WINDOW = 5; // amount of times the user can run in that window
+    private static final long RUN_RATE_LIMIT_WINDOW_SECONDS = 30; // the window in which we check if the user runs too many times
+
+    /**
+     * checks if the user has made too many run requests in a short period of time.
+     * This is too prevent the homeserver of blowing up
+     */
+    private void enforceRunRateLimit(Long gameSessionId, Long problemId, Long playerSessionId) {
+        // We check how many run submissions the user has made in the last RUN_RATE_LIMIT_WINDOW_SECONDS seconds
+        LocalDateTime windowStart = LocalDateTime.now().minusSeconds(RUN_RATE_LIMIT_WINDOW_SECONDS);
+        // We count the number of run submissions for this user, problem and game session that were submitted after the window start time
+        long recentRuns = submissionRepository.countByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeAndSubmittedAtAfter(
+                gameSessionId, // we check the runs for the same game session   
+                problemId, // we check the runs for the same problem
+                playerSessionId, // we check the runs for the same player session
+                SubmissionType.RUN, // we only check the run submissions and  not the final submissions since we can submit only once
+                windowStart // we only check the runs that were submitted after the window start time
+        );
+
+        if (recentRuns >= MAX_RUN_REQUESTS_PER_WINDOW) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "You are running code too frequently. Please wait a moment before trying again."); // 429
+        }
+
+    }
+
+    private void applyJudgeBatchResultToSubmission(Submission submission, JudgeBatchResultDTO batchResult) {
+        if (submission == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission is null");
+        }
+
+        if (areAllJudgeResultsFinal(batchResult)) {
+            submission.setStatus(SubmissionStatus.FINISHED);
+            submission.setVerdict(aggregateVerdict(batchResult));
+            submission.setPassedTestCases(countPassedTestCases(batchResult));
+
+            try {
+                submission.setJudgeResultsJson(objectMapper.writeValueAsString(batchResult));
+            } catch (Exception e) {
+                submission.setStatus(SubmissionStatus.FAILED);
+                submission.setVerdict(Verdict.INTERNAL_ERROR);
+                throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to serialize Judge0 results"
+                );
+            }
+        } else {
+            submission.setStatus(SubmissionStatus.RUNNING);
+            submission.setVerdict(Verdict.PENDING);
+        }
+    }
+
 }

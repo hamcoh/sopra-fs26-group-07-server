@@ -118,7 +118,7 @@ class CodeExecutionServiceTest {
         assertEquals(problemId, finalSavedSubmission.getProblemId());
         assertEquals(playerSessionId, finalSavedSubmission.getPlayerSessionId());
         assertEquals(SubmissionType.RUN, finalSavedSubmission.getType());
-        assertEquals(0, finalSavedSubmission.getPassedTestCases());
+        assertEquals(2, finalSavedSubmission.getPassedTestCases());
         assertEquals(2, finalSavedSubmission.getTotalTestCases());
         assertEquals(SubmissionStatus.FINISHED, finalSavedSubmission.getStatus());
         assertEquals(Verdict.CORRECT_ANSWER, finalSavedSubmission.getVerdict());
@@ -189,4 +189,193 @@ class CodeExecutionServiceTest {
         verify(judgeService, never()).submitBatch(any());
         verify(submissionRepository, never()).save(any());
     }
+
+    @Test
+    void runCode_wrongAnswer_returnsFinishedAndWrongAnswerVerdict() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solution(input_data):\n    return input_data");
+
+        TestCase tc = new TestCase();
+        tc.setInput("abc");
+        tc.setExpectedOutput("cba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO wrongAnswerStatus = new JudgeStatusDTO();
+        wrongAnswerStatus.setId(4);
+        wrongAnswerStatus.setDescription("Wrong Answer");
+
+        JudgeResultDTO result1 = new JudgeResultDTO();
+        result1.setToken("tok1");
+        result1.setStatus(wrongAnswerStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result1));
+
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.FINISHED, result.getSubmissionStatus());
+        assertEquals(Verdict.WRONG_ANSWER, result.getVerdict());
+        assertEquals(0, result.getPassedTestCases());
+        assertEquals(1, result.getTotalTestCases());
+    }
+
+    @Test
+    void runCode_compileError_returnsFinishedAndCompileErrorVerdict() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solution(input_data)\n    return input_data");
+
+        TestCase tc = new TestCase();
+        tc.setInput("abc");
+        tc.setExpectedOutput("abc");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO compileStatus = new JudgeStatusDTO();
+        compileStatus.setId(6);
+        compileStatus.setDescription("Compilation Error");
+
+        JudgeResultDTO result1 = new JudgeResultDTO();
+        result1.setToken("tok1");
+        result1.setStatus(compileStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result1));
+
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.FINISHED, result.getSubmissionStatus());
+        assertEquals(Verdict.COMPILE_ERROR, result.getVerdict());
+    }
+
+    @Test
+    void runCode_timeLimitExceeded_returnsFinishedAndTimeLimitVerdict() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solution(input_data):\n    while True:\n        pass");
+
+        TestCase tc = new TestCase();
+        tc.setInput("abc");
+        tc.setExpectedOutput("abc");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO tleStatus = new JudgeStatusDTO();
+        tleStatus.setId(5);
+        tleStatus.setDescription("Time Limit Exceeded");
+
+        JudgeResultDTO result1 = new JudgeResultDTO();
+        result1.setToken("tok1");
+        result1.setStatus(tleStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result1));
+
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.FINISHED, result.getSubmissionStatus());
+        assertEquals(Verdict.TIME_LIMIT_EXCEEDED, result.getVerdict());
+    }
+
+    /**
+     *  when we run the code we have a time limit for how long we wait 
+     * for the judge result. The user should then get a "running" status and 
+     * a "pending" verdict, which indicates that the code is still being judged.
+    */
+    @Test
+    void runCode_processingAfterPollingWindow_returnsRunningAndPendingVerdict() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solution(input_data):\n    return input_data");
+
+        TestCase tc = new TestCase();
+        tc.setInput("abc");
+        tc.setExpectedOutput("abc");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO processingStatus = new JudgeStatusDTO();
+        processingStatus.setId(2);
+        processingStatus.setDescription("Processing");
+
+        JudgeResultDTO result1 = new JudgeResultDTO();
+        result1.setToken("tok1");
+        result1.setStatus(processingStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result1));
+
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList()))
+                .thenReturn(batchResult, batchResult, batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.RUNNING, result.getSubmissionStatus());
+        assertEquals(Verdict.PENDING, result.getVerdict());
+    }
+
 }

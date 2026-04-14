@@ -13,6 +13,9 @@ public class CodeSubmissionDTO {
     private List<String> tokens;
     private SubmissionStatus submissionStatus;  
     private Verdict verdict;
+    private String judgeResultsJson;
+    private int passedTestCases;
+    private int totalTestCases;
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -60,6 +63,30 @@ public class CodeSubmissionDTO {
 
     public void setVerdict(Verdict verdict) {
         this.verdict = verdict;
+    }
+
+    public String getJudgeResultsJson() {
+        return judgeResultsJson;
+    }
+
+    public void setJudgeResultsJson(String judgeResultsJson) {
+        this.judgeResultsJson = judgeResultsJson;
+    }
+
+    public int getPassedTestCases() {
+        return passedTestCases;
+    }
+
+    public void setPassedTestCases(int passedTestCases) {
+        this.passedTestCases = passedTestCases;
+    }
+
+    public int getTotalTestCases() {
+        return totalTestCases;
+    }
+
+    public void setTotalTestCases(int totalTestCases) {
+        this.totalTestCases = totalTestCases;
     }
     
 }

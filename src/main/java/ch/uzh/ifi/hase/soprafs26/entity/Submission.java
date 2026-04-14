@@ -62,6 +62,10 @@ public class Submission implements Serializable { // Careful submission doesn't 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String judgeTokensJson;
 
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String judgeResultJson; // For the user to debug
+
     /**
      * 1:1 Relationship
      * CascadeType.ALL means if you save/delete the Submission, it will cascade 
@@ -184,4 +188,14 @@ public class Submission implements Serializable { // Careful submission doesn't 
     public void setVerdict(Verdict verdict) {
         this.verdict = verdict;
     }
+
+    public String getJudgeResultsJson() {
+        return judgeResultJson;
+    }
+
+    public void setJudgeResultsJson(String judgeResultsJson) {
+        this.judgeResultJson = judgeResultsJson;
+    }
+  
+
 }

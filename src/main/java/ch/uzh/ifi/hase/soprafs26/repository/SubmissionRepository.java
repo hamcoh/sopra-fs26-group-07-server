@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
+import java.time.LocalDateTime;
 
 @Repository("submissionRepository")
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
@@ -23,5 +24,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
         Long problemId,
         Long playerSessionId,
         SubmissionType type
+    );
+
+    long countByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeAndSubmittedAtAfter(
+        Long gameSessionId,
+        Long problemId,
+        Long playerSessionId,
+        SubmissionType type,
+        LocalDateTime submittedAt
     );
 }
