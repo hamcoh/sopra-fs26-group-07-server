@@ -59,7 +59,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("def solution(input_data):\n    return input_data[::-1]");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data):\n    return input_data[::-1]");
 
         TestCase tc1 = new TestCase();
         tc1.setInput("hello");
@@ -133,7 +134,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("print('hello')");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(x):\n    return x");
 
         when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
                 gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT
@@ -171,7 +173,8 @@ class CodeExecutionServiceTest {
     void runCode_problemWithoutTestCases_throwsBadRequest() {
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(3L);
-        request.setSourceCode("def solution(input_data):\n    return input_data");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data):\n    return input_data");
 
         Problem problem = new Problem();
         problem.setProblemId(2L);
@@ -198,7 +201,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("def solution(input_data):\n    return input_data");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data):\n    return input_data");
 
         TestCase tc = new TestCase();
         tc.setInput("abc");
@@ -245,7 +249,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("def solution(input_data)\n    return input_data");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data)\n    return input_data");
 
         TestCase tc = new TestCase();
         tc.setInput("abc");
@@ -290,7 +295,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("def solution(input_data):\n    while True:\n        pass");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data):\n    while True:\n        pass\n    return input_data");
 
         TestCase tc = new TestCase();
         tc.setInput("abc");
@@ -328,7 +334,7 @@ class CodeExecutionServiceTest {
     }
 
     /**
-     *  when we run the code we have a time limit for how long we wait 
+     * when we run the code we have a time limit for how long we wait 
      * for the judge result. The user should then get a "running" status and 
      * a "pending" verdict, which indicates that the code is still being judged.
     */
@@ -340,7 +346,8 @@ class CodeExecutionServiceTest {
 
         CodeExecutionPostDTO request = new CodeExecutionPostDTO();
         request.setPlayerSessionId(playerSessionId);
-        request.setSourceCode("def solution(input_data):\n    return input_data");
+        // Updated to use "def solve" and "return"
+        request.setSourceCode("def solve(input_data):\n    return input_data");
 
         TestCase tc = new TestCase();
         tc.setInput("abc");
