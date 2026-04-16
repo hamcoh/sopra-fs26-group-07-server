@@ -183,6 +183,15 @@ public class CodeExecutionService {
         if (requestBody.getSourceCode() == null || requestBody.getSourceCode().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source code is required");
         }
+
+        String code = requestBody.getSourceCode();
+        if (!code.contains("def solve")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
+        }
+        if (!code.contains("return")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain a return statement.");
+        }
+
     }
 
     private Submission createSubmission(long gameSessionId,
@@ -287,12 +296,25 @@ public class CodeExecutionService {
     }
 
     // This is basically the driver code as in leetcode but the user doesn't see it, so it doesnt clutter the screen
+    // This is basically the driver code as in leetcode but the user doesn't see it, so it doesnt clutter the screen
     private String wrapPythonCode(String userCode) {
         return userCode + "\n\n"
                 + "if __name__ == '__main__':\n"
                 + "    import sys\n"
+                + "    import ast\n"
                 + "    input_data = sys.stdin.read().strip()\n"
-                + "    result = solution(input_data)\n"
+                + "    try:\n"
+                + "        # Try to parse it as proper Python literals (like tuples, ints, or quoted strings)\n"
+                + "        args = ast.literal_eval(input_data) if input_data else ()\n"
+                + "    except (ValueError, SyntaxError):\n"
+                + "        # Fallback: if it lacks quotes (e.g., ekitike), treat it as a single raw string\n"
+                + "        args = (input_data,)\n"
+                + "    \n"
+                + "    # Safely unpack the arguments into the user's solve function\n"
+                + "    if isinstance(args, tuple):\n"
+                + "        result = solve(*args)\n"
+                + "    else:\n"
+                + "        result = solve(args)\n"
                 + "    print(result)\n";
     }
 

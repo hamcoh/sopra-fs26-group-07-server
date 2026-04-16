@@ -1,7 +1,12 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import java.util.List;
-
+import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchResultDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,109 +15,130 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchResultDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-
+import java.util.List;
 
 @Service
+@Transactional
 public class JudgeService {
 
+    private final Logger log = LoggerFactory.getLogger(JudgeService.class);
+
+    @Value("${CF_Access_Client_Id}")
+    private String cfClientId;
+
+    @Value("${CF_Access_Client_Secret}")
+    private String cfClientSecret;
+
     private final RestTemplate restTemplate;
-    private final SecretManagerService secretManagerService;
+    private final ObjectMapper objectMapper;
 
-    @Value("${judge0.api.url}")
-    private String judgeApiUrl;
-
-    public JudgeService(RestTemplate restTemplate, SecretManagerService secretManagerService) {
-        this.restTemplate = restTemplate;
-        this.secretManagerService = secretManagerService;
+    public JudgeService() {
+        this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
     }
 
-    public List<JudgeTokenDTO> submitBatch(JudgeBatchRequestDTO batchRequest) {
+    /**
+     * Helper method to attach Cloudflare Access tokens to every request
+     */
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        // .trim() removes any accidental spaces, \n, or \r hidden in the text file
+        headers.set("CF-Access-Client-Id", cfClientId != null ? cfClientId.trim() : "");
+        headers.set("CF-Access-Client-Secret", cfClientSecret != null ? cfClientSecret.trim() : "");
+        return headers;
+    }
+
+    /**
+     * POST: Submits a batch of code to the Judge0 API protected by Cloudflare.
+     */
+    public List<JudgeTokenDTO> submitBatch(JudgeBatchRequestDTO requestPayload) {
+        String judge0Url = "https://judge.hamcoh.com/submissions/batch?base64_encoded=false";
+
         try {
-            String clientId = secretManagerService.getSecret("CF-Access-Client-Id");
-            String clientSecret = secretManagerService.getSecret("CF-Access-Client-Secret");
-            System.out.println("Client ID loaded: " + (clientId != null && !clientId.isBlank()));
-            System.out.println("Client Secret loaded: " + (clientSecret != null && !clientSecret.isBlank()));
-            System.out.println("Client ID length: " + (clientId == null ? 0 : clientId.length()));
-            System.out.println("Client Secret length: " + (clientSecret == null ? 0 : clientSecret.length()));
+            // 1. Force the Java object into a perfect JSON String
+            String jsonBody = objectMapper.writeValueAsString(requestPayload);
+            
+            // 2. Log it to the terminal so we can see exactly what is being sent
+            log.info("Sending JSON Payload to Judge0: {}", jsonBody);
 
-            String url = judgeApiUrl + "/submissions/batch?base64_encoded=false";
+            // 3. Attach the raw JSON string to our Request Entity
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, createHeaders());
 
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonBody = mapper.writeValueAsString(batchRequest);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("CF-Access-Client-Id", clientId);
-            headers.set("CF-Access-Client-Secret", clientSecret);
-
-            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
+            log.info("Sending batch submission to Judge0...");
+            
+            // Using ParameterizedTypeReference because Judge0 returns a JSON Array of tokens
+            ResponseEntity<List<JudgeTokenDTO>> response = restTemplate.exchange(
+                    judge0Url,
                     HttpMethod.POST,
-                    requestEntity,
-                    String.class
+                    entity,
+                    new ParameterizedTypeReference<List<JudgeTokenDTO>>() {}
             );
+            
+            log.info("Successfully submitted batch. Status: {}", response.getStatusCode().value());
+            return response.getBody();
 
-            throw new IllegalStateException(
-                    "Judge0 batch submit debug | status="
-                            + response.getStatusCode()
-                            + " | headers="
-                            + response.getHeaders()
-                            + " | body="
-                            + response.getBody()
+        } catch (RestClientResponseException e) {
+            int statusCode = e.getStatusCode().value();
+            log.error("Failed to submit batch to Judge API. Status: {} | Response: {}", 
+                      statusCode, e.getResponseBodyAsString());
+            
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(statusCode), 
+                    // We append the raw Judge0 error so Postman tells us exactly what went wrong
+                    "Error communicating with Judge0 API: " + e.getResponseBodyAsString() 
             );
-        }
-        catch (Exception e) {
-            throw new IllegalStateException("Failed to submit batch to Judge API: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error during Judge0 API call", e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Internal error while contacting the Judge API."
+            );
         }
     }
 
+    /**
+     * GET: Fetches the results for a list of submission tokens.
+     */
     public JudgeBatchResultDTO getBatchSubmissionResults(List<String> tokens) {
-        if (tokens == null || tokens.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No judge0 tokens provided");
-        }
-        
+        // Judge0 expects tokens comma-separated in the URL: ?tokens=token1,token2,token3
+        String joinedTokens = String.join(",", tokens);
+        String judge0Url = "https://judge.hamcoh.com/submissions/batch?tokens=" + joinedTokens + "&base64_encoded=false";
+
+        // GET requests don't have a body, just headers
+        HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
+
         try {
-    
-
-            String url = judgeApiUrl + "/submissions/batch?tokens=" + String.join(",", tokens) + "&base64_encoded=false";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("CF-Access-Client-Id", secretManagerService.getSecret("CF-Access-Client-Id"));
-            headers.set("CF-Access-Client-Secret", secretManagerService.getSecret("CF-Access-Client-Secret"));
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-
-            // For get the body is empty so we can use Void
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-
+            log.info("Polling Judge0 for batch results...");
             ResponseEntity<JudgeBatchResultDTO> response = restTemplate.exchange(
-                    url,
+                    judge0Url,
                     HttpMethod.GET,
-                    requestEntity,
+                    entity,
                     JudgeBatchResultDTO.class
             );
 
+            return response.getBody();
 
-            JudgeBatchResultDTO body = response.getBody();
-            if (body == null) {
-                throw new IllegalStateException("Judge API returned an empty response body");
-            }
-            return body;
+        } catch (RestClientResponseException e) {
+            int statusCode = e.getStatusCode().value();
+            log.error("Failed to fetch batch results. Status: {} | Response: {}", 
+                      statusCode, e.getResponseBodyAsString());
             
-        }
-        catch (Exception e) {
-            throw new IllegalStateException("Failed to get batch submission results from Judge API: " + e.getMessage(), e); // because globalerror handler gives unuseful info
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(statusCode), 
+                    "Error fetching results from Judge0 API: " + e.getMessage()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error fetching Judge0 results", e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Internal error while fetching results."
+            );
         }
     }
-
 }

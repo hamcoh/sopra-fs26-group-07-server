@@ -1,10 +1,19 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JudgeRequestDTO {
 
+    @JsonProperty("source_code")
     private String source_code;
+    
+    @JsonProperty("language_id")
     private Integer language_id;
+    
+    @JsonProperty("stdin")
     private String stdin;
+    
+    @JsonProperty("expected_output")
     private String expected_output;
 
     public String getSource_code() {
