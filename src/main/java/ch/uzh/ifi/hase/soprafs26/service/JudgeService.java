@@ -28,16 +28,19 @@ public class JudgeService {
 
     private final Logger log = LoggerFactory.getLogger(JudgeService.class);
 
-    @Value("${CF_Access_Client_Id}")
-    private String cfClientId;
-
-    @Value("${CF_Access_Client_Secret}")
-    private String cfClientSecret;
-
+    private final String cfClientId;
+    private final String cfClientSecret;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public JudgeService() {
+    // Added a colon (:) after the property names to provide an empty default value.
+    // This prevents Spring context from crashing during Gradle tests when the env vars are missing.
+    public JudgeService(
+            @Value("${CF_Access_Client_Id:}") String cfClientId,
+            @Value("${CF_Access_Client_Secret:}") String cfClientSecret
+    ) {
+        this.cfClientId = cfClientId != null ? cfClientId.trim() : "";
+        this.cfClientSecret = cfClientSecret != null ? cfClientSecret.trim() : "";
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
@@ -48,9 +51,8 @@ public class JudgeService {
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        // .trim() removes any accidental spaces, \n, or \r hidden in the text file
-        headers.set("CF-Access-Client-Id", cfClientId != null ? cfClientId.trim() : "");
-        headers.set("CF-Access-Client-Secret", cfClientSecret != null ? cfClientSecret.trim() : "");
+        headers.set("CF-Access-Client-Id", cfClientId);
+        headers.set("CF-Access-Client-Secret", cfClientSecret);
         return headers;
     }
 
@@ -61,13 +63,12 @@ public class JudgeService {
         String judge0Url = "https://judge.hamcoh.com/submissions/batch?base64_encoded=false";
 
         try {
-            // 1. Force the Java object into a perfect JSON String
+            // Force the Java object into a perfect JSON String
             String jsonBody = objectMapper.writeValueAsString(requestPayload);
             
-            // 2. Log it to the terminal so we can see exactly what is being sent
             log.info("Sending JSON Payload to Judge0: {}", jsonBody);
 
-            // 3. Attach the raw JSON string to our Request Entity
+            // Attach the raw JSON string to our Request Entity
             HttpEntity<String> entity = new HttpEntity<>(jsonBody, createHeaders());
 
             log.info("Sending batch submission to Judge0...");
@@ -90,7 +91,6 @@ public class JudgeService {
             
             throw new ResponseStatusException(
                     HttpStatus.valueOf(statusCode), 
-                    // We append the raw Judge0 error so Postman tells us exactly what went wrong
                     "Error communicating with Judge0 API: " + e.getResponseBodyAsString() 
             );
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public class JudgeService {
      * GET: Fetches the results for a list of submission tokens.
      */
     public JudgeBatchResultDTO getBatchSubmissionResults(List<String> tokens) {
-        // Judge0 expects tokens comma-separated in the URL: ?tokens=token1,token2,token3
+        // Judge0 expects tokens comma-separated in the URL
         String joinedTokens = String.join(",", tokens);
         String judge0Url = "https://judge.hamcoh.com/submissions/batch?tokens=" + joinedTokens + "&base64_encoded=false";
 
