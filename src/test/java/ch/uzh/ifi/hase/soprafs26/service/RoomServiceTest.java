@@ -40,6 +40,9 @@ class RoomServiceTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private ProblemService problemService;
+
     @InjectMocks
     private RoomService roomService;
 
@@ -77,7 +80,7 @@ class RoomServiceTest {
         roomPostDTO.setGameMode(GameMode.RACE);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
-        roomPostDTO.setNumOfProblems(10);  
+        roomPostDTO.setNumOfProblems(null); //CHANGE THIS
         
         Mockito.when(userService.getUserbyToken("validToken")).thenReturn(host);
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);

@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomDTO;
@@ -100,5 +101,19 @@ public interface DTOMapper {
 	@Mapping(source = "timeLimitSeconds", target = "timeLimitSeconds")
 	@Mapping(source = "numOfProblems", target = "numOfProblems")
 	RoomDTO convertEntityToRoomDTO(Room room);
+
+
+	@Mapping(source = "gameSessionId", target = "gameSessionId")
+	@Mapping(source = "playerSessionId", target = "playerSessionId")
+	@Mapping(source = "playerId", target = "playerId")
+	@Mapping(source = "currentScore", target = "currentScore")
+	@Mapping(source = "numOfSkippedProblems", target = "numOfSkippedProblems")
+	@Mapping(source = "problemId", target = "problemId")
+	@Mapping(source = "title", target = "title")
+	@Mapping(source = "description", target = "description")
+	@Mapping(source = "inputFormat", target = "inputFormat")
+	@Mapping(source = "outputFormat", target = "outputFormat")
+	@Mapping(source = "constraints", target = "constraints")
+	GameRoundDTO convertEntityToGameRoundDTO(GameRoundDTO gameRoundDTO);
 
 }
