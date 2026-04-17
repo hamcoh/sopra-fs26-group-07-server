@@ -37,7 +37,7 @@ class CodeExecutionControllerTest {
 
         when(codeExecutionService.runCode(eq(1L), eq(2L), any())).thenReturn(response);
 
-        mockMvc.perform(post("/games/1/problems/2/run")
+        mockMvc.perform(post("/games/1/problems/2/runs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -63,7 +63,7 @@ class CodeExecutionControllerTest {
 
         when(codeExecutionService.submitCode(eq(1L), eq(2L), any())).thenReturn(response);
 
-        mockMvc.perform(post("/games/1/problems/2/submission")
+        mockMvc.perform(post("/games/1/problems/2/submissions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

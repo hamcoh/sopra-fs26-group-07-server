@@ -22,7 +22,7 @@ public class CodeExecutionController {
         this.codeExecutionService = codeExecutionService;
     }
 
-    @PostMapping("/games/{gameSessionId}/problems/{problemId}/run")
+    @PostMapping("/games/{gameSessionId}/problems/{problemId}/runs")
     @ResponseStatus(HttpStatus.OK)
     public CodeRunDTO runCode(@PathVariable Long gameSessionId,
                               @PathVariable Long problemId,
@@ -31,7 +31,7 @@ public class CodeExecutionController {
         return codeExecutionService.runCode(gameSessionId, problemId, requestBody);
     }
 
-    @PostMapping("/games/{gameSessionId}/problems/{problemId}/submission")
+    @PostMapping("/games/{gameSessionId}/problems/{problemId}/submissions")
     @ResponseStatus(HttpStatus.OK)
     public CodeSubmissionDTO submitCode(@PathVariable Long gameSessionId,
                                         @PathVariable Long problemId,
