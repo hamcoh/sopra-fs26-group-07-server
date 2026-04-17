@@ -32,6 +32,7 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
+    private final WsRoomService wsRoomService;
 
     public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository) {
         this.roomRepository = roomRepository;
@@ -39,6 +40,7 @@ public class GameService {
         this.problemService = problemService;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
+        this.wsRoomService = wsRoomService;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -116,9 +118,7 @@ public class GameService {
         gameRoundDTO.setOutputFormat(firstProblem.getOutputFormat());
         gameRoundDTO.setConstraints(firstProblem.getConstraints());
         
-        // 3. broadcast websocket message
-        //TO IMPLEMENT!!
-
-        // 4. return DTO
+        // 3. broadcast websocket message + return DTO
+        wsRoomService.notifyPlayerGameStarted(roomId, gameRoundDTO);
     }
 }

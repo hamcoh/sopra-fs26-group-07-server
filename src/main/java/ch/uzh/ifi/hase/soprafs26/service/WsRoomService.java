@@ -5,6 +5,8 @@ import java.util.Map;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+
 @Service
 public class WsRoomService {
 
@@ -24,5 +26,9 @@ public class WsRoomService {
         );
 
         simpMessagingTemplate.convertAndSend("/topic/room/" + roomId, notification); //message is sent back to destination '/topic/rooms/{roomId}' (all players get notifications that subscribed)
+    }
+
+    public void notifyPlayerGameStarted(Long roomId, GameRoundDTO gameRoundDTO) {
+        simpMessagingTemplate.convertAndSend("/topic/room/" + roomId, gameRoundDTO);
     }
 }
