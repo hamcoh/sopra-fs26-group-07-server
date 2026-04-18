@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -567,6 +568,42 @@ class UserControllerTest {
 		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
 		Mockito.verify(userService, Mockito.never()).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
 	}
+
+	// /auth; expect: 200 (auth. successful)
+	@Test
+	void checkToken_validToken_success() throws Exception {
+		String token = "validToken";
+
+		doNothing().when(userService).verifyToken(token);
+
+		MockHttpServletRequestBuilder postRequest = post("/auth")
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON);
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isOk());
+
+		Mockito.verify(userService, times(1)).verifyToken(token);
+	}
+
+	// /auth; expect: 401 (unauthorized)
+	@Test
+	void checkToken_invalidToken_throwsUnauthorized() throws Exception {
+		String token = "invalidToken";
+
+		String errorReason = "Token is invalid";
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorReason))
+				.when(userService).verifyToken(token);;
+
+		MockHttpServletRequestBuilder postRequest = post("/auth")
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON);
+		
+		mockMvc.perform(postRequest)
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+	}
+
 
 	/**
 	 * Helper Method to convert userPostDTO into a JSON string such that the input
