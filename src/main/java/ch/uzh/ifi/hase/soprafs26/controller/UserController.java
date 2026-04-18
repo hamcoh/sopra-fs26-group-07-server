@@ -101,6 +101,11 @@ public class UserController {
 		userService.logoutUser(userId);
 	}
 
+	@PostMapping("/auth")
+	@ResponseStatus(HttpStatus.OK)
+	public void checkToken(@RequestHeader(value = "token", required = false)  String token) {
+		userService.verifyToken(token);
+	}
 }
 
 // trigger docker build 
