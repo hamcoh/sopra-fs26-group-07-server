@@ -34,13 +34,13 @@ public class GameSession implements Serializable {
     private Long gameSessionId;
 
     @OneToOne //1-1 relationship, maybe add CascadeType.ALL if room should be deleted when GameSession is deleted
-    @JoinColumn(name = "room_Id", referencedColumnName = "roomId", nullable = false) //room_Id is the FK created in 'game_session' and references the roomId column of rooms (referencedColumnName has to identical to field-name in entity or JPA complains)
+    @JoinColumn(name = "room_Id", referencedColumnName = "roomId", nullable = false) //room_Id is the FK created in 'game_session' and references the roomId column of rooms (referencedColumnName has to be identical to field-name in entity or JPA complains)
     private Room room;
 
     //creates a join table, since a GameSession can have many problems and a problem can be in many GameSessions
     @ManyToMany
     @JoinTable(
-    name = "game_session_problem",
+    name = "game_session_problems",
     joinColumns = @JoinColumn(name = "game_session_id"), //owns association
     inverseJoinColumns = @JoinColumn(name = "problem_id"))
     private List<Problem> problems = new ArrayList<>();
@@ -60,6 +60,7 @@ public class GameSession implements Serializable {
     private GameEndReason gameEndReason;
 
     // One gameSession is related to Many playerSessions (i.e., 2 atm)
+    // Since PlayerSession do not have any meaning without a GameSession implement CascadeType.ALL
     @OneToMany(mappedBy = "gameSession", fetch = FetchType.EAGER, cascade = CascadeType.ALL) //mappedBy is FK in the PlayerSession class and is identical to field name; FetchType.Eager, as there is not much playerSession-data to load (atm only two PlayerSession per game), hence, shouldn't cause affect performance
     private List<PlayerSession> playerSessions = new ArrayList<>();
 

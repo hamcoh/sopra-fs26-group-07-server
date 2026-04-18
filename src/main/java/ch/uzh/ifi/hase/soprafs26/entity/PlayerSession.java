@@ -14,7 +14,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -51,7 +53,11 @@ public class PlayerSession implements Serializable {
     @Column(nullable = true)
     private LocalDateTime finishedAt;
 
-    @Column(nullable = true)
+    @OneToMany //this is not the best solution i think
+    @JoinTable(
+    name = "player_session_submissions",
+    joinColumns = @JoinColumn(name = "player_session_id"), //owns association
+    inverseJoinColumns = @JoinColumn(name = "submission_id"))
     private List<Submission> submissions = new ArrayList<>();
 
     public Long getPlayerSessionId() {

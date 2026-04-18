@@ -18,7 +18,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
@@ -32,14 +31,12 @@ public class GameService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final ProblemService problemService;
-    private final PlayerSessionRepository playerSessionRepository;
     private final GameSessionRepository gameSessionRepository;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, PlayerSessionRepository playerSessionRepository, GameSessionRepository gameSessionRepository, UserRepository userRepository) {
+    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
-        this.playerSessionRepository = playerSessionRepository;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
     }
@@ -59,8 +56,8 @@ public class GameService {
         else if (!hostId.equals(room.getHostUserId())){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not allowed to start the game!");
         }
-        else if (room.getCurrentNumPlayers() <= 1){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Not enough players to start the game!s");
+        else if (room.getCurrentNumPlayers() < 2){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Not enough players to start the game!");
         }
         
         // 2. create game session + player sessions + extract problems
@@ -70,11 +67,10 @@ public class GameService {
         }
 
         //select randomly problems based on requestedNumOfProblems
+        //as soon as we have different categories of problem EASY/HARD, PYTHON/JAVA we need to implement a more sophisticated function here
         List<Problem> allProblems = new ArrayList<>(problemService.getAllProblems());
         Collections.shuffle(allProblems);
         List<Problem> selectedRandomProblems = allProblems.stream().limit(requestedNumOfProblems).toList();
-
-        
 
         //create GameSession
         GameSession gameSession = new GameSession();
@@ -106,7 +102,8 @@ public class GameService {
         // 3. prepare DTO (is returned in websocket); ATTENTION: ATM THIS IS NOT CORRECT, EACH PLAYER HAS TO GET ITS PERSONALISED DTO
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
         gameRoundDTO.setGameSessionId(gameSession.getGameSessionId());
-        gameRoundDTO.setPlayerSessionId(1L);//need to fix this
+        gameRoundDTO.setGameStatus(GameStatus.ACTIVE); //set GameStatus.Ended when firing back GameEndDTO via WebSocket
+        gameRoundDTO.setPlayerSessionId(1L); //need to fix this
         gameRoundDTO.setPlayerId(1L);
         gameRoundDTO.setCurrentScore(0);
         gameRoundDTO.setNumOfSkippedProblems(0);

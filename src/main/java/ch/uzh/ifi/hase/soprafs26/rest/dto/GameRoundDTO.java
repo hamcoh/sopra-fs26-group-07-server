@@ -1,8 +1,11 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
+
 public class GameRoundDTO {
 
     private Long gameSessionId;
+    private GameStatus gameStatus;
     private Long playerSessionId;
     private Long playerId;
     private Integer currentScore;
@@ -20,6 +23,12 @@ public class GameRoundDTO {
     }
     public void setGameSessionId(Long gameSessionId) {
         this.gameSessionId = gameSessionId;
+    }
+    public GameStatus getGameStatus() {
+        return gameStatus;
+    }
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
     }
     public Long getPlayerSessionId() {
         return playerSessionId;
