@@ -16,6 +16,7 @@ public class CodeRunDTO {
     private String judgeResultsJson;
     private int passedTestCases;
     private int totalTestCases;
+    private List<TestCaseFeedbackDTO> testCases;
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -89,4 +90,11 @@ public class CodeRunDTO {
         this.totalTestCases = totalTestCases;
     }
 
+    public List<TestCaseFeedbackDTO> getTestCases() {
+        return testCases;
+    }
+
+    public void setTestCases(List<TestCaseFeedbackDTO> testCases) {
+        this.testCases = testCases;
+    }
 }
