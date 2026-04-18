@@ -104,6 +104,7 @@ public interface DTOMapper {
 
 
 	@Mapping(source = "gameSessionId", target = "gameSessionId")
+	@Mapping(source = "gameStatus", target = "gameStatus")
 	@Mapping(source = "playerSessionId", target = "playerSessionId")
 	@Mapping(source = "playerId", target = "playerId")
 	@Mapping(source = "currentScore", target = "currentScore")
