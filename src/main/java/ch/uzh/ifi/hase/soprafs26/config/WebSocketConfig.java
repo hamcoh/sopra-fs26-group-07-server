@@ -23,8 +23,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     //method that configures message routing between the messaging parties
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) { //configures message broker
-        config.enableSimpleBroker("/topic"); //'server -> client': enable in-memory message broker to carry messages back to client on destinations prefixed with “/topic” (MAYBE: add heartbeat config to monitor connections!)
+        config.enableSimpleBroker("/topic", "/queue"); //'server -> client': enable in-memory message broker to carry messages back to client on destinations prefixed with “/topic” or "/queue" (latter especially relevant for individual msgs)
+            //   .setHeartbeatValue(new long[]{10000, 20000}); //detect disconnected clients by sending all 10 a msg to client and expecting all 20s msg back (prevents consumption of server ressources by stale connections)
         config.setApplicationDestinationPrefixes("/app"); //'client -> server': defines namespace for messages send by clients
+        config.setUserDestinationPrefix("/user"); //needed to route personalised messages
     }
 
     //method for integrating STOMP (Simple/Streaming Text Oriented Message Protocol), i.e., simple text-based protocol (similar to HTTP)

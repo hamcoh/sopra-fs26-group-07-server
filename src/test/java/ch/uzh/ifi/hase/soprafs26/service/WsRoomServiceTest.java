@@ -12,9 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,6 +24,9 @@ public class WsRoomServiceTest {
     
     @Mock
     SimpMessagingTemplate simpMessagingTemplate;
+
+    @Mock
+    UserService userService;
 
     @InjectMocks
     private WsRoomService wsRoomService;
@@ -72,20 +77,29 @@ public class WsRoomServiceTest {
     @Test
     void notifyPlayerGameStarted_success() {
         
-        Long roomId = 1L;
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
+
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
 
-        wsRoomService.notifyPlayerGameStarted(roomId, gameRoundDTO);
+        Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
 
-        verify(simpMessagingTemplate, times(1)).convertAndSend(
-            "/topic/room/" + roomId,
+        wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+
+        verify(simpMessagingTemplate, times(1)).convertAndSendToUser(
+            testUser.getUsername(),
+            "/queue/game-start",
             gameRoundDTO
             );
         }
 
     @Test
     void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_success() {
-        Long roomId = 32L;
+
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
 
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
         gameRoundDTO.setGameSessionId(9L);
@@ -100,17 +114,22 @@ public class WsRoomServiceTest {
         gameRoundDTO.setOutputFormat("Boolean: True if s is palindrome, otherwise False");
         gameRoundDTO.setConstraints("0 < len(s) < 50");
 
-        wsRoomService.notifyPlayerGameStarted(roomId, gameRoundDTO);
+        Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
 
+        wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+
+        ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<GameRoundDTO> payloadCaptor = ArgumentCaptor.forClass(GameRoundDTO.class);
 
-        verify(simpMessagingTemplate).convertAndSend(
+        verify(simpMessagingTemplate).convertAndSendToUser(
+            usernameCaptor.capture(),
             destinationCaptor.capture(),
             payloadCaptor.capture()
         );
 
-        assertEquals("/topic/room/32", destinationCaptor.getValue());
+        assertEquals(testUser.getUsername(), usernameCaptor.getValue());
+        assertEquals("/queue/game-start", destinationCaptor.getValue());
 
         GameRoundDTO captured = payloadCaptor.getValue();
         assertEquals(9, captured.getGameSessionId().intValue());
