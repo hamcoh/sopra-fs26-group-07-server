@@ -168,7 +168,7 @@ class RoomControllerTest {
         
      // Create Room Bad Request 400 - given invalid parameter
      @Test
-     void createRoom_inavlidRequiredField_badRequest() throws Exception {
+     void createRoom_invalidRequiredField_badRequest() throws Exception {
         
         String invalidGameSettings = """
         {

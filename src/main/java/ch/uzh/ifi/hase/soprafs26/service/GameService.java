@@ -118,7 +118,5 @@ public class GameService {
         
         // 3. broadcast websocket message
         //TO IMPLEMENT!!
-
-        // 4. return DTO
     }
 }
