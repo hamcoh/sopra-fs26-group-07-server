@@ -4,17 +4,24 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
+import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeRequestDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.TestCaseFeedbackDTO;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +31,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -32,23 +41,32 @@ public class CodeExecutionService {
     private final ProblemService problemService;
     private final JudgeService judgeService;
     private final SubmissionRepository submissionRepository;
+    private final UserRepository userRepository;
+    private final PlayerSessionRepository playerSessionRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay 
+     * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay
      * of RESULT_CHECK_DELAY_MS milliseconds in between.
      */
     private static final int MAX_RESULT_CHECKS = 3;
     private static final long RESULT_CHECK_DELAY_MS = 1000;
 
+    // Points awarded per passed test case on a correct submission
+    static final int POINTS_PER_TEST_CASE = 1;
+
     public CodeExecutionService(
             ProblemService problemService,
             JudgeService judgeService,
-            SubmissionRepository submissionRepository
+            SubmissionRepository submissionRepository,
+            UserRepository userRepository,
+            PlayerSessionRepository playerSessionRepository
     ) {
         this.problemService = problemService;
         this.judgeService = judgeService;
         this.submissionRepository = submissionRepository;
+        this.userRepository = userRepository;
+        this.playerSessionRepository = playerSessionRepository;
     }
 
     public CodeRunDTO runCode(Long gameSessionId,
@@ -86,6 +104,11 @@ public class CodeExecutionService {
         submissionRepository.save(submission);
         submissionRepository.flush();
 
+        List<TestCaseFeedbackDTO> testCaseFeedback =
+        submission.getStatus() == SubmissionStatus.FINISHED
+                ? mapToTestCaseFeedback(problem.getTestCases(), batchResult)
+                : Collections.emptyList();
+
         CodeRunDTO response = new CodeRunDTO();
         response.setGameSessionId(gameSessionId);
         response.setProblemId(problemId);
@@ -93,8 +116,13 @@ public class CodeExecutionService {
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
         response.setPassedTestCases(submission.getPassedTestCases());
-        response.setTotalTestCases(submission.getTotalTestCases());
-        response.setJudgeResultsJson(submission.getJudgeResultsJson());
+        response.setTotalTestCases(
+            submission.getStatus() == SubmissionStatus.FINISHED // if the submission is finished, we set the total test cases to the size of the test case feedback list, which corresponds to the number of test cases that were actually executed and for which we have results. 
+                    ? testCaseFeedback.size()
+                    : submission.getTotalTestCases()
+            );
+        response.setTestCases(testCaseFeedback);
+
 
         return response;
     }
@@ -147,6 +175,13 @@ public class CodeExecutionService {
         submissionRepository.save(submission);
         submissionRepository.flush();
 
+        awardPoints(submission);
+
+        List<TestCaseFeedbackDTO> testCaseFeedback =
+        submission.getStatus() == SubmissionStatus.FINISHED
+                ? mapToTestCaseFeedback(problem.getTestCases(), batchResult)
+                : Collections.emptyList();
+
         CodeSubmissionDTO response = new CodeSubmissionDTO();
         response.setGameSessionId(gameSessionId);
         response.setProblemId(problemId);
@@ -154,8 +189,12 @@ public class CodeExecutionService {
         response.setSubmissionStatus(submission.getStatus());
         response.setVerdict(submission.getVerdict());
         response.setPassedTestCases(submission.getPassedTestCases());
-        response.setTotalTestCases(submission.getTotalTestCases());
-        response.setJudgeResultsJson(submission.getJudgeResultsJson());
+        response.setTotalTestCases(
+                submission.getStatus() == SubmissionStatus.FINISHED // if the submission is finished, we set the total test cases to the size of the test case feedback list, which corresponds to the number of test cases that were actually executed and for which we have results.
+                        ? testCaseFeedback.size()
+                        : submission.getTotalTestCases()
+        );
+        response.setTestCases(testCaseFeedback);
 
         return response;
     }
@@ -497,11 +536,18 @@ public class CodeExecutionService {
                         playerSessionId,
                         SubmissionType.RUN
                 );
+
         if (submission == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No run submission found");
         }
 
         submission = refreshSubmissionIfNeeded(submission);
+
+        // We only map the test case feedback if the submission is finished, otherwise we return an empty list, because the results are not final yet and we don't want to confuse the user with intermediate results that might change.
+        List<TestCaseFeedbackDTO> testCaseFeedback =
+        submission.getStatus() == SubmissionStatus.FINISHED
+                ? mapStoredTestCaseFeedback(problemId, submission)
+                : Collections.emptyList();
 
         CodeRunDTO response = new CodeRunDTO();
         response.setGameSessionId(gameSessionId);
@@ -511,7 +557,7 @@ public class CodeExecutionService {
         response.setVerdict(submission.getVerdict());
         response.setPassedTestCases(submission.getPassedTestCases());
         response.setTotalTestCases(submission.getTotalTestCases());
-        response.setJudgeResultsJson(submission.getJudgeResultsJson());
+        response.setTestCases(testCaseFeedback);
 
         return response;
     }
@@ -534,11 +580,18 @@ public class CodeExecutionService {
                         playerSessionId,
                         SubmissionType.SUBMIT
                 );
+
         if (submission == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No final submission found");
         }
 
         submission = refreshSubmissionIfNeeded(submission);
+
+        // We only map the test case feedback if the submission is finished, otherwise we return an empty list, because the results are not final yet and we don't want to confuse the user with intermediate results that might change.
+        List<TestCaseFeedbackDTO> testCaseFeedback =
+        submission.getStatus() == SubmissionStatus.FINISHED
+                ? mapStoredTestCaseFeedback(problemId, submission)
+                : Collections.emptyList();
 
         CodeSubmissionDTO response = new CodeSubmissionDTO();
         response.setGameSessionId(gameSessionId);
@@ -548,7 +601,7 @@ public class CodeExecutionService {
         response.setVerdict(submission.getVerdict());
         response.setPassedTestCases(submission.getPassedTestCases());
         response.setTotalTestCases(submission.getTotalTestCases());
-        response.setJudgeResultsJson(submission.getJudgeResultsJson());
+        response.setTestCases(testCaseFeedback);
 
         return response;
     }
@@ -619,6 +672,158 @@ public class CodeExecutionService {
             submission.setStatus(SubmissionStatus.RUNNING);
             submission.setVerdict(Verdict.PENDING);
         }
+    }
+
+    /**
+     * 
+     * This method maps the list of test cases and the corresponding Judge0 
+     * batch result to a list of TestCaseFeedbackDTOs that can be sent back to the frontend.
+     * 
+     * 
+     */
+    private List<TestCaseFeedbackDTO> mapToTestCaseFeedback(
+        List<TestCase> testCases,
+        JudgeBatchResultDTO batchResult) {
+
+        List<TestCaseFeedbackDTO> feedbackList = new ArrayList<>();
+
+        if (testCases == null || testCases.isEmpty()) {
+            return feedbackList;
+        }
+        // We get the list of JudgeResultDTOs from the batch result. 
+        List<JudgeResultDTO> judgeResults =
+                (batchResult != null && batchResult.getSubmissions() != null)
+                        ? batchResult.getSubmissions()
+                        : Collections.emptyList();
+
+        // We iterate over the test cases and the corresponding Judge results in parallel and create a TestCaseFeedbackDTO for each test case.
+        for (int i = 0; i < testCases.size(); i++) {
+            TestCase testCase = testCases.get(i);
+            JudgeResultDTO judgeResult = i < judgeResults.size() ? judgeResults.get(i) : null;
+
+            TestCaseFeedbackDTO feedbackDTO = new TestCaseFeedbackDTO();
+            feedbackDTO.setTestCaseId(
+                testCase.getTestCaseId() != null
+                        ? testCase.getTestCaseId().intValue()
+                        : i
+            );
+            
+            feedbackDTO.setExpectedOutput(testCase.getExpectedOutput());
+
+            if (judgeResult == null) {
+                feedbackDTO.setResult("ERROR");
+                feedbackDTO.setActualOutput(null);
+                feedbackDTO.setErrorMessage("Missing Judge0 result for test case.");
+                feedbackList.add(feedbackDTO);
+                continue;
+            }
+
+
+            // We consider a test case as having an execution error if there is any stderr output, or any compile output, or any message, or if the status id is not 3 (Correct Answer) or 4 (Wrong Answer).
+            String stdout = judgeResult.getStdout();
+            String stderr = judgeResult.getStderr();
+            String compileOutput = judgeResult.getCompile_output();
+            String message = judgeResult.getMessage();
+
+            feedbackDTO.setActualOutput(stdout != null ? stdout.trim() : null);
+
+            Integer statusId = judgeResult.getStatus() != null ? judgeResult.getStatus().getId() : null;
+
+            boolean hasExecutionError =
+                    (stderr != null && !stderr.isBlank()) ||
+                    (compileOutput != null && !compileOutput.isBlank()) ||
+                    (message != null && !message.isBlank()) ||
+                    (statusId != null && statusId != 3 && statusId != 4);
+
+            if (hasExecutionError) {
+                feedbackDTO.setResult("ERROR");
+
+                if (compileOutput != null && !compileOutput.isBlank()) {
+                    feedbackDTO.setErrorMessage(compileOutput.trim());
+                }
+                else if (stderr != null && !stderr.isBlank()) {
+                    feedbackDTO.setErrorMessage(stderr.trim());
+                }
+                else if (message != null && !message.isBlank()) {
+                    feedbackDTO.setErrorMessage(message.trim());
+                }
+                else if (judgeResult.getStatus() != null
+                        && judgeResult.getStatus().getDescription() != null) {
+                    feedbackDTO.setErrorMessage(judgeResult.getStatus().getDescription());
+                }
+                else {
+                    feedbackDTO.setErrorMessage("Unknown execution error.");
+                }
+            }
+            else { // If there is no execution error, we check if the output matches the expected output. We normalize both outputs by trimming whitespace and replacing newlines
+                String expected = normalizeOutput(testCase.getExpectedOutput());
+                String actual = normalizeOutput(stdout);
+
+                if (Objects.equals(expected, actual)) {
+                    feedbackDTO.setResult("PASS");
+                    feedbackDTO.setErrorMessage(null);
+                }
+                else {
+                    feedbackDTO.setResult("FAIL");
+                    feedbackDTO.setErrorMessage(null);
+                }
+            }
+
+            feedbackList.add(feedbackDTO);
+        }
+
+        return feedbackList;
+    }
+
+    private String normalizeOutput(String output) {
+        if (output == null) {
+            return null;
+        }
+        return output.trim().replace("\r\n", "\n");
+    }
+
+    private List<TestCaseFeedbackDTO> mapStoredTestCaseFeedback(Long problemId, Submission submission) {
+        if (problemId == null) {
+            return Collections.emptyList();
+        }
+
+        if (submission == null || submission.getJudgeResultsJson() == null || submission.getJudgeResultsJson().isBlank()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            Problem problem = problemService.getProblemById(problemId);
+            JudgeBatchResultDTO batchResult = objectMapper.readValue(
+                    submission.getJudgeResultsJson(),
+                    JudgeBatchResultDTO.class
+            );
+
+            return mapToTestCaseFeedback(problem.getTestCases(), batchResult);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private void awardPoints(Submission submission) {
+        if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+            return;
+        }
+
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
+        if (playerSession == null) {
+            return;
+        }
+
+        int achievedPoints = submission.getPassedTestCases() * POINTS_PER_TEST_CASE;
+
+        playerSession.setCurrentScore(playerSession.getCurrentScore() + achievedPoints);
+        playerSessionRepository.save(playerSession);
+        playerSessionRepository.flush();
+
+        User user = playerSession.getPlayer();
+        user.setTotalPoints(user.getTotalPoints() + achievedPoints);
+        userRepository.save(user);
+        userRepository.flush();
     }
 
 }

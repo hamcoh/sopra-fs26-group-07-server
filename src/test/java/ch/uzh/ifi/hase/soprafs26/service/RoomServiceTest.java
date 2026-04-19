@@ -24,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
@@ -106,6 +107,23 @@ class RoomServiceTest {
         assertEquals(1, createdRoom.getCurrentNumPlayers());
         assertNotNull(createdRoom.getRoomId());
         assertTrue(createdRoom.getPlayerIds().contains(host.getId()));
+    }
+
+    // Create Room Fails: more requested Problems than available
+    @Test
+    void createRoom_moreProblemsRequestedThenAvailable_throwsBadRequest() {
+        User host = new User();
+        host.setId(1L);
+        host.setUsername("hostUser");
+        host.setToken("validToken");
+
+        testRoom.setNumOfProblems(5432);
+        
+        given(userService.getUserbyId(host.getId())).willReturn(host);
+        given(problemService.getAllProblems()).willReturn(List.of(new Problem()));
+
+        assertThrows(ResponseStatusException.class, () ->
+                roomService.createRoom(testRoom, host.getId(), host.getToken()));
     }
 
     // getRoomDetails Player in room success 200

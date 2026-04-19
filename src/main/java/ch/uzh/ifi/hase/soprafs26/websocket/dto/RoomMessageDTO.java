@@ -5,7 +5,9 @@ public class RoomMessageDTO {
     private String username;
     private boolean host;
 
-    public RoomMessageDTO() {}
+    public RoomMessageDTO() {
+        // intentionally empty 
+    }
 
     public String getUsername() {
         return username;
