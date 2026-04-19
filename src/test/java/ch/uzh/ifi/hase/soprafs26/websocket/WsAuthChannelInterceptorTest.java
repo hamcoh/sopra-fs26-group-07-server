@@ -1,7 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.websocket;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +18,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import ch.uzh.ifi.hase.soprafs26.config.WsAuthChannelInterceptor;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 //tests whether token validation works after ws-handshake is established (crucial before actually establishing connection)
@@ -50,12 +53,22 @@ public class WsAuthChannelInterceptorTest {
     //CONNECT frame should pass if token is valid => no error thrown
     @Test
     void establishWsConnection_validToken_success() {
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
+
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
         accessor.addNativeHeader("token", "validToken");
+        accessor.setLeaveMutable(true);
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
-        assertDoesNotThrow(() -> {
-            interceptor.preSend(message, channel);
-        });
+        doNothing().when(userService).verifyToken("validToken");
+        Mockito.when(userService.getUserbyToken("validToken")).thenReturn(testUser);
+
+        Message<?> result = interceptor.preSend(message, channel);
+
+        StompHeaderAccessor resultAccessor = StompHeaderAccessor.getAccessor(result, StompHeaderAccessor.class);
+        assertNotNull(resultAccessor.getUser());
+        assertEquals(testUser.getUsername(), resultAccessor.getUser().getName());
     }
 }
