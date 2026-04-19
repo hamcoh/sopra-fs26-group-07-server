@@ -86,7 +86,7 @@ public class GameService {
 
         for(Long participatingPlayerId : participatingPlayerIds){
             PlayerSession playerSession = new PlayerSession();
-            User player = userService.getUserbyId(participatingPlayerId);
+            User player = userService.getUserById(participatingPlayerId);
 
             playerSession.setGameSession(gameSession);
             playerSession.setPlayer(player);

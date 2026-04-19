@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
@@ -47,6 +49,9 @@ public class GameServiceTest {
 
     @Mock
     private GameSessionRepository gameSessionRepository;
+
+    @Mock
+    private WsRoomService wsRoomService;
 
     @InjectMocks
     private GameService gameService;
@@ -101,6 +106,7 @@ public class GameServiceTest {
         given(userService.getUserById(player2.getId())).willReturn(player2);
         given(gameSessionRepository.save(any(GameSession.class)))
             .willAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(wsRoomService).notifyPlayerGameStarted(Mockito.any());
 
         gameService.createGameSession(gameHost.getId(), testRoom.getRoomId());
 

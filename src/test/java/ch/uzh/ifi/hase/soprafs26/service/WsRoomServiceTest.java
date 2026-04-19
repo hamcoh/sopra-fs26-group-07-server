@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,7 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
@@ -143,6 +146,19 @@ public class WsRoomServiceTest {
         assertEquals("A single lowercase string containing only alphabetic characters", captured.getInputFormat());
         assertEquals("Boolean: True if s is palindrome, otherwise False", captured.getOutputFormat());
         assertEquals("0 < len(s) < 50", captured.getConstraints());
+    }
+
+    @Test
+    void notifyPlayerGameStarted_userNotFound_throwsException() {
+        GameRoundDTO gameRoundDTO = new GameRoundDTO();
+        gameRoundDTO.setPlayerId(2121L);
+
+        String errorReason = "Resource was not found!";
+        Mockito.when(userService.getUserById(Mockito.any())).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason));
+
+        assertThrows(ResponseStatusException.class, () ->
+                wsRoomService.notifyPlayerGameStarted(gameRoundDTO));
+
     }
 }
 
