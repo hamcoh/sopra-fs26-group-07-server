@@ -821,6 +821,9 @@ public class CodeExecutionService {
         int nextIndex = playerSession.getCurrentProblemIndex() + 1;
 
         if (nextIndex >= gameSession.getProblems().size()) {
+            if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+                return;
+            }
             playerSession.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
             playerSession.setFinishedAt(LocalDateTime.now());
             playerSessionRepository.save(playerSession);
