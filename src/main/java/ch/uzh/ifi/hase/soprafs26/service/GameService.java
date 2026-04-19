@@ -32,13 +32,15 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
+    private final WsRoomService wsRoomService;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository) {
+    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, WsRoomService wsRoomService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
+        this.wsRoomService = wsRoomService;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -84,7 +86,7 @@ public class GameService {
 
         for(Long participatingPlayerId : participatingPlayerIds){
             PlayerSession playerSession = new PlayerSession();
-            User player = userService.getUserbyId(participatingPlayerId);
+            User player = userService.getUserById(participatingPlayerId);
 
             playerSession.setGameSession(gameSession);
             playerSession.setPlayer(player);
@@ -99,24 +101,27 @@ public class GameService {
         gameSession = gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
-        // 3. prepare DTO (is returned in websocket); ATTENTION: ATM THIS IS NOT CORRECT, EACH PLAYER HAS TO GET ITS PERSONALISED DTO
-        GameRoundDTO gameRoundDTO = new GameRoundDTO();
-        gameRoundDTO.setGameSessionId(gameSession.getGameSessionId());
-        gameRoundDTO.setGameStatus(GameStatus.ACTIVE); //set GameStatus.Ended when firing back GameEndDTO via WebSocket
-        gameRoundDTO.setPlayerSessionId(1L); //need to fix this
-        gameRoundDTO.setPlayerId(1L);
-        gameRoundDTO.setCurrentScore(0);
-        gameRoundDTO.setNumOfSkippedProblems(0);
+        // prepare and send personalised GameRoundDTO via WS
+        for(PlayerSession playerSession : gameSession.getPlayerSessions()) {
+            
+            GameRoundDTO gameRoundDTO = new GameRoundDTO();
+            gameRoundDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
+            gameRoundDTO.setGameStatus(GameStatus.ACTIVE); //set GameStatus.Ended when firing back GameEndDTO via WebSocket
+            gameRoundDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
+            gameRoundDTO.setPlayerId(playerSession.getPlayer().getId());
+            gameRoundDTO.setCurrentScore(0);
+            gameRoundDTO.setNumOfSkippedProblems(0);
 
-        Problem firstProblem = gameSession.getProblems().get(0); // get first problem
-        gameRoundDTO.setProblemId(firstProblem.getProblemId());
-        gameRoundDTO.setTitle(firstProblem.getTitle());
-        gameRoundDTO.setDescription(firstProblem.getDescription());
-        gameRoundDTO.setInputFormat(firstProblem.getInputFormat());
-        gameRoundDTO.setOutputFormat(firstProblem.getOutputFormat());
-        gameRoundDTO.setConstraints(firstProblem.getConstraints());
-        
-        // 3. broadcast websocket message
-        //TO IMPLEMENT!!
+            Problem firstProblem = gameSession.getProblems().get(0); // get first problem
+            gameRoundDTO.setProblemId(firstProblem.getProblemId());
+            gameRoundDTO.setTitle(firstProblem.getTitle());
+            gameRoundDTO.setDescription(firstProblem.getDescription());
+            gameRoundDTO.setInputFormat(firstProblem.getInputFormat());
+            gameRoundDTO.setOutputFormat(firstProblem.getOutputFormat());
+            gameRoundDTO.setConstraints(firstProblem.getConstraints());
+
+            //send personalised message to each player
+            wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+        }
     }
 }
