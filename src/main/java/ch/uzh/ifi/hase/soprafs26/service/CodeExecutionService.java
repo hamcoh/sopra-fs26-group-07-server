@@ -1,9 +1,12 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
+import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
 import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
@@ -43,6 +46,7 @@ public class CodeExecutionService {
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final PlayerSessionRepository playerSessionRepository;
+    private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -60,13 +64,15 @@ public class CodeExecutionService {
             JudgeService judgeService,
             SubmissionRepository submissionRepository,
             UserRepository userRepository,
-            PlayerSessionRepository playerSessionRepository
+            PlayerSessionRepository playerSessionRepository,
+            GameService gameService
     ) {
         this.problemService = problemService;
         this.judgeService = judgeService;
         this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
         this.playerSessionRepository = playerSessionRepository;
+        this.gameService = gameService;
     }
 
     public CodeRunDTO runCode(Long gameSessionId,
@@ -176,6 +182,7 @@ public class CodeExecutionService {
         submissionRepository.flush();
 
         awardPoints(submission);
+        checkGameEnd(submission);
 
         List<TestCaseFeedbackDTO> testCaseFeedback =
         submission.getStatus() == SubmissionStatus.FINISHED
@@ -804,8 +811,31 @@ public class CodeExecutionService {
         }
     }
 
+    private void checkGameEnd(Submission submission) {
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
+        if (playerSession == null) {
+            return;
+        }
+
+        GameSession gameSession = playerSession.getGameSession();
+        int nextIndex = playerSession.getCurrentProblemIndex() + 1;
+
+        if (nextIndex >= gameSession.getProblems().size()) {
+            if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+                return;
+            }
+            playerSession.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
+            playerSession.setFinishedAt(LocalDateTime.now());
+            playerSessionRepository.save(playerSession);
+            gameService.endGameSession(gameSession, GameEndReason.PLAYER_FINISHED);
+        } else {
+            playerSession.setCurrentProblemIndex(nextIndex);
+            playerSessionRepository.save(playerSession);
+        }
+    }
+
     private void awardPoints(Submission submission) {
-        if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+        if (submission.getVerdict() != Verdict.CORRECT_ANSWER) { // we can remove this check if we want partial points.
             return;
         }
 

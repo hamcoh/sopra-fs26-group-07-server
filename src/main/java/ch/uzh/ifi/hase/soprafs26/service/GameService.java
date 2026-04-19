@@ -3,13 +3,16 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
@@ -20,7 +23,9 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -32,14 +37,16 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     private final WsRoomService wsRoomService;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, WsRoomService wsRoomService) {
+    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
         this.wsRoomService = wsRoomService;
     }
 
@@ -123,5 +130,44 @@ public class GameService {
             //send personalised message to each player
             wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
         }
+    }
+
+    public void endGameSession(GameSession gameSession, GameEndReason reason) {
+        gameSession.setGameStatus(GameStatus.ENDED);
+        gameSession.setEndedAt(LocalDateTime.now());
+        gameSession.setGameEndReason(reason);
+        gameSessionRepository.save(gameSession);
+
+        List<PlayerSession> sessions = gameSession.getPlayerSessions();
+
+        List<PlayerScoreDTO> scores = sessions.stream()
+            .map(ps -> {
+                PlayerScoreDTO dto = new PlayerScoreDTO();
+                dto.setPlayerSessionId(ps.getPlayerSessionId());
+                dto.setUserId(ps.getPlayer().getId());
+                dto.setUsername(ps.getPlayer().getUsername());
+                dto.setScore(ps.getCurrentScore());
+                dto.setProblemsSolved(ps.getCurrentProblemIndex());
+                return dto;
+            })
+            .sorted(Comparator.comparingInt(PlayerScoreDTO::getScore).reversed())
+            .toList();
+
+        PlayerSession winner = sessions.stream()
+            .max(Comparator.comparingInt(PlayerSession::getCurrentScore))
+            .orElse(null);
+
+        // null if tie 
+        
+        long topScore = winner != null ? winner.getCurrentScore() : 0;
+        boolean tie = sessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
+
+        GameEndDTO dto = new GameEndDTO();
+        dto.setGameSessionId(gameSession.getGameSessionId());
+        dto.setReason(reason);
+        dto.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
+        dto.setPlayerScores(scores);
+
+        messagingTemplate.convertAndSend("/topic/game/" + gameSession.getGameSessionId() + "/end", dto);
     }
 }
