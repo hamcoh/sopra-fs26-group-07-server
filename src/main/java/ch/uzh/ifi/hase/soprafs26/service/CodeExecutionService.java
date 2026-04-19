@@ -7,7 +7,9 @@ import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
@@ -37,23 +39,29 @@ public class CodeExecutionService {
     private final ProblemService problemService;
     private final JudgeService judgeService;
     private final SubmissionRepository submissionRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay 
+     * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay
      * of RESULT_CHECK_DELAY_MS milliseconds in between.
      */
     private static final int MAX_RESULT_CHECKS = 3;
     private static final long RESULT_CHECK_DELAY_MS = 1000;
 
+    // Points awarded per passed test case on a correct submission
+    static final int POINTS_PER_TEST_CASE = 1;
+
     public CodeExecutionService(
             ProblemService problemService,
             JudgeService judgeService,
-            SubmissionRepository submissionRepository
+            SubmissionRepository submissionRepository,
+            UserRepository userRepository
     ) {
         this.problemService = problemService;
         this.judgeService = judgeService;
         this.submissionRepository = submissionRepository;
+        this.userRepository = userRepository;
     }
 
     public CodeRunDTO runCode(Long gameSessionId,
@@ -161,6 +169,8 @@ public class CodeExecutionService {
 
         submissionRepository.save(submission);
         submissionRepository.flush();
+
+        awardPoints(submission);
 
         List<TestCaseFeedbackDTO> testCaseFeedback =
         submission.getStatus() == SubmissionStatus.FINISHED
@@ -789,5 +799,20 @@ public class CodeExecutionService {
         }
     }
 
+    private void awardPoints(Submission submission) {
+        if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+            return;
+        }
+
+        long achievedPoints = (long) submission.getPassedTestCases() * POINTS_PER_TEST_CASE;
+        User user = userRepository.findUserById(submission.getPlayerSessionId());
+        if (user == null) {
+            return;
+        }
+        
+        user.setTotalPoints(user.getTotalPoints() + achievedPoints);
+        userRepository.save(user);
+        userRepository.flush();
+    }
 
 }

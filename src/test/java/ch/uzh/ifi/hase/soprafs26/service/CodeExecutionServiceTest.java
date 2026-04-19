@@ -8,6 +8,8 @@ import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
@@ -38,6 +40,9 @@ class CodeExecutionServiceTest {
     @Mock
     private JudgeService judgeService;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
@@ -47,7 +52,8 @@ class CodeExecutionServiceTest {
         codeExecutionService = new CodeExecutionService(
                 problemService,
                 judgeService,
-                submissionRepository
+                submissionRepository,
+                userRepository
         );
     }
 
@@ -383,6 +389,225 @@ class CodeExecutionServiceTest {
 
         assertEquals(SubmissionStatus.RUNNING, result.getSubmissionStatus());
         assertEquals(Verdict.PENDING, result.getVerdict());
+    }
+
+    @Test
+    void submitCode_correctAnswer_awardsOnePointPerPassedTestCase() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc1 = new TestCase();
+        tc1.setInput("ab");
+        tc1.setExpectedOutput("ba");
+        TestCase tc2 = new TestCase();
+        tc2.setInput("cd");
+        tc2.setExpectedOutput("dc");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc1, tc2));
+
+        JudgeTokenDTO token1 = new JudgeTokenDTO();
+        token1.setJudgeToken("tok1");
+        JudgeTokenDTO token2 = new JudgeTokenDTO();
+        token2.setJudgeToken("tok2");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO r1 = new JudgeResultDTO();
+        r1.setToken("tok1");
+        r1.setStatus(accepted);
+        JudgeResultDTO r2 = new JudgeResultDTO();
+        r2.setToken("tok2");
+        r2.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(r1, r2));
+
+        User user = new User();
+        user.setTotalPoints(0L);
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token1, token2));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findUserById(playerSessionId)).thenReturn(user);
+
+        codeExecutionService.submitCode(gameSessionId, problemId, request);
+
+        assertEquals(2L, user.getTotalPoints());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void submitCode_wrongAnswer_doesNotAwardPoints() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x");
+
+        TestCase tc = new TestCase();
+        tc.setInput("ab");
+        tc.setExpectedOutput("ba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO wrongAnswer = new JudgeStatusDTO();
+        wrongAnswer.setId(4);
+        wrongAnswer.setDescription("Wrong Answer");
+
+        JudgeResultDTO result = new JudgeResultDTO();
+        result.setToken("tok1");
+        result.setStatus(wrongAnswer);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result));
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+
+        codeExecutionService.submitCode(gameSessionId, problemId, request);
+
+        verify(userRepository, never()).findUserById(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void submitCode_correctAnswer_userNotFound_doesNotThrow() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc = new TestCase();
+        tc.setInput("ab");
+        tc.setExpectedOutput("ba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO result = new JudgeResultDTO();
+        result.setToken("tok1");
+        result.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(result));
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findUserById(playerSessionId)).thenReturn(null);
+
+        assertDoesNotThrow(() -> codeExecutionService.submitCode(gameSessionId, problemId, request));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void submitCode_correctAnswer_accumulatesWithExistingPoints() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc1 = new TestCase();
+        tc1.setInput("ab");
+        tc1.setExpectedOutput("ba");
+        TestCase tc2 = new TestCase();
+        tc2.setInput("cd");
+        tc2.setExpectedOutput("dc");
+        TestCase tc3 = new TestCase();
+        tc3.setInput("ef");
+        tc3.setExpectedOutput("fe");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc1, tc2, tc3));
+
+        JudgeTokenDTO token1 = new JudgeTokenDTO();
+        token1.setJudgeToken("tok1");
+        JudgeTokenDTO token2 = new JudgeTokenDTO();
+        token2.setJudgeToken("tok2");
+        JudgeTokenDTO token3 = new JudgeTokenDTO();
+        token3.setJudgeToken("tok3");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO r1 = new JudgeResultDTO();
+        r1.setToken("tok1");
+        r1.setStatus(accepted);
+        JudgeResultDTO r2 = new JudgeResultDTO();
+        r2.setToken("tok2");
+        r2.setStatus(accepted);
+        JudgeResultDTO r3 = new JudgeResultDTO();
+        r3.setToken("tok3");
+        r3.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(r1, r2, r3));
+
+        User user = new User();
+        user.setTotalPoints(5L);
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token1, token2, token3));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findUserById(playerSessionId)).thenReturn(user);
+
+        codeExecutionService.submitCode(gameSessionId, problemId, request);
+
+        assertEquals(8L, user.getTotalPoints()); // 5 existing + 3 passed test cases
+        verify(userRepository).save(user);
     }
 
 }

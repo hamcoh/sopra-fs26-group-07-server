@@ -2,7 +2,6 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,7 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -24,7 +22,6 @@ public class RoomService {
     private final UserService userService;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
-                                                    UserRepository userRepository,
                                                     UserService userService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
