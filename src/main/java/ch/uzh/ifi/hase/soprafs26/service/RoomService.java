@@ -20,11 +20,15 @@ public class RoomService {
     
     private final RoomRepository roomRepository;
     private final UserService userService;
+    private final ProblemService problemService;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
-                                                    UserService userService) {
+                                                    UserRepository userRepository,
+                                                    UserService userService,
+                                                    ProblemService problemService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
+        this.problemService = problemService;
     }
 
     public Room createRoom(Room roomInput, Long userId, String token) {
@@ -36,6 +40,15 @@ public class RoomService {
         roomInput.setRoomOpen(true);
         roomInput.setCurrentNumPlayers(1);
         roomInput.setMaxNumPlayers(2); //In the beginning, only allow 1v1 (later stage: no hard-coding, send field from frontend)
+        
+        Integer requestNumOfProblems = roomInput.getNumOfProblems();
+        if (requestNumOfProblems != null){
+            Integer storedNumOfProblems = problemService.getAllProblems().size();
+            if(requestNumOfProblems > storedNumOfProblems ) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create room: number of problems requested: " + requestNumOfProblems + " exceeds amount of problems available: " + storedNumOfProblems + " !");
+            }
+            roomInput.setNumOfProblems(requestNumOfProblems);
+        }
         // roomInput.setNumOfProblems(10); //all problems so far
         // roomInput.setMaxSkips(2); // arbitrary
         // roomInput.setTimeLimitSeconds(600); //10 mins
@@ -54,8 +67,10 @@ public class RoomService {
         userService.verifyTokenAndUserId(token, userId);
         User newPlayer = userService.getUserbyId(userId);
 
-        if (!roomJoinCode.matches("[A-F0-9]{6}")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code!");
+        if (roomJoinCode != null) {
+            if (!roomJoinCode.matches("[A-F0-9]{6}")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code!");
+            }
         }
 
         Room targetRoom = roomRepository.findByRoomJoinCode(roomJoinCode);
