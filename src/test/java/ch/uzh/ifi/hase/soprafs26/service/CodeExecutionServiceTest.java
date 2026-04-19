@@ -1,10 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
+import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
 import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
@@ -48,6 +51,9 @@ class CodeExecutionServiceTest {
     @Mock
     private PlayerSessionRepository playerSessionRepository;
 
+    @Mock
+    private GameService gameService;
+
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
@@ -59,8 +65,28 @@ class CodeExecutionServiceTest {
                 judgeService,
                 submissionRepository,
                 userRepository,
-                playerSessionRepository
+                playerSessionRepository,
+                gameService
         );
+    }
+
+    private PlayerSession makePlayerSession(int currentProblemIndex, int totalProblems) {
+        Problem[] problems = new Problem[totalProblems];
+        for (int i = 0; i < totalProblems; i++) {
+            problems[i] = new Problem();
+        }
+        GameSession gameSession = new GameSession();
+        gameSession.setProblems(List.of(problems));
+
+        User user = new User();
+        user.setTotalPoints(0L);
+
+        PlayerSession ps = new PlayerSession();
+        ps.setCurrentProblemIndex(currentProblemIndex);
+        ps.setCurrentScore(0);
+        ps.setPlayer(user);
+        ps.setGameSession(gameSession);
+        return ps;
     }
 
     @Test
@@ -445,6 +471,10 @@ class CodeExecutionServiceTest {
         PlayerSession playerSession = new PlayerSession();
         playerSession.setCurrentScore(0);
         playerSession.setPlayer(user);
+        playerSession.setCurrentProblemIndex(0);
+        GameSession gameSession = new GameSession();
+        gameSession.setProblems(List.of(new Problem(), new Problem(), new Problem()));
+        playerSession.setGameSession(gameSession);
 
         when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
                 gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
@@ -458,7 +488,7 @@ class CodeExecutionServiceTest {
 
         assertEquals(2, playerSession.getCurrentScore());
         assertEquals(2L, user.getTotalPoints());
-        verify(playerSessionRepository).save(playerSession);
+        verify(playerSessionRepository, atLeastOnce()).save(playerSession);
         verify(userRepository).save(user);
     }
 
@@ -505,7 +535,6 @@ class CodeExecutionServiceTest {
 
         codeExecutionService.submitCode(gameSessionId, problemId, request);
 
-        verify(playerSessionRepository, never()).findByPlayerSessionId(any());
         verify(playerSessionRepository, never()).save(any());
         verify(userRepository, never()).save(any());
     }
@@ -613,6 +642,10 @@ class CodeExecutionServiceTest {
         PlayerSession playerSession = new PlayerSession();
         playerSession.setCurrentScore(5);
         playerSession.setPlayer(user);
+        playerSession.setCurrentProblemIndex(0);
+        GameSession gameSession = new GameSession();
+        gameSession.setProblems(List.of(new Problem(), new Problem(), new Problem()));
+        playerSession.setGameSession(gameSession);
 
         when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
                 gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
@@ -626,8 +659,157 @@ class CodeExecutionServiceTest {
 
         assertEquals(8, playerSession.getCurrentScore()); // 5 existing + 3 passed test cases
         assertEquals(13L, user.getTotalPoints()); // 10 existing + 3 passed test cases
-        verify(playerSessionRepository).save(playerSession);
+        verify(playerSessionRepository, atLeastOnce()).save(playerSession);
         verify(userRepository).save(user);
+    }
+
+
+    @Test
+    void submitCode_correctAnswer_lastProblem_triggersGameEnd() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc = new TestCase();
+        tc.setInput("ab");
+        tc.setExpectedOutput("ba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO r = new JudgeResultDTO();
+        r.setToken("tok1");
+        r.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(r));
+
+        // player is on index 1 (last) of a 2 problem game so it should end
+        PlayerSession playerSession = makePlayerSession(1, 2);
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession);
+
+        codeExecutionService.submitCode(gameSessionId, problemId, request);
+
+        assertEquals(PlayerSessionStatus.FINISHED, playerSession.getPlayerSessionStatus());
+        verify(gameService).endGameSession(playerSession.getGameSession(), GameEndReason.PLAYER_FINISHED);
+    }
+
+    @Test
+    void submitCode_correctAnswer_notLastProblem_advancesProblemIndex() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc = new TestCase();
+        tc.setInput("ab");
+        tc.setExpectedOutput("ba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO r = new JudgeResultDTO();
+        r.setToken("tok1");
+        r.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(r));
+
+        // player is on index 0 of a 3-problem game so it should advance 
+        PlayerSession playerSession = makePlayerSession(0, 3);
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession);
+
+        codeExecutionService.submitCode(gameSessionId, problemId, request);
+
+        assertEquals(1, playerSession.getCurrentProblemIndex());
+        verify(gameService, never()).endGameSession(any(), any());
+    }
+
+    @Test
+    void submitCode_playerSessionNull_doesNotTriggerGameEnd() {
+        Long gameSessionId = 1L;
+        Long problemId = 2L;
+        Long playerSessionId = 3L;
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSessionId);
+        request.setSourceCode("def solve(x):\n    return x[::-1]");
+
+        TestCase tc = new TestCase();
+        tc.setInput("ab");
+        tc.setExpectedOutput("ba");
+
+        Problem problem = new Problem();
+        problem.setProblemId(problemId);
+        problem.setGameLanguage(GameLanguage.PYTHON);
+        problem.setGameDifficulty(GameDifficulty.EASY);
+        problem.setTestCases(List.of(tc));
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok1");
+
+        JudgeStatusDTO accepted = new JudgeStatusDTO();
+        accepted.setId(3);
+        accepted.setDescription("Accepted");
+
+        JudgeResultDTO r = new JudgeResultDTO();
+        r.setToken("tok1");
+        r.setStatus(accepted);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(r));
+
+        when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
+                gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
+        when(problemService.getProblemById(problemId)).thenReturn(problem);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(null);
+
+        assertDoesNotThrow(() -> codeExecutionService.submitCode(gameSessionId, problemId, request));
+        verify(gameService, never()).endGameSession(any(), any());
     }
 
 }
