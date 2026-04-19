@@ -5,10 +5,12 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
+import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
@@ -43,6 +45,9 @@ class CodeExecutionServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PlayerSessionRepository playerSessionRepository;
+
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
@@ -53,7 +58,8 @@ class CodeExecutionServiceTest {
                 problemService,
                 judgeService,
                 submissionRepository,
-                userRepository
+                userRepository,
+                playerSessionRepository
         );
     }
 
@@ -436,17 +442,23 @@ class CodeExecutionServiceTest {
         User user = new User();
         user.setTotalPoints(0L);
 
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setCurrentScore(0);
+        playerSession.setPlayer(user);
+
         when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
                 gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
         when(problemService.getProblemById(problemId)).thenReturn(problem);
         when(judgeService.submitBatch(any())).thenReturn(List.of(token1, token2));
         when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
-        when(userRepository.findUserById(playerSessionId)).thenReturn(user);
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession);
 
         codeExecutionService.submitCode(gameSessionId, problemId, request);
 
+        assertEquals(2, playerSession.getCurrentScore());
         assertEquals(2L, user.getTotalPoints());
+        verify(playerSessionRepository).save(playerSession);
         verify(userRepository).save(user);
     }
 
@@ -493,12 +505,13 @@ class CodeExecutionServiceTest {
 
         codeExecutionService.submitCode(gameSessionId, problemId, request);
 
-        verify(userRepository, never()).findUserById(any());
+        verify(playerSessionRepository, never()).findByPlayerSessionId(any());
+        verify(playerSessionRepository, never()).save(any());
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void submitCode_correctAnswer_userNotFound_doesNotThrow() {
+    void submitCode_correctAnswer_playerSessionNotFound_doesNotThrow() {
         Long gameSessionId = 1L;
         Long problemId = 2L;
         Long playerSessionId = 3L;
@@ -537,9 +550,10 @@ class CodeExecutionServiceTest {
         when(judgeService.submitBatch(any())).thenReturn(List.of(token));
         when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
-        when(userRepository.findUserById(playerSessionId)).thenReturn(null);
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(null);
 
         assertDoesNotThrow(() -> codeExecutionService.submitCode(gameSessionId, problemId, request));
+        verify(playerSessionRepository, never()).save(any());
         verify(userRepository, never()).save(any());
     }
 
@@ -594,7 +608,11 @@ class CodeExecutionServiceTest {
         batchResult.setSubmissions(List.of(r1, r2, r3));
 
         User user = new User();
-        user.setTotalPoints(5L);
+        user.setTotalPoints(10L);
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setCurrentScore(5);
+        playerSession.setPlayer(user);
 
         when(submissionRepository.existsByGameSessionIdAndProblemIdAndPlayerSessionIdAndType(
                 gameSessionId, problemId, playerSessionId, SubmissionType.SUBMIT)).thenReturn(false);
@@ -602,11 +620,13 @@ class CodeExecutionServiceTest {
         when(judgeService.submitBatch(any())).thenReturn(List.of(token1, token2, token3));
         when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(i -> i.getArgument(0));
-        when(userRepository.findUserById(playerSessionId)).thenReturn(user);
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession);
 
         codeExecutionService.submitCode(gameSessionId, problemId, request);
 
-        assertEquals(8L, user.getTotalPoints()); // 5 existing + 3 passed test cases
+        assertEquals(8, playerSession.getCurrentScore()); // 5 existing + 3 passed test cases
+        assertEquals(13L, user.getTotalPoints()); // 10 existing + 3 passed test cases
+        verify(playerSessionRepository).save(playerSession);
         verify(userRepository).save(user);
     }
 
