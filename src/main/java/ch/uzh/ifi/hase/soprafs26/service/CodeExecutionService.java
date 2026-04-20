@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
@@ -12,12 +13,15 @@ import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeRequestDTO;
@@ -36,16 +40,19 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class CodeExecutionService {
 
+    private final WsGameService wsGameService;
     private final ProblemService problemService;
     private final JudgeService judgeService;
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final PlayerSessionRepository playerSessionRepository;
+    private final GameSessionRepository gameSessionRepository;
     private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -65,7 +72,8 @@ public class CodeExecutionService {
             SubmissionRepository submissionRepository,
             UserRepository userRepository,
             PlayerSessionRepository playerSessionRepository,
-            GameService gameService
+            GameService gameService, WsGameService wsGameService,
+            GameSessionRepository gameSessionRepository
     ) {
         this.problemService = problemService;
         this.judgeService = judgeService;
@@ -73,6 +81,8 @@ public class CodeExecutionService {
         this.userRepository = userRepository;
         this.playerSessionRepository = playerSessionRepository;
         this.gameService = gameService;
+        this.wsGameService = wsGameService;
+        this.gameSessionRepository = gameSessionRepository;
     }
 
     public CodeRunDTO runCode(Long gameSessionId,
@@ -181,8 +191,9 @@ public class CodeExecutionService {
         submissionRepository.save(submission);
         submissionRepository.flush();
 
-        awardPoints(submission);
-        checkGameEnd(submission);
+        //we only do this in final submission or we advance twice
+        // awardPoints(submission);
+        // checkGameEnd(submission);
 
         List<TestCaseFeedbackDTO> testCaseFeedback =
         submission.getStatus() == SubmissionStatus.FINISHED
@@ -209,9 +220,13 @@ public class CodeExecutionService {
     private void validateRequest(Long gameSessionId,
                                  Long problemId,
                                  CodeExecutionPostDTO requestBody) {
-
-        if (gameSessionId == null) {
+        
+        GameSession gameSession = gameSessionRepository.findByGameSessionId(gameSessionId);
+        if (gameSession == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game session ID is required");
+        }
+        else if (gameSession.getGameStatus() == GameStatus.ENDED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game has ended: No submission possible anymore!");
         }
 
         if (problemId == null) {
@@ -569,17 +584,26 @@ public class CodeExecutionService {
         return response;
     }
 
-    public CodeSubmissionDTO getLatestSubmissionResult(Long gameSessionId, Long problemId, Long playerSessionId) {
-        if (gameSessionId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game session ID is required");
-        }
-        if (problemId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem ID is required");
-        }
-        if (playerSessionId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Player session ID is required");
+    //method that fetches the FINAL submission-result and delegates points-awarding, points-broadcasting (WebSocket) and player-progression-handling
+    public Optional<GameRoundDTO> getLatestSubmissionResult(Long gameSessionId, Long problemId, Long playerSessionId) {
+        
+        //Validate arguments
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(playerSessionId);
+        if (playerSession == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PlayerSessionId is invalid!");
         }
 
+        GameSession gameSession = playerSession.getGameSession();
+        if (gameSession == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "GameSessionId is invalid!");
+        }
+        List<Problem> problems = gameSession.getProblems();
+        Problem currProblem = problemService.getProblemById(problemId);
+
+        if (currProblem == null || problems.stream().noneMatch(p -> p.getProblemId().equals(currProblem.getProblemId()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ProblemId is invalid");
+        }
+        
         Submission submission = submissionRepository
                 .findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
                         gameSessionId,
@@ -591,26 +615,50 @@ public class CodeExecutionService {
         if (submission == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No final submission found");
         }
+        else if (submission.getPlayerSessionId() != playerSession.getPlayerSessionId()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Mismatch of playerSessionIds!");
+        }
 
         submission = refreshSubmissionIfNeeded(submission);
 
-        // We only map the test case feedback if the submission is finished, otherwise we return an empty list, because the results are not final yet and we don't want to confuse the user with intermediate results that might change.
-        List<TestCaseFeedbackDTO> testCaseFeedback =
-        submission.getStatus() == SubmissionStatus.FINISHED
-                ? mapStoredTestCaseFeedback(problemId, submission)
-                : Collections.emptyList();
+        //check if submission is finished and check whether player should advance or game is over
+        if (submission.getStatus() == SubmissionStatus.FINISHED) {
+        
+            //save submission as well for playerSession
+            playerSession.getSubmissions().add(submission); 
+            playerSessionRepository.saveAndFlush(playerSession);
 
-        CodeSubmissionDTO response = new CodeSubmissionDTO();
-        response.setGameSessionId(gameSessionId);
-        response.setProblemId(problemId);
-        response.setPlayerSessionId(playerSessionId);
-        response.setSubmissionStatus(submission.getStatus());
-        response.setVerdict(submission.getVerdict());
-        response.setPassedTestCases(submission.getPassedTestCases());
-        response.setTotalTestCases(submission.getTotalTestCases());
-        response.setTestCases(testCaseFeedback);
+            //award points award for current submission
+            awardPoints(submission);
 
-        return response;
+            //room-wide broadcast to all players in a game-session
+            broadcastPoints(submission);
+
+            //determine whether to advance player (and return GameRoundDTO or to end game via WebSocket)
+            return handlePlayerProgression(submission);
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something is really wrong!");
+        }
+
+        //OLD VERSION:
+        // // We only map the test case feedback if the submission is finished, otherwise we return an empty list, because the results are not final yet and we don't want to confuse the user with intermediate results that might change.
+        // List<TestCaseFeedbackDTO> testCaseFeedback =
+        // submission.getStatus() == SubmissionStatus.FINISHED
+        //         ? mapStoredTestCaseFeedback(problemId, submission)
+        //         : Collections.emptyList();
+
+        // CodeSubmissionDTO response = new CodeSubmissionDTO();
+        // response.setGameSessionId(gameSessionId);
+        // response.setProblemId(problemId);
+        // response.setPlayerSessionId(playerSessionId);
+        // response.setSubmissionStatus(submission.getStatus());
+        // response.setVerdict(submission.getVerdict());
+        // response.setPassedTestCases(submission.getPassedTestCases());
+        // response.setTotalTestCases(submission.getTotalTestCases());
+        // response.setTestCases(testCaseFeedback);
+
+        // return response;
     }
 
     private int countPassedTestCases(JudgeBatchResultDTO batchResult) {
@@ -811,37 +859,94 @@ public class CodeExecutionService {
         }
     }
 
-    private void checkGameEnd(Submission submission) {
+    //OLD-METHOD TO END THE GAME!
+    // private void checkGameEnd(Submission submission) {
+    //     PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
+    //     if (playerSession == null) {
+    //         return;
+    //     }
+
+    //     GameSession gameSession = playerSession.getGameSession();
+    //     int nextIndex = playerSession.getCurrentProblemIndex() + 1;
+
+    //     if (nextIndex >= gameSession.getProblems().size()) {
+    //         // if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
+    //         //     return;
+    //         // }
+    //         playerSession.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
+    //         playerSession.setFinishedAt(LocalDateTime.now());
+    //         playerSessionRepository.save(playerSession);
+    //         gameService.endGameSession(gameSession, GameEndReason.PLAYER_FINISHED);
+    //     } else {
+    //         playerSession.setCurrentProblemIndex(nextIndex);
+    //         playerSessionRepository.save(playerSession);
+    //     }
+    // }
+
+
+    private Optional<GameRoundDTO> handlePlayerProgression(Submission submission) {
         PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
-        if (playerSession == null) {
-            return;
-        }
+        if (playerSession == null) { 
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "playerSession does not exist!");
+        } 
 
         GameSession gameSession = playerSession.getGameSession();
-        int nextIndex = playerSession.getCurrentProblemIndex() + 1;
+        int nextProblemIndex = playerSession.getCurrentProblemIndex() + 1;
 
-        if (nextIndex >= gameSession.getProblems().size()) {
-            if (submission.getVerdict() != Verdict.CORRECT_ANSWER) {
-                return;
-            }
-            playerSession.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
-            playerSession.setFinishedAt(LocalDateTime.now());
-            playerSessionRepository.save(playerSession);
+        if (nextProblemIndex >= gameSession.getProblems().size()) {
+
             gameService.endGameSession(gameSession, GameEndReason.PLAYER_FINISHED);
+            
+            for (PlayerSession ps : gameSession.getPlayerSessions()){
+                ps.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
+                ps.setFinishedAt(LocalDateTime.now());
+                playerSessionRepository.save(ps);
+                playerSessionRepository.flush();
+            }
+            //returns empty Optional instance when game ends => frontend will get void HTTP-response with 204 Status
+            return Optional.empty();
         } else {
-            playerSession.setCurrentProblemIndex(nextIndex);
+            playerSession.setCurrentProblemIndex(nextProblemIndex);
             playerSessionRepository.save(playerSession);
+            playerSessionRepository.flush();
+            GameRoundDTO gameRoundDTO = buildNextGameRoundDTO(playerSession, gameSession, nextProblemIndex);
+            return Optional.of(gameRoundDTO);
         }
     }
 
+    private GameRoundDTO  buildNextGameRoundDTO(PlayerSession playerSession, GameSession gameSession, int nextProblemIndex) {
+
+            GameRoundDTO gameRoundDTO = new GameRoundDTO();
+            gameRoundDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
+            gameRoundDTO.setGameStatus(playerSession.getGameSession().getGameStatus());
+            gameRoundDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
+            gameRoundDTO.setPlayerId(playerSession.getPlayer().getId());
+            gameRoundDTO.setCurrentScore(playerSession.getCurrentScore());
+            gameRoundDTO.setNumOfSkippedProblems(playerSession.getNumOfSkippedProblems());
+
+            //prepare next problem
+            Problem nextProblem = gameSession.getProblems().get(nextProblemIndex);
+            gameRoundDTO.setProblemId(nextProblem.getProblemId());
+            gameRoundDTO.setTitle(nextProblem.getTitle());
+            gameRoundDTO.setDescription(nextProblem.getDescription());
+            gameRoundDTO.setInputFormat(nextProblem.getInputFormat());
+            gameRoundDTO.setOutputFormat(nextProblem.getOutputFormat());
+            gameRoundDTO.setConstraints(nextProblem.getConstraints());
+
+            return gameRoundDTO;
+    }
+
     private void awardPoints(Submission submission) {
-        if (submission.getVerdict() != Verdict.CORRECT_ANSWER) { // we can remove this check if we want partial points.
-            return;
-        }
+
+        //Below is not needed, since ATM  we work with PARTIAL POINTS
+
+        // if (submission.getVerdict() != Verdict.CORRECT_ANSWER) { // we can remove this check if we want partial points.
+        //     return;
+        // }
 
         PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
         if (playerSession == null) {
-            return;
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "playerSession does not exist!");
         }
 
         int achievedPoints = submission.getPassedTestCases() * POINTS_PER_TEST_CASE;
@@ -850,10 +955,25 @@ public class CodeExecutionService {
         playerSessionRepository.save(playerSession);
         playerSessionRepository.flush();
 
+        //updates global-leaderboard
         User user = playerSession.getPlayer();
         user.setTotalPoints(user.getTotalPoints() + achievedPoints);
         userRepository.save(user);
         userRepository.flush();
     }
 
+    private void broadcastPoints(Submission submission) {
+        
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
+        if (playerSession == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "playerSession does not exist!");
+        }
+
+        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
+        gamePointsUpdateDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
+        gamePointsUpdateDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
+        gamePointsUpdateDTO.setCurrentScore(playerSession.getCurrentScore());
+
+        wsGameService.broadcastPointsUpdate(gamePointsUpdateDTO);
+    }
 }

@@ -39,8 +39,9 @@ public class GameService {
     private final GameSessionRepository gameSessionRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final WsRoomService wsRoomService;
+    private final WsGameService wsGameService;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService) {
+    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
@@ -48,6 +49,7 @@ public class GameService {
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
         this.wsRoomService = wsRoomService;
+        this.wsGameService = wsGameService;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -132,11 +134,12 @@ public class GameService {
         }
     }
 
-    public void endGameSession(GameSession gameSession, GameEndReason reason) {
+    public void endGameSession(GameSession gameSession, GameEndReason gameEndReason) {
         gameSession.setGameStatus(GameStatus.ENDED);
         gameSession.setEndedAt(LocalDateTime.now());
-        gameSession.setGameEndReason(reason);
+        gameSession.setGameEndReason(gameEndReason);
         gameSessionRepository.save(gameSession);
+        gameSessionRepository.flush();
 
         List<PlayerSession> sessions = gameSession.getPlayerSessions();
 
@@ -162,12 +165,14 @@ public class GameService {
         long topScore = winner != null ? winner.getCurrentScore() : 0;
         boolean tie = sessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
 
-        GameEndDTO dto = new GameEndDTO();
-        dto.setGameSessionId(gameSession.getGameSessionId());
-        dto.setReason(reason);
-        dto.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
-        dto.setPlayerScores(scores);
+        GameEndDTO gameEndDTO = new GameEndDTO();
+        gameEndDTO.setGameSessionId(gameSession.getGameSessionId());
+        gameEndDTO.setGameStatus(GameStatus.ENDED);
+        gameEndDTO.setGameEndReason(gameEndReason);
+        gameEndDTO.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
+        gameEndDTO.setPlayerScores(scores);
 
-        messagingTemplate.convertAndSend("/topic/game/" + gameSession.getGameSessionId() + "/end", dto);
+        //fire room-wide game-end msg
+        wsGameService.notifyPlayerGameEnded(gameEndDTO);
     }
 }
