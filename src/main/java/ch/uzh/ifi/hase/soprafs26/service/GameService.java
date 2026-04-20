@@ -1,14 +1,21 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,13 +32,20 @@ import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
 import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
 public class GameService {
+
+ 
     
+    private final Duration GAME_DURATION = Duration.ofMinutes(15);
+    private final Duration WARNING_OFFSET = Duration.ofMinutes(1);
+    private final TaskScheduler taskScheduler;
+    private final Map<Long, List<ScheduledFuture<?>>> scheduledTasksByGame = new ConcurrentHashMap<>();
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final UserRepository userRepository;
@@ -41,7 +55,7 @@ public class GameService {
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService) {
+    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService, TaskScheduler taskScheduler) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
@@ -50,6 +64,7 @@ public class GameService {
         this.messagingTemplate = messagingTemplate;
         this.wsRoomService = wsRoomService;
         this.wsGameService = wsGameService;
+        this.taskScheduler = taskScheduler;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -110,6 +125,12 @@ public class GameService {
         gameSession = gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
+        Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault())
+                                              .toInstant();
+        
+        Instant endAtInstant = startedAtInstant.plus(GAME_DURATION);
+        Instant serverTimeNow = Instant.now();
+
         // prepare and send personalised GameRoundDTO via WS
         for(PlayerSession playerSession : gameSession.getPlayerSessions()) {
             
@@ -120,6 +141,10 @@ public class GameService {
             gameRoundDTO.setPlayerId(playerSession.getPlayer().getId());
             gameRoundDTO.setCurrentScore(0);
             gameRoundDTO.setNumOfSkippedProblems(0);
+
+            gameRoundDTO.setServerTime(serverTimeNow);
+            gameRoundDTO.setEndsAt(endAtInstant);
+            gameRoundDTO.setTotalDurationSeconds(GAME_DURATION.getSeconds());
 
             Problem firstProblem = gameSession.getProblems().get(0); // get first problem
             gameRoundDTO.setProblemId(firstProblem.getProblemId());
@@ -132,9 +157,17 @@ public class GameService {
             //send personalised message to each player
             wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
         }
+        scheduleGameTimer(gameSession.getGameSessionId(), startedAtInstant);
     }
 
     public void endGameSession(GameSession gameSession, GameEndReason gameEndReason) {
+        // cancled the scheduled timer tasks (if the game is ending earlier)
+        List<ScheduledFuture<?>> pending = scheduledTasksByGame.remove(gameSession.getGameSessionId());
+        if (pending != null) {
+            pending.forEach(f -> f.cancel(false));
+        }
+
+
         gameSession.setGameStatus(GameStatus.ENDED);
         gameSession.setEndedAt(LocalDateTime.now());
         gameSession.setGameEndReason(gameEndReason);
@@ -175,4 +208,30 @@ public class GameService {
         //fire room-wide game-end msg
         wsGameService.notifyPlayerGameEnded(gameEndDTO);
     }
+
+
+    private void scheduleGameTimer(Long gameSessionId, Instant startedAt) {
+        Instant warningAt = startedAt.plus(GAME_DURATION.minus(WARNING_OFFSET));
+        Instant endAt = startedAt.plus(GAME_DURATION);
+
+        ScheduledFuture<?> warningFuture = taskScheduler.schedule(() -> {
+            GameSession session = gameSessionRepository.findByGameSessionId(gameSessionId);
+            if (session == null || session.getGameStatus() != GameStatus.ACTIVE)
+                return;
+            GameTimeWarningDTO dto = new GameTimeWarningDTO();
+            dto.setGameSessionId(gameSessionId);
+            dto.setRemainingTimeSeconds(WARNING_OFFSET.getSeconds());
+            wsGameService.notifyPlayerGameTimeWarning(dto);
+        }, warningAt);
+
+        ScheduledFuture<?> endFuture = taskScheduler.schedule(() -> {
+            GameSession session = gameSessionRepository.findByGameSessionId(gameSessionId);
+            if (session == null || session.getGameStatus() != GameStatus.ACTIVE)
+                return;
+            endGameSession(session, GameEndReason.TIME_UP);
+        }, endAt);
+
+        scheduledTasksByGame.put(gameSessionId, List.of(warningFuture, endFuture));
+    }
 }
+// https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ScheduledFuture.html
