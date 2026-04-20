@@ -9,30 +9,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class SecretManagerService {
 
-    @Value("${gcp.project-id:}")
+    @Value("${gcp.project-id}")
     private String projectId;
 
     public String getSecret(String secretId) {
-        // 1) Local development fallback: environment variables only
-        String envValue = System.getenv(secretId);
-
-        // Support shell-friendly names like CF_Access_Client_Id
-        if (envValue == null || envValue.isBlank()) {
-            String normalizedEnvName = secretId.replace('-', '_');
-            envValue = System.getenv(normalizedEnvName);
-        }
-
-        if (envValue != null && !envValue.isBlank()) {
-            return envValue;
-        }
-
-        // 2) Deployment fallback: Google Secret Manager
-        if (projectId == null || projectId.isBlank()) {
-            throw new IllegalStateException(
-                    "Missing GCP project id and no local environment variable found for secret: " + secretId
-            );
-        }
-
         SecretVersionName secretVersionName =
                 SecretVersionName.of(projectId, secretId, "latest");
 

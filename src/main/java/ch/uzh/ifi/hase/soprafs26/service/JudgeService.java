@@ -6,7 +6,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,31 +27,21 @@ public class JudgeService {
 
     private final Logger log = LoggerFactory.getLogger(JudgeService.class);
 
-    private final String cfClientId;
-    private final String cfClientSecret;
+    private final SecretManagerService secretManagerService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    // Added a colon (:) after the property names to provide an empty default value.
-    // This prevents Spring context from crashing during Gradle tests when the env vars are missing.
-    public JudgeService(
-            @Value("${CF_Access_Client_Id:}") String cfClientId,
-            @Value("${CF_Access_Client_Secret:}") String cfClientSecret
-    ) {
-        this.cfClientId = cfClientId != null ? cfClientId.trim() : "";
-        this.cfClientSecret = cfClientSecret != null ? cfClientSecret.trim() : "";
+    public JudgeService(SecretManagerService secretManagerService) {
+        this.secretManagerService = secretManagerService;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Helper method to attach Cloudflare Access tokens to every request
-     */
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("CF-Access-Client-Id", cfClientId);
-        headers.set("CF-Access-Client-Secret", cfClientSecret);
+        headers.set("CF-Access-Client-Id", secretManagerService.getSecret("CF-Access-Client-Id"));
+        headers.set("CF-Access-Client-Secret", secretManagerService.getSecret("CF-Access-Client-Secret"));
         return headers;
     }
 
