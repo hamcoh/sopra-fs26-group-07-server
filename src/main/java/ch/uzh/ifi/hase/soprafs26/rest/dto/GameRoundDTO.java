@@ -1,5 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import java.time.Instant;
+
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 
 public class GameRoundDTO {
@@ -17,6 +19,10 @@ public class GameRoundDTO {
     private String inputFormat;
     private String outputFormat;
     private String constraints;
+
+    private Instant serverTime; 
+    private Instant endsAt;
+    private long totalDurationSeconds; 
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -89,5 +95,26 @@ public class GameRoundDTO {
     }
     public void setConstraints(String constraints) {
         this.constraints = constraints;
+    }
+
+    public Instant getServerTime() {
+        return serverTime;
+    }
+    public void setServerTime(Instant serverTime) {
+        this.serverTime = serverTime;
+    }
+
+    public Instant getEndsAt() {
+        return endsAt;
+    }
+    public void setEndsAt(Instant endsAt) {
+        this.endsAt = endsAt;
+    }
+
+    public long getTotalDurationSeconds() {
+        return totalDurationSeconds;
+    }
+    public void setTotalDurationSeconds(long totalDurationSeconds) {
+        this.totalDurationSeconds = totalDurationSeconds;
     }
 }

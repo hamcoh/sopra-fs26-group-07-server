@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 
 @Service
 public class WsGameService {
@@ -18,9 +19,10 @@ public class WsGameService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    //ATM PLAYERS HAVE TO MAKE TWO SUBSCRIPTIONS:
+    //ATM PLAYERS HAVE TO MAKE THREE SUBSCRIPTIONS:
     // - 1.: /topic/game/{gameSessionId}/end
     // - 2.: /topic/game/{gameSessionId}/points-update
+    // - 3.: /topic/game/{gameSessionId}/time-warning
 
     public void notifyPlayerGameEnded(GameEndDTO gameEndDTO) {
         Long gameSessionId = gameEndDTO.getGameSessionId();
@@ -43,5 +45,14 @@ public class WsGameService {
         log.info("Sent points update to gameSession with gameSessionId=" + gameSessionId + " regarding playerSessionId=" + playerSessionId);
         log.info("New current points: " + gamePointsUpdateDTO.getCurrentScore() + " of playerSessionId=" + playerSessionId);
     }
-    
+
+    public void notifyPlayerGameTimeWarning(GameTimeWarningDTO gameTimeWarningDTO) {
+        Long gameSessionid = gameTimeWarningDTO.getGameSessionId();
+        simpMessagingTemplate.convertAndSend(
+            "/topic/game/" + gameSessionid + "/time-warning",gameTimeWarningDTO
+        );
+        log.info("Sent time warning ({}s remaining) to gameSessionId={}",
+            gameTimeWarningDTO.getRemainingTimeSeconds(), gameSessionid
+        );
+    }
 }
