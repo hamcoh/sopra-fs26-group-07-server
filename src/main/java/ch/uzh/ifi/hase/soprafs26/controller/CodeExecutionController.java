@@ -3,8 +3,10 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.service.CodeExecutionService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,12 +51,13 @@ public class CodeExecutionController {
         return codeExecutionService.getLatestRunResult(gameSessionId, problemId, playerSessionId);
     }
 
+    //ATM THIS CONTROLLER-METHOD IS TREATED AS THE FINAL SUBMISSION ENDPOINT, HERE POINTS ARE AWARED AND PLAYER-PROGRESS (NEXT PROBLEM VS END GAME) IS HANDLED
     @GetMapping("/games/{gameSessionId}/problems/{problemId}/submission-result")
-    @ResponseStatus(HttpStatus.OK)
-    public CodeSubmissionDTO getSubmissionResult(@PathVariable Long gameSessionId,
+    public ResponseEntity<GameRoundDTO> getSubmissionResult(@PathVariable Long gameSessionId,
                                                  @PathVariable Long problemId,
                                                  @RequestParam Long playerSessionId) {
-
-        return codeExecutionService.getLatestSubmissionResult(gameSessionId, problemId, playerSessionId);
+                                                    
+        return codeExecutionService.getLatestSubmissionResult(gameSessionId, problemId, playerSessionId)
+         .map(ResponseEntity::ok).orElse(ResponseEntity.noContent().build()); //map understands whether a next GameRounDTO is sent (Optional has a value, is non-empty) => sends 200; if game is over, ResponseEntity is empty and => 204 is sent (Web-Socket handles game-end notification)
     }
 }
