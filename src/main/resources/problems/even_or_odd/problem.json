@@ -1,16 +1,16 @@
 {
     "title": "Even Or Odd",
-    "description": "Given a list of integers a, return a dictionary with two keys: 'even' and 'odd', each containing a list of the corresponding numbers in their original order. For instance: Input=[1, 2, 3, 4, 5], Output={'even': [2, 4], 'odd': [1, 3, 5]}",
+    "description": "Given a list of integers x, return a dictionary with two keys: 'even' and 'odd', each containing a list of the corresponding numbers in their original order. For instance: Input=[1, 2, 3, 4, 5], Output={'even': [2, 4], 'odd': [1, 3, 5]}",
     "inputFormat": "A list of integers",
     "outputFormat": "A dictionary with keys 'even' and 'odd', each mapping to a list of integers (or empty list)",
-    "constraints": "0 < len(a) < 30",
+    "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(a):\n    result = {'even': [], 'odd': []}\n    for num in a:\n        if num % 2 == 0:\n            result['even'].append(num)\n        else:\n            result['odd'].append(num)\n    return result",
+    "sampleSolution": "def solve(x):\n    result = {'even': [], 'odd': []}\n    for num in x:\n        if num % 2 == 0:\n            result['even'].append(num)\n        else:\n            result['odd'].append(num)\n    return result",
     "testCases": [
-        { "input": "[7,14,33,48,91]",  "expectedOutput": "{'even': [14,48], 'odd': [7,33,91]}" },
-        { "input": "[12,36,78]", "expectedOutput": "{'even': [12,36,78], 'odd': []}" },
-        { "input": "[11,53,97]", "expectedOutput": "{'even': [], 'odd': [11,53,97]}" },
+        { "input": "[7,14,33,48,91]", "expectedOutput": "{'even': [14, 48], 'odd': [7, 33, 91]}" },
+        { "input": "[12,36,78]", "expectedOutput": "{'even': [12, 36, 78], 'odd': []}" },
+        { "input": "[11,53,97]", "expectedOutput": "{'even': [], 'odd': [11, 53, 97]}" },
         { "input": "[]", "expectedOutput": "{'even': [], 'odd': []}" },
         { "input": "[26]", "expectedOutput": "{'even': [26], 'odd': []}" }
     ]

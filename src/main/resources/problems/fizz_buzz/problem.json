@@ -1,16 +1,16 @@
 {
     "title": "Fizz Buzz",
-    "description": "Given a positive integer n, return a list of strings for each number/integer from 1 to n (n included). For multiples of 3 output 'Fizz', for multiples of 5 output 'Buzz' and for multiples of both 3 and 5 output 'FizzBuzz'; for all other numbers output the number itself as a string. For instance: Given n=6, Output=['1', '2', 'Fizz', '4', 'Buzz', '6']",
-    "inputFormat": "A positive integer n",
+    "description": "Given a positive integer x, return a list of strings for each number/integer from 1 to x (x included). For multiples of 3 output 'Fizz', for multiples of 5 output 'Buzz' and for multiples of both 3 and 5 output 'FizzBuzz'; for all other numbers output the number itself as a string. For instance: Given x=6, Output=['1', '2', 'Fizz', '4', 'Buzz', '6']",
+    "inputFormat": "A positive integer x",
     "outputFormat": "List of strings whereby the strings are either the numbers itself (as strings), 'Fizz', 'Buzz' or 'FizzBuzz'",
-    "constraints": "0 < len(n) < 47",
+    "constraints": "0 < len(x) < 47",
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(n):\n    result = []\n    for i in range(1, n + 1):\n        if i % 15 == 0:\n            result.append('FizzBuzz')\n        elif i % 3 == 0:\n            result.append('Fizz')\n        elif i % 5 == 0:\n            result.append('Buzz')\n        else:\n            result.append(str(i))\n    return result",
-    "testCases": [ 
+    "sampleSolution": "def solve(x):\n    result = []\n    for i in range(1, x + 1):\n        if i % 15 == 0:\n            result.append('FizzBuzz')\n        elif i % 3 == 0:\n            result.append('Fizz')\n        elif i % 5 == 0:\n            result.append('Buzz')\n        else:\n            result.append(str(i))\n    return result",
+    "testCases": [
         { "input": 3, "expectedOutput": "['1', '2', 'Fizz']" },
         { "input": 5, "expectedOutput": "['1', '2', 'Fizz', '4', 'Buzz']" },
-        { "input": 15, "expectedOutput": "['1', '2', 'Fizz', '4', 'Buzz', 'Fizz', '7', '8', 'Fizz', 'Buzz', '11', 'Fizz', '13', '14', 'FizzBuzz']"},
+        { "input": 15, "expectedOutput": "['1', '2', 'Fizz', '4', 'Buzz', 'Fizz', '7', '8', 'Fizz', 'Buzz', '11', 'Fizz', '13', '14', 'FizzBuzz']" },
         { "input": 1, "expectedOutput": "['1']" },
         { "input": 5, "expectedOutput": "['1', '2', 'Fizz', '4', 'Buzz']" }
     ]

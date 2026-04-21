@@ -357,7 +357,8 @@ public class CodeExecutionService {
     }
 
     // This is basically the driver code as in leetcode but the user doesn't see it, so it doesnt clutter the screen
-    // This is basically the driver code as in leetcode but the user doesn't see it, so it doesnt clutter the screen
+    // WE ONLY ALLOW PROBLEMS WITH A SINGLE PARAMETER, BECAUSE THIS IS THE ONLY WAY TO BE SURE THAT THE USER CAN'T BYPASS THE WRAPPER
+    // IN THE FRONTEND WE HAVE "def solve(x)" FOR EVERY SINGLE PROBLEM NOW AND THIS WILL NOT CHANGE!!!!!!!!!!!!!!!!!
     private String wrapPythonCode(String userCode) {
         return userCode + "\n\n"
                 + "if __name__ == '__main__':\n"

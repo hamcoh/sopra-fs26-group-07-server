@@ -6,13 +6,12 @@
     "constraints": "0 <= n < 100000",
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(n):\n    total = 0\n    for digit in str(n):\n        total += int(digit)\n    return total",
+    "sampleSolution": "def solve(x):\n    total = 0\n    for digit in str(x):\n        total += int(digit)\n    return total",
     "testCases": [
         { "input": 158, "expectedOutput": 14 },
         { "input": 7777, "expectedOutput": 28 },
         { "input": 0, "expectedOutput": 0 },
         { "input": 8, "expectedOutput": 8 },
         { "input": 98765, "expectedOutput": 35 }
-
     ]
 }

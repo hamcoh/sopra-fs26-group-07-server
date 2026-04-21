@@ -1,12 +1,12 @@
 {
     "title": "Reverse Sentence",
-    "description": "Given a sentence s containing only lowercase alphabetic characters and spaces, return the sentence with the order of words reversed. For instance: Input='hello world', Output='world hello'",
-    "inputFormat": "A sentence s containing only lowercase alphabetic characters and spaces",
-    "outputFormat": "Sentence s reversed (as a string)",
-    "constraints": "0 < len(s) < 30",
+    "description": "Given a sentence x containing only lowercase alphabetic characters and spaces, return the sentence with the order of words reversed. For instance: Input='hello world', Output='world hello'",
+    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces",
+    "outputFormat": "Sentence x reversed (as a string)",
+    "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(s):\n    words = s.split()\n    return ' '.join(reversed(words))",
+    "sampleSolution": "def solve(x):\n    words = x.split()\n    return ' '.join(reversed(words))",
     "testCases": [
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },
