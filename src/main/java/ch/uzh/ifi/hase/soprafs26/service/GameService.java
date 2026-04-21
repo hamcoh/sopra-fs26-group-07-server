@@ -167,16 +167,15 @@ public class GameService {
             pending.forEach(f -> f.cancel(false));
         }
 
-
         gameSession.setGameStatus(GameStatus.ENDED);
         gameSession.setEndedAt(LocalDateTime.now());
         gameSession.setGameEndReason(gameEndReason);
         gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
-        List<PlayerSession> sessions = gameSession.getPlayerSessions();
+        List<PlayerSession> playerSessions = gameSession.getPlayerSessions();
 
-        List<PlayerScoreDTO> scores = sessions.stream()
+        List<PlayerScoreDTO> scores = playerSessions.stream()
             .map(ps -> {
                 PlayerScoreDTO dto = new PlayerScoreDTO();
                 dto.setPlayerSessionId(ps.getPlayerSessionId());
@@ -189,18 +188,30 @@ public class GameService {
             .sorted(Comparator.comparingInt(PlayerScoreDTO::getScore).reversed())
             .toList();
 
-        PlayerSession winner = sessions.stream()
+        PlayerSession winner = playerSessions.stream()
             .max(Comparator.comparingInt(PlayerSession::getCurrentScore))
             .orElse(null);
 
         // null if tie 
-        
         long topScore = winner != null ? winner.getCurrentScore() : 0;
-        boolean tie = sessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
+        boolean tie = playerSessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
+
+        // add game session results to user profile
+        for (PlayerSession ps : playerSessions) {
+            User user = ps.getPlayer();
+            user.setTotalPoints(user.getTotalPoints() + ps.getCurrentScore());
+            user.setTotalGamesPlayed(user.getTotalGamesPlayed() + 1);
+
+            if (!tie && winner != null && winner.getPlayer().getId().equals(user.getId())) {
+                user.setWinCount(user.getWinCount() + 1);
+            }
+            user.setWinRatePercentage((double) user.getWinCount() / user.getTotalGamesPlayed() * 100);
+            userRepository.saveAndFlush(user);
+        }
 
         GameEndDTO gameEndDTO = new GameEndDTO();
         gameEndDTO.setGameSessionId(gameSession.getGameSessionId());
-        gameEndDTO.setGameStatus(GameStatus.ENDED);
+        gameEndDTO.setGameStatus(gameSession.getGameStatus());
         gameEndDTO.setGameEndReason(gameEndReason);
         gameEndDTO.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
         gameEndDTO.setPlayerScores(scores);
