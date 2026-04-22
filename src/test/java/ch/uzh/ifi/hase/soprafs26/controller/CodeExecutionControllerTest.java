@@ -196,7 +196,7 @@ class CodeExecutionControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNoContent());
               }
-}
+
     @Test
     void getRunResult_validRequest_returns200() throws Exception {
         CodeRunDTO response = new CodeRunDTO();
