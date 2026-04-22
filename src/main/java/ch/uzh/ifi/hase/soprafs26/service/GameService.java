@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +32,8 @@ import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
 import jakarta.transaction.Transactional;
@@ -129,13 +130,6 @@ public class GameService {
         Instant endAtInstant = startedAtInstant.plus(GAME_DURATION);
         Instant serverTimeNow = Instant.now();
 
-        // prepare and send general GamePointsUpdateDTO via WS below
-        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
-        gamePointsUpdateDTO.setGameSessionId(gameSession.getGameSessionId());
-        for (PlayerSession playerSession : gameSession.getPlayerSessions()) {
-            gamePointsUpdateDTO.getScores().put(playerSession.getPlayerSessionId(), playerSession.getCurrentScore()); 
-        }
-
         // prepare and send personalised GameRoundDTO via WS
         for(PlayerSession playerSession : gameSession.getPlayerSessions()) {
             
@@ -160,7 +154,7 @@ public class GameService {
             gameRoundDTO.setConstraints(firstProblem.getConstraints());
 
             //send personalised message to each player
-            wsRoomService.notifyPlayerGameStarted(gameRoundDTO, gamePointsUpdateDTO);
+            wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
         }
         scheduleGameTimer(gameSession.getGameSessionId(), startedAtInstant);
     }
@@ -220,6 +214,18 @@ public class GameService {
         gameEndDTO.setGameEndReason(gameEndReason);
         gameEndDTO.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
         gameEndDTO.setPlayerScores(scores);
+
+        gameEndDTO.setGameSessionSampleSolutions(new LinkedHashMap<>()); //LinkedHashMap needed to preserve the order of problems (i.e., the order in which they were served during game)
+        List<Problem> gameSessionProblems = gameSession.getProblems();
+        for (Problem p : gameSessionProblems){
+            
+            GameSessionSampleSolutionsDTO gameSessionSampleSolutionsDTO = new GameSessionSampleSolutionsDTO();
+            gameSessionSampleSolutionsDTO.setProblemTitle(p.getTitle());
+            gameSessionSampleSolutionsDTO.setProblemSampleSolution(p.getSampleSolution());
+
+            gameEndDTO.getGameSessionSampleSolutions().put(p.getProblemId(), gameSessionSampleSolutionsDTO);
+
+        }
 
         //fire room-wide game-end msg
         wsGameService.notifyPlayerGameEnded(gameEndDTO);

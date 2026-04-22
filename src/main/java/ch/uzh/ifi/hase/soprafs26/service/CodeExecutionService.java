@@ -68,7 +68,8 @@ public class CodeExecutionService {
             JudgeService judgeService,
             SubmissionRepository submissionRepository,
             PlayerSessionRepository playerSessionRepository,
-            GameService gameService, WsGameService wsGameService,
+            GameService gameService, 
+            WsGameService wsGameService,
             GameSessionRepository gameSessionRepository
     ) {
         this.problemService = problemService;
@@ -234,7 +235,6 @@ public class CodeExecutionService {
         if (requestBody == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }
-
         if (requestBody.getPlayerSessionId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PlayerSessionId is required");
         }
@@ -605,7 +605,7 @@ public class CodeExecutionService {
 
     //method that fetches the FINAL submission-result and delegates points-awarding, points-broadcasting (WebSocket) and player-progression-handling
     public Optional<GameRoundDTO> getLatestSubmissionResult(Long gameSessionId, Long problemId, Long playerSessionId) {
-        
+
         //Validate arguments
         PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(playerSessionId);
         if (playerSession == null) {
@@ -632,7 +632,7 @@ public class CodeExecutionService {
         else if (problems.stream().noneMatch(p -> p.getProblemId().equals(currProblem.getProblemId()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem does not belong to current Game Session!");
         }
-        
+
         Submission submission = submissionRepository
                 .findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
                         gameSessionId,
@@ -948,12 +948,8 @@ public class CodeExecutionService {
 
         GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
         gamePointsUpdateDTO.setGameSessionId(gameSession.getGameSessionId());
-
-        //update the scores for all players (if nothing happened for one player nothing changes)
-        List<PlayerSession> playerSessions = gameSession.getPlayerSessions();
-        for (PlayerSession ps : playerSessions){
-            gamePointsUpdateDTO.getScores().put(ps.getPlayerSessionId(), ps.getCurrentScore());
-        }
+        gamePointsUpdateDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
+        gamePointsUpdateDTO.setCurrentScore(playerSession.getCurrentScore());
 
         wsGameService.broadcastPointsUpdate(gamePointsUpdateDTO);
     }

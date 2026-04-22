@@ -27,6 +27,7 @@ public class WsGameService {
     public void notifyPlayerGameEnded(GameEndDTO gameEndDTO) {
         Long gameSessionId = gameEndDTO.getGameSessionId();
         log.info("Game with gameSessionId=" +  gameSessionId + " is over!");
+        log.info("Game solutions are ready to send={}", gameEndDTO.getGameSessionSampleSolutions());
         log.info("Sending gameEndDTO to all Player in gameSessionID={}", gameSessionId);
         simpMessagingTemplate.convertAndSend( 
             "/topic/game/" + gameSessionId + "/end", 
@@ -37,12 +38,13 @@ public class WsGameService {
 
     public void broadcastPointsUpdate(GamePointsUpdateDTO gamePointsUpdateDTO){
         Long gameSessionId = gamePointsUpdateDTO.getGameSessionId();
+        Long playerSessionId = gamePointsUpdateDTO.getPlayerSessionId();
         simpMessagingTemplate.convertAndSend( 
             "/topic/game/" + gameSessionId + "/points-update", 
             gamePointsUpdateDTO
         );
-        log.info("Sent points update to gameSession with gameSessionId=" + gameSessionId);
-        log.info("New current points: " + gamePointsUpdateDTO.getScores());
+        log.info("Sent points update to gameSession with gameSessionId=" + gameSessionId + " regarding playerSessionId=" + playerSessionId);
+        log.info("New current points: " + gamePointsUpdateDTO.getCurrentScore() + " of playerSessionId=" + playerSessionId);
     }
 
     public void notifyPlayerGameTimeWarning(GameTimeWarningDTO gameTimeWarningDTO) {

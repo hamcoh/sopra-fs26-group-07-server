@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -162,7 +164,7 @@ class GameServiceTest {
         given(taskScheduler.schedule(any(Runnable.class), any(Instant.class)))
             .willReturn((ScheduledFuture) warningFuture, (ScheduledFuture) endFuture);
 
-        doNothing().when(wsRoomService).notifyPlayerGameStarted(Mockito.any(), Mockito.any());
+        doNothing().when(wsRoomService).notifyPlayerGameStarted(Mockito.any());
 
         gameService.createGameSession(gameHost.getId(), testRoom.getRoomId());
 
@@ -522,5 +524,49 @@ class GameServiceTest {
         gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
 
         verify(userRepository, times(2)).saveAndFlush(any(User.class));
+    }
+
+    //gameSessionSampleSolution are included
+    @Test 
+    void endGameSession_prepareGameSessionSampleSolutions_success() {
+
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+        p1.setSampleSolution("sampleSolution1");
+
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+        p2.setSampleSolution("sampleSolution2");
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 10, 4);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 20, 7);
+        
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setPlayerSessions(List.of(ps1, ps2));
+        gameSession.setProblems(List.of(p1, p2));
+
+        gameService.endGameSession(gameSession, GameEndReason.TIME_UP);
+
+        ArgumentCaptor<GameEndDTO> captor = ArgumentCaptor.forClass(GameEndDTO.class);
+        verify(wsGameService).notifyPlayerGameEnded(captor.capture());
+    
+        //check that there are actually the sample solutions and that their order is correct
+        GameEndDTO gameEndDTO = captor.getValue();
+
+        Map<Long, GameSessionSampleSolutionsDTO> solutions = gameEndDTO.getGameSessionSampleSolutions();
+
+
+        List<Long> expectedOrder = List.of(p1.getProblemId(), p2.getProblemId());
+        List<Long> actualOrder = new ArrayList<>(solutions.keySet());
+
+        assertEquals(expectedOrder, actualOrder);
+        assertNotNull(gameEndDTO);
+        assertEquals(2, gameEndDTO.getGameSessionSampleSolutions().size());
+        assertNotNull(gameEndDTO.getGameSessionSampleSolutions());
+        gameEndDTO.getGameSessionSampleSolutions().forEach((key, value) -> {
+            assertNotNull(key);
+            assertNotNull(value);
+        });
     }
 }

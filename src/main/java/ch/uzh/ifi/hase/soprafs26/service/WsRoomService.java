@@ -35,20 +35,10 @@ public class WsRoomService {
         simpMessagingTemplate.convertAndSend("/topic/room/" + roomId, notification); //message is sent back to destination '/topic/rooms/{roomId}' (all players get notifications that subscribed)
     }
 
-    public void notifyPlayerGameStarted(GameRoundDTO gameRoundDTO, GamePointsUpdateDTO gamePointsUpdateDTO) {
+    public void notifyPlayerGameStarted(GameRoundDTO gameRoundDTO) {
 
         User player = userService.getUserById(gameRoundDTO.getPlayerId());
-
-        //first send GamePointsUpdateDTO, s.t. client knows who is playing
-        log.info("Sending GamePointsUpdateDTO to: {}", player.getUsername());
-        simpMessagingTemplate.convertAndSendToUser(
-            player.getUsername(),
-            "/queue/game-start",
-            gamePointsUpdateDTO
-        );
-        log.info("GamePointsUpdateDTO sent to: {}", player.getUsername());
-
-        //second send personalised GameRoundDTO
+        
         log.info("Sending personalised GameRoundDTO to: {}", player.getUsername());
         simpMessagingTemplate.convertAndSendToUser( //enables sending personalised messages (≠ room-wide broadcast)
             player.getUsername(), //username maps to a session, as configured in WsAuthChannelInterceptor.java
