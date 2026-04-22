@@ -556,6 +556,9 @@ public class CodeExecutionService {
         else if (gameSession.getGameStatus() == GameStatus.ENDED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Game has ended: No submission possible anymore!");
         }
+        else if (!gameSessionId.equals(gameSession.getGameSessionId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game Session and Player Session do not belong together!");
+        }
 
         List<Problem> problems = gameSession.getProblems();
         Problem currProblem = problemService.getProblemById(problemId);
@@ -615,6 +618,9 @@ public class CodeExecutionService {
         }
         else if (gameSession.getGameStatus() == GameStatus.ENDED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Game has ended: No submission possible anymore!");
+        }
+        else if (!gameSessionId.equals(gameSession.getGameSessionId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game Session and Player Session do not belong together!");
         }
         
         List<Problem> problems = gameSession.getProblems();
@@ -938,10 +944,16 @@ public class CodeExecutionService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission has no associated PlayerSession!");
         }
 
+        GameSession gameSession = playerSession.getGameSession();
+
         GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
-        gamePointsUpdateDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
-        gamePointsUpdateDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
-        gamePointsUpdateDTO.setCurrentScore(playerSession.getCurrentScore());
+        gamePointsUpdateDTO.setGameSessionId(gameSession.getGameSessionId());
+
+        //update the scores for all players (if nothing happened for one player nothing changes)
+        List<PlayerSession> playerSessions = gameSession.getPlayerSessions();
+        for (PlayerSession ps : playerSessions){
+            gamePointsUpdateDTO.getScores().put(ps.getPlayerSessionId(), ps.getCurrentScore());
+        }
 
         wsGameService.broadcastPointsUpdate(gamePointsUpdateDTO);
     }

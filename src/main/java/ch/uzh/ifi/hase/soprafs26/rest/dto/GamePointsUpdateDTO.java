@@ -1,12 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class GamePointsUpdateDTO {
 
     private Long gameSessionId;
 
-    private Long playerSessionId;
-
-    private int currentScore;
+    Map<Long, Integer> scores = new HashMap<>();
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -16,19 +17,11 @@ public class GamePointsUpdateDTO {
         this.gameSessionId = gameSessionId;
     }
 
-    public Long getPlayerSessionId() {
-        return playerSessionId;
+    public Map<Long, Integer> getScores() {
+        return scores;
     }
 
-    public void setPlayerSessionId(Long playerSessionId) {
-        this.playerSessionId = playerSessionId;
-    }
-
-    public int getCurrentScore() {
-        return currentScore;
-    }
-
-    public void setCurrentScore(int currentScore) {
-        this.currentScore = currentScore;
+    public void setScores(Map<Long, Integer> scores) {
+        this.scores = scores;
     }
 }

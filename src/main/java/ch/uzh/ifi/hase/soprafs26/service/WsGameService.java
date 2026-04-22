@@ -37,13 +37,12 @@ public class WsGameService {
 
     public void broadcastPointsUpdate(GamePointsUpdateDTO gamePointsUpdateDTO){
         Long gameSessionId = gamePointsUpdateDTO.getGameSessionId();
-        Long playerSessionId = gamePointsUpdateDTO.getPlayerSessionId();
         simpMessagingTemplate.convertAndSend( 
             "/topic/game/" + gameSessionId + "/points-update", 
             gamePointsUpdateDTO
         );
-        log.info("Sent points update to gameSession with gameSessionId=" + gameSessionId + " regarding playerSessionId=" + playerSessionId);
-        log.info("New current points: " + gamePointsUpdateDTO.getCurrentScore() + " of playerSessionId=" + playerSessionId);
+        log.info("Sent points update to gameSession with gameSessionId=" + gameSessionId);
+        log.info("New current points: " + gamePointsUpdateDTO.getScores());
     }
 
     public void notifyPlayerGameTimeWarning(GameTimeWarningDTO gameTimeWarningDTO) {

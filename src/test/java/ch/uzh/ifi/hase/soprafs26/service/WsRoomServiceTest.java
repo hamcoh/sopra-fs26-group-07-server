@@ -20,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,10 +86,11 @@ public class WsRoomServiceTest {
         testUser.setUsername("testUser");
 
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
+        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
 
         Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
 
-        wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+        wsRoomService.notifyPlayerGameStarted(gameRoundDTO, gamePointsUpdateDTO);
 
         verify(simpMessagingTemplate, times(1)).convertAndSendToUser(
             testUser.getUsername(),
@@ -98,7 +100,7 @@ public class WsRoomServiceTest {
         }
 
     @Test
-    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_success() {
+    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_and_sendsCorrectGamePointsUpdateDTO_success() {
 
         User testUser = new User();
         testUser.setId(1L);
@@ -117,24 +119,41 @@ public class WsRoomServiceTest {
         gameRoundDTO.setOutputFormat("Boolean: True if s is palindrome, otherwise False");
         gameRoundDTO.setConstraints("0 < len(s) < 50");
 
+        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
+        gamePointsUpdateDTO.setGameSessionId(9L);
+        gamePointsUpdateDTO.getScores().put(2L, 0);
+
         Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
 
-        wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+        wsRoomService.notifyPlayerGameStarted(gameRoundDTO, gamePointsUpdateDTO);
 
         ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<GameRoundDTO> payloadCaptor = ArgumentCaptor.forClass(GameRoundDTO.class);
+        ArgumentCaptor<GamePointsUpdateDTO> payloadCaptorGamePointsUpdateDTO = ArgumentCaptor.forClass(GamePointsUpdateDTO.class);
+        ArgumentCaptor<GameRoundDTO> payloadCaptorGameRoundDTO = ArgumentCaptor.forClass(GameRoundDTO.class);
+        
 
         verify(simpMessagingTemplate).convertAndSendToUser(
             usernameCaptor.capture(),
             destinationCaptor.capture(),
-            payloadCaptor.capture()
+            payloadCaptorGamePointsUpdateDTO.capture()
+        );
+
+        verify(simpMessagingTemplate).convertAndSendToUser(
+            usernameCaptor.capture(),
+            destinationCaptor.capture(),
+            payloadCaptorGameRoundDTO.capture()
         );
 
         assertEquals(testUser.getUsername(), usernameCaptor.getValue());
         assertEquals("/queue/game-start", destinationCaptor.getValue());
 
-        GameRoundDTO captured = payloadCaptor.getValue();
+        GamePointsUpdateDTO captured2 = payloadCaptorGamePointsUpdateDTO.getValue();
+        assertEquals(9, captured2.getGameSessionId().intValue());
+        assertEquals(0, captured2.getScores().get(2L));
+        assertEquals(1, captured2.getScores().size());
+
+        GameRoundDTO captured = payloadCaptorGameRoundDTO.getValue();
         assertEquals(9, captured.getGameSessionId().intValue());
         assertEquals(2, captured.getPlayerSessionId().intValue());
         assertEquals(17, captured.getPlayerId().intValue());
@@ -153,11 +172,13 @@ public class WsRoomServiceTest {
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
         gameRoundDTO.setPlayerId(2121L);
 
+        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
+
         String errorReason = "Resource was not found!";
         Mockito.when(userService.getUserById(Mockito.any())).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason));
 
         assertThrows(ResponseStatusException.class, () ->
-                wsRoomService.notifyPlayerGameStarted(gameRoundDTO));
+                wsRoomService.notifyPlayerGameStarted(gameRoundDTO, gamePointsUpdateDTO));
 
     }
 }

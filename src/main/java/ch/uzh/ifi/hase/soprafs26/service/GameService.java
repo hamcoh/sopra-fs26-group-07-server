@@ -31,6 +31,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
@@ -51,7 +52,6 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
-    private final SimpMessagingTemplate messagingTemplate;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
 
@@ -61,7 +61,6 @@ public class GameService {
         this.problemService = problemService;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
-        this.messagingTemplate = messagingTemplate;
         this.wsRoomService = wsRoomService;
         this.wsGameService = wsGameService;
         this.taskScheduler = taskScheduler;
@@ -125,11 +124,17 @@ public class GameService {
         gameSession = gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
-        Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault())
-                                              .toInstant();
+        Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault()).toInstant();
         
         Instant endAtInstant = startedAtInstant.plus(GAME_DURATION);
         Instant serverTimeNow = Instant.now();
+
+        // prepare and send general GamePointsUpdateDTO via WS below
+        GamePointsUpdateDTO gamePointsUpdateDTO = new GamePointsUpdateDTO();
+        gamePointsUpdateDTO.setGameSessionId(gameSession.getGameSessionId());
+        for (PlayerSession playerSession : gameSession.getPlayerSessions()) {
+            gamePointsUpdateDTO.getScores().put(playerSession.getPlayerSessionId(), playerSession.getCurrentScore()); 
+        }
 
         // prepare and send personalised GameRoundDTO via WS
         for(PlayerSession playerSession : gameSession.getPlayerSessions()) {
@@ -155,7 +160,7 @@ public class GameService {
             gameRoundDTO.setConstraints(firstProblem.getConstraints());
 
             //send personalised message to each player
-            wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
+            wsRoomService.notifyPlayerGameStarted(gameRoundDTO, gamePointsUpdateDTO);
         }
         scheduleGameTimer(gameSession.getGameSessionId(), startedAtInstant);
     }
