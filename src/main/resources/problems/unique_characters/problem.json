@@ -1,0 +1,17 @@
+{
+    "title": "String Has Unique Characters",
+    "description": "Given a string x containing only lowercase alphabetic characters (with no spaces), return True if all characters in the string are unique, or False otherwise. For instance: Input='lamp', Output=True",
+    "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
+    "outputFormat": "Boolean: True if all characters are unique, False otherwise",
+    "constraints": "0 <= len(x) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(x):\n    return len(set(x)) == len(x)",
+    "testCases": [
+        { "input": "lamp", "expectedOutput": "True" },
+        { "input": "letter", "expectedOutput": "False" },
+        { "input": "python", "expectedOutput": "True" },
+        { "input": "aabb", "expectedOutput": "False" },
+        { "input": "abcde", "expectedOutput": "True" }
+    ]
+}

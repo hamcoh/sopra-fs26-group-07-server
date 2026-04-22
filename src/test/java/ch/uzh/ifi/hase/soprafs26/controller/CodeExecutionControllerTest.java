@@ -6,6 +6,8 @@ import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeSubmissionDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
@@ -31,6 +33,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import java.util.Optional;
 
 @WebMvcTest(CodeExecutionController.class)
 class CodeExecutionControllerTest {
@@ -192,4 +196,63 @@ class CodeExecutionControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNoContent());
               }
+}
+    @Test
+    void getRunResult_validRequest_returns200() throws Exception {
+        CodeRunDTO response = new CodeRunDTO();
+        response.setGameSessionId(1L);
+        response.setProblemId(2L);
+        response.setPlayerSessionId(3L);
+        response.setSubmissionStatus(SubmissionStatus.RUNNING);
+        response.setVerdict(Verdict.PENDING);
+        response.setPassedTestCases(0);
+        response.setTotalTestCases(2);
+
+        when(codeExecutionService.getLatestRunResult(1L, 2L, 3L)).thenReturn(response);
+
+        mockMvc.perform(get("/games/1/problems/2/run-result")
+                        .param("playerSessionId", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameSessionId").value(1))
+                .andExpect(jsonPath("$.problemId").value(2))
+                .andExpect(jsonPath("$.playerSessionId").value(3))
+                .andExpect(jsonPath("$.submissionStatus").value("RUNNING"))
+                .andExpect(jsonPath("$.verdict").value("PENDING"))
+                .andExpect(jsonPath("$.passedTestCases").value(0))
+                .andExpect(jsonPath("$.totalTestCases").value(2));
+    }
+
+    @Test
+    void getSubmissionResult_validRequest_returns200() throws Exception {
+        GameRoundDTO response = new GameRoundDTO();
+        response.setGameSessionId(1L);
+        response.setPlayerSessionId(3L);
+        response.setPlayerId(7L);
+        response.setCurrentScore(2);
+        response.setNumOfSkippedProblems(0);
+        response.setProblemId(4L);
+        response.setTitle("Next Problem");
+        response.setDescription("Solve the next problem");
+        response.setInputFormat("string");
+        response.setOutputFormat("string");
+        response.setConstraints("1 <= n <= 100");
+
+        when(codeExecutionService.getLatestSubmissionResult(1L, 2L, 3L))
+                .thenReturn(Optional.of(response));
+
+        mockMvc.perform(get("/games/1/problems/2/submission-result")
+                        .param("playerSessionId", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameSessionId").value(1))
+                .andExpect(jsonPath("$.playerSessionId").value(3))
+                .andExpect(jsonPath("$.playerId").value(7))
+                .andExpect(jsonPath("$.currentScore").value(2))
+                .andExpect(jsonPath("$.numOfSkippedProblems").value(0))
+                .andExpect(jsonPath("$.problemId").value(4))
+                .andExpect(jsonPath("$.title").value("Next Problem"))
+                .andExpect(jsonPath("$.description").value("Solve the next problem"))
+                .andExpect(jsonPath("$.inputFormat").value("string"))
+                .andExpect(jsonPath("$.outputFormat").value("string"))
+                .andExpect(jsonPath("$.constraints").value("1 <= n <= 100"));
+    }
 }

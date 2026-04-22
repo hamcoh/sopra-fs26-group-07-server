@@ -1,12 +1,12 @@
 {
     "title": "Valid Palindrome",
-    "description": "Given a lowercase string s containing only alphabetic characters (with no spaces), return True if it is a palindrome, False otherwise. A string is a palindrome if it reads the same forward and backward. For instance, 'radar' is a palindrome while 'python' is not",
+    "description": "Given a lowercase string x containing only alphabetic characters (with no spaces), return True if it is a palindrome, False otherwise. A string is a palindrome if it reads the same forward and backward. For instance, 'radar' is a palindrome while 'python' is not",
     "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
-    "outputFormat": "Boolean: True if s is palindrome, otherwise False",
-    "constraints": "0 < len(s) < 50",
+    "outputFormat": "Boolean: True if x is palindrome, otherwise False",
+    "constraints": "0 < len(x) < 50",
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(s):\n    return s == s[::-1]",
+    "sampleSolution": "def solve(x):\n    return x == x[::-1]",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "True" },
         { "input": "borbone",     "expectedOutput": "False" },
