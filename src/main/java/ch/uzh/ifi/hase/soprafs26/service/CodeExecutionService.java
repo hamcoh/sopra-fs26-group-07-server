@@ -478,6 +478,8 @@ public class CodeExecutionService {
             return Verdict.WRONG_ANSWER;
         }
 
+        //if all results are correct (i.e., all test cases passed) => Verdict.CORRECT_ANSWER
+        //that is useful altough (ATM) we work with partial points
         if (verdicts.stream().allMatch(verdict -> verdict == Verdict.CORRECT_ANSWER)) {
             return Verdict.CORRECT_ANSWER;
         }

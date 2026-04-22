@@ -23,10 +23,12 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
 import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
+import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
@@ -35,6 +37,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
 import jakarta.transaction.Transactional;
 
@@ -229,6 +232,34 @@ public class GameService {
 
         //fire room-wide game-end msg
         wsGameService.notifyPlayerGameEnded(gameEndDTO);
+
+        //send personal WS-msg that records which problems players solved correctly and which not
+        for (PlayerSession ps : playerSessions) {
+
+            List<Long> solvedCorrectly = new ArrayList<>();
+            List<Long> notSolvedFullyCorrectly = new ArrayList<>();
+
+            List<Submission> playerSubmissions = ps.getSubmissions();
+
+            for (Submission submission : playerSubmissions){
+
+                if (submission.getVerdict().equals(Verdict.CORRECT_ANSWER)) {
+                    solvedCorrectly.add(submission.getProblemId());                    
+                }
+                else {
+                    notSolvedFullyCorrectly.add(submission.getProblemId());
+                }
+            }
+            PlayerGameSummaryDTO playerGameSummaryDTO = new PlayerGameSummaryDTO();
+            playerGameSummaryDTO.setPlayerSessionId(ps.getPlayerSessionId());
+            playerGameSummaryDTO.setPlayerId(ps.getPlayer().getId());
+            playerGameSummaryDTO.getProblemResults().put("solvedCorrectly", solvedCorrectly);
+            playerGameSummaryDTO.getProblemResults().put("notSolvedFullyCorrectly", notSolvedFullyCorrectly);
+
+            // send personalised playerGameSummaryDTO
+            wsGameService.sendPlayerGameSummary(playerGameSummaryDTO);
+        }
+
     }
 
 

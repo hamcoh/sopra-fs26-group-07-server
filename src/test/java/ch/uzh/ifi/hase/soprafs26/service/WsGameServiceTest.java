@@ -10,11 +10,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
 
 @ExtendWith(MockitoExtension.class)
 public class WsGameServiceTest {
@@ -76,6 +79,26 @@ public class WsGameServiceTest {
         assertEquals(10L, captured.getGameSessionId());
         assertEquals(30L, captured.getPlayerSessionId());
         assertEquals(20, captured.getCurrentScore());
+    }
+
+    @Test
+    void sendPlayerGameSummary_sucess() {
+
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
+
+        PlayerGameSummaryDTO playerGameSummaryDTO = new PlayerGameSummaryDTO();
+
+        Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
+
+        wsGameService.sendPlayerGameSummary(playerGameSummaryDTO);
+
+        verify(simpMessagingTemplate, times(1)).convertAndSendToUser(
+            testUser.getUsername(),
+            "/queue/game-summary",
+            playerGameSummaryDTO
+            );
     }
     
 }
