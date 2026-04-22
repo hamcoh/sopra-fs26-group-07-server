@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
 import jakarta.transaction.Transactional;
@@ -51,7 +53,6 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
-    private final SimpMessagingTemplate messagingTemplate;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
 
@@ -61,7 +62,6 @@ public class GameService {
         this.problemService = problemService;
         this.gameSessionRepository = gameSessionRepository;
         this.userRepository = userRepository;
-        this.messagingTemplate = messagingTemplate;
         this.wsRoomService = wsRoomService;
         this.wsGameService = wsGameService;
         this.taskScheduler = taskScheduler;
@@ -125,8 +125,7 @@ public class GameService {
         gameSession = gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
-        Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault())
-                                              .toInstant();
+        Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault()).toInstant();
         
         Instant endAtInstant = startedAtInstant.plus(GAME_DURATION);
         Instant serverTimeNow = Instant.now();
@@ -167,16 +166,15 @@ public class GameService {
             pending.forEach(f -> f.cancel(false));
         }
 
-
         gameSession.setGameStatus(GameStatus.ENDED);
         gameSession.setEndedAt(LocalDateTime.now());
         gameSession.setGameEndReason(gameEndReason);
         gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
-        List<PlayerSession> sessions = gameSession.getPlayerSessions();
+        List<PlayerSession> playerSessions = gameSession.getPlayerSessions();
 
-        List<PlayerScoreDTO> scores = sessions.stream()
+        List<PlayerScoreDTO> scores = playerSessions.stream()
             .map(ps -> {
                 PlayerScoreDTO dto = new PlayerScoreDTO();
                 dto.setPlayerSessionId(ps.getPlayerSessionId());
@@ -189,21 +187,45 @@ public class GameService {
             .sorted(Comparator.comparingInt(PlayerScoreDTO::getScore).reversed())
             .toList();
 
-        PlayerSession winner = sessions.stream()
+        PlayerSession winner = playerSessions.stream()
             .max(Comparator.comparingInt(PlayerSession::getCurrentScore))
             .orElse(null);
 
         // null if tie 
-        
         long topScore = winner != null ? winner.getCurrentScore() : 0;
-        boolean tie = sessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
+        boolean tie = playerSessions.stream().filter(ps -> ps.getCurrentScore() == topScore).count() > 1;
+
+        // add game session results to user profile
+        for (PlayerSession ps : playerSessions) {
+            User user = ps.getPlayer();
+            user.setTotalPoints(user.getTotalPoints() + ps.getCurrentScore());
+            user.setTotalGamesPlayed(user.getTotalGamesPlayed() + 1);
+
+            if (!tie && winner != null && winner.getPlayer().getId().equals(user.getId())) {
+                user.setWinCount(user.getWinCount() + 1);
+            }
+            user.setWinRatePercentage((double) user.getWinCount() / user.getTotalGamesPlayed() * 100);
+            userRepository.saveAndFlush(user);
+        }
 
         GameEndDTO gameEndDTO = new GameEndDTO();
         gameEndDTO.setGameSessionId(gameSession.getGameSessionId());
-        gameEndDTO.setGameStatus(GameStatus.ENDED);
+        gameEndDTO.setGameStatus(gameSession.getGameStatus());
         gameEndDTO.setGameEndReason(gameEndReason);
         gameEndDTO.setWinnerPlayerId((!tie && winner != null) ? winner.getPlayer().getId() : null);
         gameEndDTO.setPlayerScores(scores);
+
+        gameEndDTO.setGameSessionSampleSolutions(new LinkedHashMap<>()); //LinkedHashMap needed to preserve the order of problems (i.e., the order in which they were served during game)
+        List<Problem> gameSessionProblems = gameSession.getProblems();
+        for (Problem p : gameSessionProblems){
+            
+            GameSessionSampleSolutionsDTO gameSessionSampleSolutionsDTO = new GameSessionSampleSolutionsDTO();
+            gameSessionSampleSolutionsDTO.setProblemTitle(p.getTitle());
+            gameSessionSampleSolutionsDTO.setProblemSampleSolution(p.getSampleSolution());
+
+            gameEndDTO.getGameSessionSampleSolutions().put(p.getProblemId(), gameSessionSampleSolutionsDTO);
+
+        }
 
         //fire room-wide game-end msg
         wsGameService.notifyPlayerGameEnded(gameEndDTO);

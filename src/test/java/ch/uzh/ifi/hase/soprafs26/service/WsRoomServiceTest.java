@@ -98,7 +98,7 @@ public class WsRoomServiceTest {
         }
 
     @Test
-    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_success() {
+    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_and_sendsCorrectGamePointsUpdateDTO_success() {
 
         User testUser = new User();
         testUser.setId(1L);
@@ -123,18 +123,18 @@ public class WsRoomServiceTest {
 
         ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<GameRoundDTO> payloadCaptor = ArgumentCaptor.forClass(GameRoundDTO.class);
+        ArgumentCaptor<GameRoundDTO> payloadCaptorGameRoundDTO = ArgumentCaptor.forClass(GameRoundDTO.class);
 
         verify(simpMessagingTemplate).convertAndSendToUser(
             usernameCaptor.capture(),
             destinationCaptor.capture(),
-            payloadCaptor.capture()
+            payloadCaptorGameRoundDTO.capture()
         );
 
         assertEquals(testUser.getUsername(), usernameCaptor.getValue());
         assertEquals("/queue/game-start", destinationCaptor.getValue());
 
-        GameRoundDTO captured = payloadCaptor.getValue();
+        GameRoundDTO captured = payloadCaptorGameRoundDTO.getValue();
         assertEquals(9, captured.getGameSessionId().intValue());
         assertEquals(2, captured.getPlayerSessionId().intValue());
         assertEquals(17, captured.getPlayerId().intValue());
@@ -158,7 +158,6 @@ public class WsRoomServiceTest {
 
         assertThrows(ResponseStatusException.class, () ->
                 wsRoomService.notifyPlayerGameStarted(gameRoundDTO));
-
     }
 }
 

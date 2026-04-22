@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,10 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
@@ -39,6 +43,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -86,6 +91,7 @@ class GameServiceTest {
     private Room testRoom;
     private User gameHost;
     private User player2;
+    private User player3;
 
     @BeforeEach
     void setup() {
@@ -93,9 +99,27 @@ class GameServiceTest {
 
         gameHost = new User();
         gameHost.setId(2L);
+        gameHost.setUsername("gameHost");
+        gameHost.setWinCount(0);
+		gameHost.setWinRatePercentage(0.0);
+		gameHost.setTotalGamesPlayed(0);
+		gameHost.setTotalPoints(0L);
 
         player2 = new User();
         player2.setId(3L);
+        player2.setUsername("player2");
+        player2.setWinCount(0);
+		player2.setWinRatePercentage(0.0);
+		player2.setTotalGamesPlayed(0);
+		player2.setTotalPoints(0L);
+
+        player3 = new User();
+        player3.setId(4L);
+        player3.setUsername("player3");
+        player3.setWinCount(0);
+		player3.setWinRatePercentage(0.0);
+		player3.setTotalGamesPlayed(0);
+		player3.setTotalPoints(0L);
 
         testRoom = new Room();
         testRoom.setRoomId(8L);
@@ -157,6 +181,8 @@ class GameServiceTest {
         assertEquals(2, savedGameSession.getPlayerSessions().size());
         assertNotNull(savedGameSession.getStartedAt());
     }
+
+    
 
     //createGameSession fail: room not found
     @Test
@@ -369,90 +395,178 @@ class GameServiceTest {
         verify(endFuture).cancel(false);
     }
 
-    // --- endGameSession tests ---
+    //--- endGameSession tests ---
 
-    // private GameSession buildGameSession(long sessionId, PlayerSession... sessions) {
-    //     GameSession gs = new GameSession();
-    //     gs.setGameSessionId(sessionId);
-    //     List<PlayerSession> psList = new ArrayList<>();
-    //     for (PlayerSession ps : sessions) {
-    //         ps.setGameSession(gs);
-    //         psList.add(ps);
-    //     }
-    //     gs.setPlayerSessions(psList);
-    //     given(gameSessionRepository.save(any(GameSession.class))).willAnswer(i -> i.getArgument(0));
-    //     return gs;
-    // }
+    private GameSession buildGameSession(long sessionId, PlayerSession... sessions) {
+        GameSession gs = new GameSession();
+        gs.setGameSessionId(sessionId);
+        List<PlayerSession> psList = new ArrayList<>();
+        for (PlayerSession ps : sessions) {
+            ps.setGameSession(gs);
+            psList.add(ps);
+        }
+        gs.setPlayerSessions(psList);
+        given(gameSessionRepository.save(any(GameSession.class))).willAnswer(i -> i.getArgument(0));
+        return gs;
+    }
 
-    // private PlayerSession buildPlayerSession(long psId, long userId, String username, int score, int problemsSolved) {
-    //     User user = new User();
-    //     user.setId(userId);
-    //     user.setUsername(username);
+    private PlayerSession buildPlayerSession(long psId, User player, int score, int problemsSolved) {
 
-    //     PlayerSession ps = new PlayerSession();
-    //     ps.setPlayerSessionId(psId);
-    //     ps.setPlayer(user);
-    //     ps.setCurrentScore(score);
-    //     ps.setCurrentProblemIndex(problemsSolved);
-    //     ps.setPlayerSessionStatus(PlayerSessionStatus.PLAYING);
-    //     return ps;
-    // }
+        PlayerSession ps = new PlayerSession();
+        ps.setPlayerSessionId(psId);
+        ps.setPlayer(player);
+        ps.setCurrentScore(score);
+        ps.setCurrentProblemIndex(problemsSolved);
+        ps.setPlayerSessionStatus(PlayerSessionStatus.PLAYING);
 
-    // @Test
-    // void endGameSession_singleWinner_setsStatusAndBroadcastsWinner() {
-    //     PlayerSession ps1 = buildPlayerSession(1L, 10L, "alice", 5, 2);
-    //     PlayerSession ps2 = buildPlayerSession(2L, 20L, "bob", 2, 1);
-    //     GameSession gs = buildGameSession(99L, ps1, ps2);
+        return ps;
+    }
 
-    //     gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
+    @Test
+    void endGameSession_singleWinner_setsStatusAndBroadcastsWinner() {
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 5, 2);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 2, 1);
+        GameSession gs = buildGameSession(99L, ps1, ps2);
 
-    //     assertEquals(GameStatus.ENDED, gs.getGameStatus());
-    //     assertEquals(GameEndReason.PLAYER_FINISHED, gs.getGameEndReason());
-    //     assertNotNull(gs.getEndedAt());
+        gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
 
-    //     ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-    //     verify(messagingTemplate).convertAndSend(eq("/topic/game/99/end"), payloadCaptor.capture());
+        assertEquals(GameStatus.ENDED, gs.getGameStatus());
+        assertEquals(GameEndReason.PLAYER_FINISHED, gs.getGameEndReason());
+        assertNotNull(gs.getEndedAt());
 
-    //     GameEndDTO dto = (GameEndDTO) payloadCaptor.getValue();
-    //     assertEquals(99L, dto.getGameSessionId());
-    //     assertEquals(GameEndReason.PLAYER_FINISHED, dto.getGameEndReason());
-    //     assertEquals(10L, dto.getWinnerPlayerId()); // alice has higher score
-    //     assertEquals(2, dto.getPlayerScores().size());
-    //     assertEquals("alice", dto.getPlayerScores().get(0).getUsername()); // sorted by score desc
-    // }
+        ArgumentCaptor<GameEndDTO> captor = ArgumentCaptor.forClass(GameEndDTO.class);
+        verify(wsGameService).notifyPlayerGameEnded(captor.capture());
 
-    // @Test
-    // void endGameSession_tie_broadcastsNullWinner() {
-    //     PlayerSession ps1 = buildPlayerSession(1L, 10L, "alice", 3, 1);
-    //     PlayerSession ps2 = buildPlayerSession(2L, 20L, "bob", 3, 1);
-    //     GameSession gs = buildGameSession(99L, ps1, ps2);
+        GameEndDTO gameEndDTO = captor.getValue();
+        assertEquals(99L, gameEndDTO.getGameSessionId());
+        assertEquals(gameHost.getId(), gameEndDTO.getWinnerPlayerId());
+        assertEquals(GameEndReason.PLAYER_FINISHED, gameEndDTO.getGameEndReason());
+        assertEquals(gameHost.getId(), gameEndDTO.getWinnerPlayerId()); // host has higher score
+        assertEquals(2, gameEndDTO.getPlayerScores().size());
+        assertEquals(gameHost.getUsername(), gameEndDTO.getPlayerScores().get(0).getUsername()); // sorted by score desc
+    }
 
-    //     gameService.endGameSession(gs, GameEndReason.TIME_UP);
+    @Test
+    void endGameSession_tie_broadcastsNullWinner() {
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 3, 1);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 3, 1);
+        GameSession gs = buildGameSession(99L, ps1, ps2);
 
-    //     ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-    //     verify(messagingTemplate).convertAndSend(eq("/topic/game/99/end"), payloadCaptor.capture());
+        gameService.endGameSession(gs, GameEndReason.TIME_UP);
 
-    //     GameEndDTO dto = (GameEndDTO) payloadCaptor.getValue();
-    //     assertNull(dto.getWinnerPlayerId());
-    //     assertEquals(GameEndReason.TIME_UP, dto.getGameEndReason());
-    // }
+        ArgumentCaptor<GameEndDTO> captor = ArgumentCaptor.forClass(GameEndDTO.class);
+        verify(wsGameService).notifyPlayerGameEnded(captor.capture());
 
-    // @Test
-    // void endGameSession_playerScoresSortedDescending() {
-    //     PlayerSession ps1 = buildPlayerSession(1L, 8953L, "AleDiGio", 1, 0); // de het eif 0 glöst de kelb
-    //     PlayerSession ps2 = buildPlayerSession(2L, 20L, "Leonidas", 8, 3);
-    //     PlayerSession ps3 = buildPlayerSession(3L, 30L, "CodeMaxxer22", 4, 1);
-    //     GameSession gs = buildGameSession(99L, ps1, ps2, ps3);
+        GameEndDTO gameEndDTO = captor.getValue();
+        assertNull(gameEndDTO.getWinnerPlayerId());
+        assertEquals(GameEndReason.TIME_UP, gameEndDTO.getGameEndReason());
+    }
 
-    //     gameService.endGameSession(gs, GameEndReason.TIME_UP);
+    @Test
+    void endGameSession_playerScoresSortedDescending() {
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost,  1, 0);
+        PlayerSession ps2 = buildPlayerSession(3L, player2, 4, 1);
+        PlayerSession ps3 = buildPlayerSession(3L, player3, 10, 2);
+        GameSession gs = buildGameSession(99L, ps1, ps2, ps3);
 
-    //     ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-    //     verify(messagingTemplate).convertAndSend(eq("/topic/game/99/end"), payloadCaptor.capture());
+        gameService.endGameSession(gs, GameEndReason.TIME_UP);
 
-    //     GameEndDTO dto = (GameEndDTO) payloadCaptor.getValue();
-    //     assertEquals("Leonidas", dto.getPlayerScores().get(0).getUsername());
-    //     assertEquals("CodeMaxxer22", dto.getPlayerScores().get(1).getUsername());
-    //     assertEquals("AleDiGio", dto.getPlayerScores().get(2).getUsername());
-    //     assertEquals(20L, dto.getWinnerPlayerId());
-    // }
+        ArgumentCaptor<GameEndDTO> captor = ArgumentCaptor.forClass(GameEndDTO.class);
+        verify(wsGameService).notifyPlayerGameEnded(captor.capture());
+
+        GameEndDTO gameEndDTO = captor.getValue();
+        assertEquals(player3.getUsername(), gameEndDTO.getPlayerScores().get(0).getUsername());
+        assertEquals(player2.getUsername(), gameEndDTO.getPlayerScores().get(1).getUsername());
+        assertEquals(gameHost.getUsername(), gameEndDTO.getPlayerScores().get(2).getUsername());
+        assertEquals(player3.getId(), gameEndDTO.getWinnerPlayerId());
+    }
+
+    //player stats are updated in user profile
+    @Test 
+    void endGameSession_updatesEachPlayersGameStats() {
+
+        //players already have points
+        gameHost.setTotalGamesPlayed(20);
+        gameHost.setTotalPoints(100L);
+        gameHost.setWinCount(10);
+        gameHost.setWinRatePercentage((double) 10 / 20);
+
+        player2.setTotalGamesPlayed(40);
+        player2.setTotalPoints(100L);
+        player2.setWinCount(10);
+        player2.setWinRatePercentage((double) 10 / 40);
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 1, 0);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 8, 3);
+        GameSession gs = buildGameSession(99L, ps1, ps2);
+
+        gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
+
+        assertEquals(21, gameHost.getTotalGamesPlayed());
+        assertEquals(101, gameHost.getTotalPoints().intValue());
+        assertEquals(10, gameHost.getWinCount());
+        assertTrue((gameHost.getWinRatePercentage() < ((double) 10 / 20 * 100))); //since host did not win
+
+        assertEquals(41, player2.getTotalGamesPlayed());
+        assertEquals(108, player2.getTotalPoints().intValue());
+        assertEquals(11, player2.getWinCount());
+        assertTrue(player2.getWinRatePercentage() > ((double) 10 / 40 * 100)); //since player 2 did win
+    }
+
+    //game stats update is actually saved and flushed
+    @Test
+    void endGameSession_savesAndFlushesEachPlayer() {
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 10, 4);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 20, 7);
+        GameSession gs = buildGameSession(99L, ps1, ps2);
+
+        gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
+
+        verify(userRepository, times(2)).saveAndFlush(any(User.class));
+    }
+
+    //gameSessionSampleSolution are included
+    @Test 
+    void endGameSession_prepareGameSessionSampleSolutions_success() {
+
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+        p1.setSampleSolution("sampleSolution1");
+
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+        p2.setSampleSolution("sampleSolution2");
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 10, 4);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 20, 7);
+        
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setPlayerSessions(List.of(ps1, ps2));
+        gameSession.setProblems(List.of(p1, p2));
+
+        gameService.endGameSession(gameSession, GameEndReason.TIME_UP);
+
+        ArgumentCaptor<GameEndDTO> captor = ArgumentCaptor.forClass(GameEndDTO.class);
+        verify(wsGameService).notifyPlayerGameEnded(captor.capture());
+    
+        //check that there are actually the sample solutions and that their order is correct
+        GameEndDTO gameEndDTO = captor.getValue();
+
+        Map<Long, GameSessionSampleSolutionsDTO> solutions = gameEndDTO.getGameSessionSampleSolutions();
+
+
+        List<Long> expectedOrder = List.of(p1.getProblemId(), p2.getProblemId());
+        List<Long> actualOrder = new ArrayList<>(solutions.keySet());
+
+        assertEquals(expectedOrder, actualOrder);
+        assertNotNull(gameEndDTO);
+        assertEquals(2, gameEndDTO.getGameSessionSampleSolutions().size());
+        assertNotNull(gameEndDTO.getGameSessionSampleSolutions());
+        gameEndDTO.getGameSessionSampleSolutions().forEach((key, value) -> {
+            assertNotNull(key);
+            assertNotNull(value);
+        });
+    }
 }
