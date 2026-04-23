@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
@@ -58,6 +60,11 @@ public class GameService {
     private final GameSessionRepository gameSessionRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
+
+    //needed such that gameSessionSampleSolutionsDTO is actually sent!
+    @Lazy
+    @Autowired
+    private GameService self;
 
     public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService, TaskScheduler taskScheduler) {
         this.roomRepository = roomRepository;
@@ -281,7 +288,7 @@ public class GameService {
             GameSession session = gameSessionRepository.findByGameSessionId(gameSessionId);
             if (session == null || session.getGameStatus() != GameStatus.ACTIVE)
                 return;
-            endGameSession(session, GameEndReason.TIME_UP);
+            self.endGameSession(session, GameEndReason.TIME_UP);
         }, endAt);
 
         scheduledTasksByGame.put(gameSessionId, List.of(warningFuture, endFuture));

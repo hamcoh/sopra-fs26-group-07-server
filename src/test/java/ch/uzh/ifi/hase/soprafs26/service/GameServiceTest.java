@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -337,6 +338,7 @@ class GameServiceTest {
         given(taskScheduler.schedule(any(Runnable.class), any(Instant.class)))
             .willReturn((ScheduledFuture) warningFuture, (ScheduledFuture) endFuture);
 
+                ReflectionTestUtils.setField(gameService, "self", gameService);
                 gameService.createGameSession(gameHost.getId(), testRoom.getRoomId());
 
         ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
