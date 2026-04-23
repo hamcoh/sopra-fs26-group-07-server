@@ -139,6 +139,8 @@ class GameServiceTest {
         testRoom.setGameDifficulty(GameDifficulty.EASY);
         testRoom.setGameLanguage(GameLanguage.PYTHON);
         testRoom.setGameMode(GameMode.RACE);
+
+        given(gameSessionRepository.save(any(GameSession.class))).willAnswer(i -> i.getArgument(0));
     }
 
     //createGameSession success; IMPORTANT: since this method fires back a personalised WS message the WS-part is tested separately
