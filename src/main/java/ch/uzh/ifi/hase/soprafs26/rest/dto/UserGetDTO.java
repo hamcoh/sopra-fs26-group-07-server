@@ -16,6 +16,7 @@ public class UserGetDTO {
     private int totalGamesPlayed;
     private long totalPoints;
 	private Integer rank;
+	private int avatarId;
 
 	public Long getId() {
 		return id;
@@ -95,5 +96,13 @@ public class UserGetDTO {
 
 	public void setRank(Integer rank) {
 		this.rank = rank;
+	}
+
+	public int getAvatarId() {
+		return avatarId;
+	}
+
+	public void setAvatarId(int avatarId) {
+		this.avatarId = avatarId;
 	}
 }
