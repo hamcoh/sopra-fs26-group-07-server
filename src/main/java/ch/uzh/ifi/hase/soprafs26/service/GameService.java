@@ -179,7 +179,7 @@ public class GameService {
         gameSession.setGameStatus(GameStatus.ENDED);
         gameSession.setEndedAt(LocalDateTime.now());
         gameSession.setGameEndReason(gameEndReason);
-        gameSessionRepository.save(gameSession);
+        gameSession = gameSessionRepository.save(gameSession);
         gameSessionRepository.flush();
 
         List<PlayerSession> playerSessions = gameSession.getPlayerSessions();
