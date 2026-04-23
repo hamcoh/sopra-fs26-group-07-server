@@ -1,0 +1,17 @@
+{
+    "title": "Longest Word",
+    "description": "Given a sentence x containing only lowercase alphabetic characters and spaces, return the longest word. If two words have the same length, return the first one. For instance: Input='i love python', Output='python'",
+    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces",
+    "outputFormat": "The string in x that is the longest in its original format",
+    "constraints": "0 < len(x) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "public class Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        String longest = words[0];\n        for (String word : words) {\n            if (word.length() > longest.length()) {\n                longest = word;\n            }\n        }\n        return longest;\n    }\n}",
+    "testCases": [
+        { "input": "hello everyone i am here", "expectedOutput": "everyone" },
+        { "input": "i love python", "expectedOutput": "python" },
+        { "input": "hey bye nay", "expectedOutput": "hey" },
+        { "input": "single", "expectedOutput": "single" },
+        { "input": "a word", "expectedOutput": "word" }
+    ]
+}

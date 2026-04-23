@@ -1,0 +1,16 @@
+{
+    "title": "Reverse Sentence",
+    "description": "Given a sentence x containing only lowercase alphabetic characters and spaces, return the sentence with the order of words reversed. For instance: Input='hello world', Output='world hello'",
+    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces",
+    "outputFormat": "Sentence x reversed (as a string)",
+    "constraints": "0 < len(x) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.*;\n\npublic class Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        List<String> list = Arrays.asList(words);\n        Collections.reverse(list);\n        return String.join(\" \", list);\n    }\n}",
+    "testCases": [
+        { "input": "spring boot", "expectedOutput": "boot spring" },
+        { "input": "the sky is blue", "expectedOutput": "blue is sky the" },
+        { "input": "python", "expectedOutput": "python" },
+        { "input": "one two three", "expectedOutput": "three two one" }
+    ]
+}
