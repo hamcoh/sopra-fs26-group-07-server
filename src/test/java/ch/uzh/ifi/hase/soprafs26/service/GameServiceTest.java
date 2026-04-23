@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,10 +35,12 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
 import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
+import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
@@ -49,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
 
 class GameServiceTest {
 
@@ -334,6 +338,7 @@ class GameServiceTest {
         given(taskScheduler.schedule(any(Runnable.class), any(Instant.class)))
             .willReturn((ScheduledFuture) warningFuture, (ScheduledFuture) endFuture);
 
+                ReflectionTestUtils.setField(gameService, "self", gameService);
                 gameService.createGameSession(gameHost.getId(), testRoom.getRoomId());
 
         ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
@@ -568,5 +573,166 @@ class GameServiceTest {
             assertNotNull(key);
             assertNotNull(value);
         });
+    }
+
+    //prepare correct playerGameSummaryDTO
+    @Test 
+    void endGameSession_prepareCorrectPlayerGameSummaryDTO_success() {
+
+        //prepare problems and associated submissions
+        //3 submissions fully correct, 2 not fully correct
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        Submission s1 = new Submission();
+        s1.setProblemId(p1.getProblemId());
+        s1.setVerdict(Verdict.CORRECT_ANSWER);
+
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+
+        Submission s2 = new Submission();
+        s2.setProblemId(p2.getProblemId());
+        s2.setVerdict(Verdict.CORRECT_ANSWER);
+
+        Problem p3 = new Problem();
+        p3.setProblemId(3L);
+
+        Submission s3 = new Submission();
+        s3.setProblemId(p3.getProblemId());
+        s3.setVerdict(Verdict.WRONG_ANSWER);
+
+        Problem p4 = new Problem();
+        p4.setProblemId(4L);
+
+        Submission s4 = new Submission();
+        s4.setProblemId(p4.getProblemId());
+        s4.setVerdict(Verdict.CORRECT_ANSWER);
+
+        Problem p5 = new Problem();
+        p5.setProblemId(5L);
+
+        Submission s5 = new Submission();
+        s5.setProblemId(p5.getProblemId());
+        s5.setVerdict(Verdict.WRONG_ANSWER);
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 15, 5);
+        ps1.setSubmissions(List.of(s1, s2, s3, s4, s5));
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setPlayerSessions(List.of(ps1));
+        gameSession.setProblems(List.of(p1, p2, p3, p4, p5));
+
+        gameService.endGameSession(gameSession, GameEndReason.TIME_UP);
+
+        ArgumentCaptor<PlayerGameSummaryDTO> captor = ArgumentCaptor.forClass(PlayerGameSummaryDTO.class);
+        verify(wsGameService).sendPlayerGameSummary(captor.capture());
+
+        PlayerGameSummaryDTO playerGameSummaryDTO = captor.getValue();
+        assertNotNull(playerGameSummaryDTO);
+        assertEquals(playerGameSummaryDTO.getPlayerSessionId(), ps1.getPlayerSessionId());
+        assertEquals(playerGameSummaryDTO.getPlayerId(), ps1.getPlayer().getId());
+
+        //check that solvedCorrectly contains three problems
+        List<Long> solvedCorrectly = playerGameSummaryDTO.getProblemResults().get("solvedCorrectly");
+        assertNotNull(solvedCorrectly);
+        assertEquals(3, solvedCorrectly.size());
+        assertTrue(solvedCorrectly.contains(p1.getProblemId()));
+        assertTrue(solvedCorrectly.contains(p2.getProblemId()));
+        assertTrue(solvedCorrectly.contains(p4.getProblemId()));
+
+        //check that solvedCorrectly contains three problems
+        List<Long> notSolvedFullyCorrectly = playerGameSummaryDTO.getProblemResults().get("notSolvedFullyCorrectly");
+        assertNotNull(notSolvedFullyCorrectly);
+        assertEquals(2, notSolvedFullyCorrectly.size());
+        assertTrue(notSolvedFullyCorrectly.contains(p3.getProblemId()));
+        assertTrue(notSolvedFullyCorrectly.contains(p5.getProblemId()));
+    }
+
+    //prepare correct playerGameSummaryDTO => all correct
+    @Test 
+    void endGameSession_prepareCorrectPlayerGameSummaryDTOOnlyCorrectSubmissions_success() {
+
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        Submission s1 = new Submission();
+        s1.setProblemId(p1.getProblemId());
+        s1.setVerdict(Verdict.CORRECT_ANSWER);
+
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+
+        Submission s2 = new Submission();
+        s2.setProblemId(p2.getProblemId());
+        s2.setVerdict(Verdict.CORRECT_ANSWER);
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 15, 5);
+        ps1.setSubmissions(List.of(s1, s2));
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setPlayerSessions(List.of(ps1));
+        gameSession.setProblems(List.of(p1, p2));
+
+        gameService.endGameSession(gameSession, GameEndReason.TIME_UP);
+
+        ArgumentCaptor<PlayerGameSummaryDTO> captor = ArgumentCaptor.forClass(PlayerGameSummaryDTO.class);
+        verify(wsGameService).sendPlayerGameSummary(captor.capture());
+
+        PlayerGameSummaryDTO playerGameSummaryDTO = captor.getValue();
+        assertNotNull(playerGameSummaryDTO);
+        assertEquals(playerGameSummaryDTO.getPlayerSessionId(), ps1.getPlayerSessionId());
+        assertEquals(playerGameSummaryDTO.getPlayerId(), ps1.getPlayer().getId());
+
+        List<Long> solvedCorrectly = playerGameSummaryDTO.getProblemResults().get("solvedCorrectly");
+        assertNotNull(solvedCorrectly);
+        assertEquals(2, solvedCorrectly.size());
+        assertTrue(solvedCorrectly.contains(p1.getProblemId()));
+        assertTrue(solvedCorrectly.contains(p2.getProblemId()));
+
+        List<Long> notSolvedFullyCorrectly = playerGameSummaryDTO.getProblemResults().get("notSolvedFullyCorrectly");
+        assertNotNull(notSolvedFullyCorrectly);
+        assertTrue(notSolvedFullyCorrectly.isEmpty());
+    }
+
+    //prepare correct playerGameSummaryDTO => all wrong
+    @Test 
+    void endGameSession_prepareCorrectPlayerGameSummaryDTOOnlyWrongSubmissions_success() {
+
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        Submission s1 = new Submission();
+        s1.setProblemId(p1.getProblemId());
+        s1.setVerdict(Verdict.WRONG_ANSWER);
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 15, 5);
+        ps1.setSubmissions(List.of(s1));
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setPlayerSessions(List.of(ps1));
+        gameSession.setProblems(List.of(p1));
+
+        gameService.endGameSession(gameSession, GameEndReason.TIME_UP);
+
+        ArgumentCaptor<PlayerGameSummaryDTO> captor = ArgumentCaptor.forClass(PlayerGameSummaryDTO.class);
+        verify(wsGameService).sendPlayerGameSummary(captor.capture());
+
+        PlayerGameSummaryDTO playerGameSummaryDTO = captor.getValue();
+        assertNotNull(playerGameSummaryDTO);
+        assertEquals(playerGameSummaryDTO.getPlayerSessionId(), ps1.getPlayerSessionId());
+        assertEquals(playerGameSummaryDTO.getPlayerId(), ps1.getPlayer().getId());
+
+        List<Long> solvedCorrectly = playerGameSummaryDTO.getProblemResults().get("solvedCorrectly");
+        assertNotNull(solvedCorrectly);
+        assertTrue(solvedCorrectly.isEmpty());
+
+        List<Long> notSolvedFullyCorrectly = playerGameSummaryDTO.getProblemResults().get("notSolvedFullyCorrectly");
+        assertNotNull(notSolvedFullyCorrectly);
+        assertEquals(1, notSolvedFullyCorrectly.size());
+        assertTrue(notSolvedFullyCorrectly.contains(p1.getProblemId()));
     }
 }

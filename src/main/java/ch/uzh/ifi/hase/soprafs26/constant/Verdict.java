@@ -13,5 +13,4 @@ public enum Verdict {
      COMPILE_ERROR, // If any result is compile error, the whole submission is compile error
      TIME_LIMIT_EXCEEDED, // if any result is time limit exceeded, the whole submission is time limit exceeded
      INTERNAL_ERROR // If something is really wrong with our backend (this makes it easier for us to debug internally)
-    
 }

@@ -98,7 +98,7 @@ public class WsRoomServiceTest {
         }
 
     @Test
-    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_and_sendsCorrectGamePointsUpdateDTO_success() {
+    void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_success() {
 
         User testUser = new User();
         testUser.setId(1L);
