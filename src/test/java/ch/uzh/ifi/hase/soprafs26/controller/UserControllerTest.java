@@ -67,6 +67,7 @@ class UserControllerTest {
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
 		user.setRank(1); //rank 1, only one user
+		user.setAvatarId(1);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -92,7 +93,8 @@ class UserControllerTest {
 				.andExpect(jsonPath("$[0].winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$[0].totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$[0].totalPoints", is(user.getTotalPoints().intValue())))
-				.andExpect(jsonPath("$[0].rank", is(user.getRank())));
+				.andExpect(jsonPath("$[0].rank", is(user.getRank())))
+				.andExpect(jsonPath("$[0].avatarId", is(user.getAvatarId())));
 	}
 
 	//Unhappy Test: /users/leaderboard; expect: 401
@@ -128,6 +130,7 @@ class UserControllerTest {
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
 		user.setRank(1); //rank 1, only one user
+		user.setAvatarId(1);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -152,7 +155,8 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
-				.andExpect(jsonPath("$.rank", is(user.getRank())));
+				.andExpect(jsonPath("$.rank", is(user.getRank())))
+				.andExpect(jsonPath("$.avatarId", is(user.getAvatarId())));
 	}
 
 	//Unhappy Test: /users/{userId}; expect: 401 (request unauthorized)
@@ -215,6 +219,7 @@ class UserControllerTest {
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
+		user.setAvatarId(7);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -243,7 +248,8 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
-				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())));		
+				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
+				.andExpect(jsonPath("$.avatarId", is(user.getAvatarId())));		
 	}
 
 	//Negative Test: /users/register; expect: 409 (username already exists)
@@ -301,6 +307,7 @@ class UserControllerTest {
 		user.setWinRatePercentage(50.0);
 		user.setTotalGamesPlayed(20);
 		user.setTotalPoints(450L);
+		user.setAvatarId(7);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -328,7 +335,8 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
-				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())));	
+				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
+				.andExpect(jsonPath("$.avatarId", is(user.getAvatarId())));	
 	}
 
 	//Negative Test: /users/login; expect: 404 (user to login not found)

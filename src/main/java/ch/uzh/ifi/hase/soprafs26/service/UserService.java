@@ -13,6 +13,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -53,6 +54,9 @@ public class UserService {
 		checkIfBioIsValid(newUser.getBio());
 
 		initialiseGameStats(newUser);
+
+		//generate random avatarId (goes from 1-10)
+		newUser.setAvatarId(new Random().nextInt(10) + 1);
 
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called

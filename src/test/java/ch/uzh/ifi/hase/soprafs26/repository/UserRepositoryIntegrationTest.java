@@ -35,6 +35,7 @@ class UserRepositoryIntegrationTest {
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
+		user.setAvatarId(4);
 
 		entityManager.persist(user);
 		entityManager.flush();
@@ -53,6 +54,7 @@ class UserRepositoryIntegrationTest {
 		assertEquals(found.getWinRatePercentage(), user.getWinRatePercentage());
 		assertEquals(found.getTotalGamesPlayed(), user.getTotalGamesPlayed());
 		assertEquals(found.getTotalPoints(), user.getTotalPoints());
+		assertEquals(found.getAvatarId(), user.getAvatarId());
 	}
 
 	@Test
@@ -68,6 +70,7 @@ class UserRepositoryIntegrationTest {
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
+		user.setAvatarId(4);
 
 		entityManager.persist(user);
 		entityManager.flush();
@@ -86,6 +89,7 @@ class UserRepositoryIntegrationTest {
 		assertEquals(found.getWinRatePercentage(), user.getWinRatePercentage());
 		assertEquals(found.getTotalGamesPlayed(), user.getTotalGamesPlayed());
 		assertEquals(found.getTotalPoints(), user.getTotalPoints());
+		assertEquals(found.getAvatarId(), user.getAvatarId());
 	}
 
 	@Test

@@ -16,6 +16,7 @@ public class UserDTO {
     private double winRatePercentage;
     private int totalGamesPlayed;
     private long totalPoints;
+    private int avatarId;
 
     public Long getId() {
         return id;
@@ -76,5 +77,11 @@ public class UserDTO {
     }
     public void setTotalPoints(long totalPoints) {
         this.totalPoints = totalPoints;
+    }
+    public int getAvatarId() {
+        return avatarId;
+    }
+    public void setAvatarId(int avatarId) {
+        this.avatarId = avatarId;
     }
 }

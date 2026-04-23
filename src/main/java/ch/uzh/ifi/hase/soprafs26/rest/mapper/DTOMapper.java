@@ -48,6 +48,7 @@ public interface DTOMapper {
 	@Mapping(source = "totalGamesPlayed", target = "totalGamesPlayed")
 	@Mapping(source = "totalPoints", target = "totalPoints")
 	@Mapping(source = "rank", target = "rank")
+	@Mapping(source = "avatarId", target = "avatarId")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
@@ -60,6 +61,7 @@ public interface DTOMapper {
 	@Mapping(source = "winRatePercentage", target = "winRatePercentage")
 	@Mapping(source = "totalGamesPlayed", target = "totalGamesPlayed")
 	@Mapping(source = "totalPoints", target = "totalPoints")
+	@Mapping(source = "avatarId", target = "avatarId")
 	UserDTO convertEntityToUserDTO(User user);
 
 

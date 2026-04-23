@@ -57,6 +57,7 @@ class DTOMapperTest {
 		user.setTotalGamesPlayed(10);
 		user.setTotalPoints(1000L);
 		user.setRank(1);
+		user.setAvatarId(6);
 
 		Date date = new Date();
 		user.setCreationDate(date);
@@ -74,6 +75,7 @@ class DTOMapperTest {
 		assertEquals(user.getTotalGamesPlayed(), userGetDTO.getTotalGamesPlayed());
 		assertEquals(user.getTotalPoints(), userGetDTO.getTotalPoints());
 		assertEquals(user.getRank(), userGetDTO.getRank());
+		assertEquals(user.getAvatarId(), userGetDTO.getAvatarId());
 		assertNotNull(userGetDTO.getCreationDate());
 	}
 
