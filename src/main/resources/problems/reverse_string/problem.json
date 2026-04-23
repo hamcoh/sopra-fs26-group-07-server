@@ -1,0 +1,17 @@
+{
+    "title": "Reverse String",
+    "description": "Given a string x containing only lowercase alphabetic characters (with no spaces), return the string reversed. For instance: Input='python', Output='nohtyp'",
+    "inputFormat": "A string x of lowercase alphabetic characters (with no spaces)",
+    "outputFormat": "The string x reversed",
+    "constraints": "0 < len(x) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(x):\n    return x[::-1]",
+    "testCases": [
+        { "input": "java",     "expectedOutput": "avaj" },
+        { "input": "pythonic", "expectedOutput": "cinohtyp" },
+        { "input": "a",        "expectedOutput": "a" },
+        { "input": "ekitike",  "expectedOutput": "ekitike" },
+        { "input": "in",       "expectedOutput": "ni" }
+    ]
+}

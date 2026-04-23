@@ -1,0 +1,16 @@
+{
+    "title": "Count Vowels",
+    "description": "Given a string x containing only lowercase alphabetic characters, return the number of vowels (i.e., a, e, i, o, u) in the string as integer. For instance: Input='borbone', Output=3",
+    "inputFormat": "String x containing only lowercase alphabetic characters",
+    "outputFormat": "Integer capturing the number of vowels in x",
+    "constraints": "0 < len(x) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "public class Solution {\n    public static int solve(String x) {\n        int count = 0;\n        for (char c : x.toCharArray()) {\n            if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+    "testCases": [
+        { "input": "python", "expectedOutput": 1 },
+        { "input": "java", "expectedOutput": 2 },
+        { "input": "rhythm", "expectedOutput": 0 },
+        { "input": "aeiou", "expectedOutput": 5 }
+    ]
+}
