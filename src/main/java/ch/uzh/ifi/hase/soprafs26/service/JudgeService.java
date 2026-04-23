@@ -31,9 +31,9 @@ public class JudgeService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public JudgeService(SecretManagerService secretManagerService) {
+    public JudgeService(SecretManagerService secretManagerService, RestTemplate restTemplate) {
         this.secretManagerService = secretManagerService;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
         this.objectMapper = new ObjectMapper();
     }
 
