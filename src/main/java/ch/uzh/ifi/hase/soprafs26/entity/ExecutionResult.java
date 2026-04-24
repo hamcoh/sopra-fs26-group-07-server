@@ -10,7 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
  * The result that came back from executing the code
  */
 @Entity
-@Table(name = "execution_result")
+@Table(name = "execution_results")
 public class ExecutionResult implements Serializable {
     
     private static final long serialVersionUID = 1L;

@@ -17,7 +17,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
  * - unique = true -> this value must be unqiue across the database
  */
 @Entity
-@Table(name = "submission")
+@Table(name = "submissions")
 public class Submission implements Serializable { // Careful submission doesn't necessarily imply 'SUBMIT' (it can also be 'RUN'), it's just the submission to Judge0
     
     private static final long serialVersionUID = 1L;

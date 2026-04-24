@@ -12,7 +12,7 @@ import jakarta.persistence.*;
  *  Problem entity that will be stored in the database.
  */
 @Entity
-@Table(name = "problem")
+@Table(name = "problems")
 public class Problem implements Serializable{
     
     private static final long serialVersionUID = 1L;
