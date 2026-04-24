@@ -15,7 +15,4 @@ public class RestTemplateConfig {
         );
         return restTemplate;
     }
-    // modified because i thought 
-    // this was the reason for malfunctioned http calls, 
-    // but it was not, but i will keep it just in case
 }
