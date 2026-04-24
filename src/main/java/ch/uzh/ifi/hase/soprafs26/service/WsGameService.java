@@ -33,7 +33,6 @@ public class WsGameService {
     public void notifyPlayerGameEnded(GameEndDTO gameEndDTO) {
         Long gameSessionId = gameEndDTO.getGameSessionId();
         log.info("Game with gameSessionId=" +  gameSessionId + " is over!");
-        log.info("Game solutions are ready to send={}", gameEndDTO.getGameSessionSampleSolutions());
         log.info("Sending gameEndDTO to all Player in gameSessionID={}", gameSessionId);
         simpMessagingTemplate.convertAndSend( 
             "/topic/game/" + gameSessionId + "/end", 
