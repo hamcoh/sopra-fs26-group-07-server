@@ -6,7 +6,7 @@
     "constraints": "0 <= len(x) < 30",
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
-    "sampleSolution": "import java.util.*;\n\npublic class Solution {\n    public static boolean solve(String x) {\n        Set<Character> seen = new HashSet<>();\n        for (char c : x.toCharArray()) {\n            if (seen.contains(c)) {\n                return false;\n            }\n            seen.add(c);\n        }\n        return true;\n    }\n}",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        HashSet<Character> seen = new HashSet<>();\n        for (char c : x.toCharArray()) {\n            if (!seen.add(c)) return false;\n        }\n        return true;\n    }\n}",
     "testCases": [
         { "input": "lamp", "expectedOutput": "true" },
         { "input": "letter", "expectedOutput": "false" },

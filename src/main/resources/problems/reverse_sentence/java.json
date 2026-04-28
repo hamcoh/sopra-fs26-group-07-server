@@ -6,7 +6,7 @@
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
-    "sampleSolution": "import java.util.*;\n\npublic class Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        List<String> list = Arrays.asList(words);\n        Collections.reverse(list);\n        return String.join(\" \", list);\n    }\n}",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        StringBuilder reversed = new StringBuilder();\n        for (int i = words.length - 1; i >= 0; i--) {\n            reversed.append(words[i]);\n            if (i > 0) reversed.append(\" \");\n        }\n        return reversed.toString();\n    }\n}",
     "testCases": [
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },

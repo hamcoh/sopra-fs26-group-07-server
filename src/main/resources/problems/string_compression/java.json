@@ -1,0 +1,17 @@
+{
+    "title": "String Compression",
+    "description": "Given a string x, perform basic string compression using the counts of repeated characters. For example, 'aabcccccaaa' would become 'a2b1c5a3'. If the compressed string is not smaller than the original string, return the original string.",
+    "inputFormat": "A string x",
+    "outputFormat": "A compressed string or the original string",
+    "constraints": "1 <= x.length <= 1000",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        if (x.length() <= 1) return x;\n        StringBuilder compressed = new StringBuilder();\n        int countConsecutive = 0;\n        for (int i = 0; i < x.length(); i++) {\n            countConsecutive++;\n            if (i + 1 >= x.length() || x.charAt(i) != x.charAt(i + 1)) {\n                compressed.append(x.charAt(i));\n                compressed.append(countConsecutive);\n                countConsecutive = 0;\n            }\n        }\n        return compressed.length() < x.length() ? compressed.toString() : x;\n    }\n}",
+    "testCases": [
+        { "input": "aabcccccaaa", "expectedOutput": "a2b1c5a3" },
+        { "input": "abc", "expectedOutput": "abc" },
+        { "input": "aabbcc", "expectedOutput": "aabbcc" },
+        { "input": "aaabbbcccaaa", "expectedOutput": "a3b3c3a3" },
+        { "input": "a", "expectedOutput": "a" }
+    ]
+}
