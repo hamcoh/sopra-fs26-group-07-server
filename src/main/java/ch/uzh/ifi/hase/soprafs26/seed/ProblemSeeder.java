@@ -49,7 +49,7 @@ public class ProblemSeeder implements CommandLineRunner {
         }
 
         // This is a Spring utility that allows us to read all resources (files) that match a certain pattern. 
-        // In our case this is resources/problems/**/*.json
+        // In our case this is resources/problems/**/*.json 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] resources = resolver.getResources("classpath:problems/**/*.json");
 
