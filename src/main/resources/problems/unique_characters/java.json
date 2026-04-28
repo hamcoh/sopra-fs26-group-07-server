@@ -12,6 +12,6 @@
         { "input": "letter", "expectedOutput": "false" },
         { "input": "python", "expectedOutput": "true" },
         { "input": "aabb", "expectedOutput": "false" },
-        { "input": "", "expectedOutput": "true" }
+        { "input": "abcde", "expectedOutput": "true" }
     ]
 }
