@@ -11,6 +11,6 @@
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },
         { "input": "python", "expectedOutput": "python" },
-        { "input": "one two three", "expectedOutput": "three two one" }
+        { "input": "one two three", "expectedOutput": "three two one" } 
     ]
 }
