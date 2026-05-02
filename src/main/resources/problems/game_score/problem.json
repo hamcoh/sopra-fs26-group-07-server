@@ -1,0 +1,20 @@
+{
+    "title": "Game Score",
+    "description": "Given a non-empty array of integers nums representing scores in a game, return the final score where positive numbers add points and negative numbers are penalties (i.e., are subtracted from the score), but penalties can never bring the score below zero. For instance: Input=[1,7,-4,-20,15], Output=0",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "Score of the game as integer (or 0)",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(array):\n    game_score = sum(array)\n    return game_score if game_score > 0 else 0\n",
+    "testCases": [
+    { "input": "[1,7,-4,-20,15]", "expectedOutput": 0 },
+    { "input": "[-1, -2, -3]", "expectedOutput": 0 },
+    { "input": "[10, -3, 5]", "expectedOutput": 12 },
+    { "input": "[-10, 3, 5]", "expectedOutput": 0 },
+    { "input": "[0, 0, 0]", "expectedOutput": 0 },
+    { "input": "[5]", "expectedOutput": 5 },
+    { "input": "[-5]", "expectedOutput": 0 },
+    { "input": "[-3, 3]", "expectedOutput": 0 }
+    ]
+}

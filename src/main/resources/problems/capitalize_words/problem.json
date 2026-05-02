@@ -1,0 +1,19 @@
+{
+    "title": "Capitalize Words",
+    "description": "Given a non-empty string s, return the string with every word capitalized. For instance: Input='borbone is the best coffee', Output='Borbone Is The Best Coffee'",
+    "inputFormat": "A non-empty string s",
+    "outputFormat": "string with every word capitalized",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    return ' '.join(word.capitalize() for word in s.split())\n",
+    "testCases": [
+    { "input": "borbone is the best coffee", "expectedOutput": "Borbone Is The Best Coffee" },
+    { "input": "HELLO WORLD", "expectedOutput": "Hello World" },
+    { "input": "hello", "expectedOutput": "Hello" },
+    { "input": "Hello World", "expectedOutput": "Hello World" },
+    { "input": "hELLo wOrLd", "expectedOutput": "Hello World" },
+    { "input": "the quick brown fox", "expectedOutput": "The Quick Brown Fox" },
+    { "input": "a", "expectedOutput": "A" }
+    ]
+}

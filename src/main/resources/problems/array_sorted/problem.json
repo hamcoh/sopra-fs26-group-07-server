@@ -1,0 +1,19 @@
+{
+    "title": "Is Array Sorted",
+    "description": "Given a non-empty array of integers nums, return True if the array is sorted in ascending order, return False otherwise. For instance: Input=[1,2,3,4,5], Output=True",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "Boolean: True if array sorted ascendingly, otherwise False",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(array):\n    return array == sorted(array)\n",
+    "testCases": [
+        { "input": "[1,2,3,4,5]", "expectedOutput": "True" },
+        { "input": "[1]", "expectedOutput": "True" },
+        { "input": "[4, 4, 4, 4]", "expectedOutput": "True" },
+        { "input": "[1, 2, 0]", "expectedOutput": "False" },
+        { "input": "[-3, -2, -1]", "expectedOutput": "True" },
+        { "input": "[0, -1, -2]", "expectedOutput": "False" },
+        { "input": "[1, 2, 2, 3]", "expectedOutput": "True" }
+    ]
+}
