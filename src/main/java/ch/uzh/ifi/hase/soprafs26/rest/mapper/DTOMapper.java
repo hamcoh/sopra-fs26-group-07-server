@@ -119,5 +119,5 @@ public interface DTOMapper {
 	@Mapping(source = "constraints", target = "constraints")
 	@Mapping(source = "hint", target = "hint")
 	GameRoundDTO convertEntityToGameRoundDTO(GameRoundDTO gameRoundDTO);
-
+	
 }

@@ -47,11 +47,6 @@ public class Problem implements Serializable{
     @Column(nullable = false, columnDefinition = "TEXT")
     private String sampleSolution;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "problem_hints", joinColumns = @JoinColumn(name = "problem_id"))
-    @Column(name = "hint", columnDefinition = "TEXT")
-    private List<String> hints = new ArrayList<>();
-
     @Column(columnDefinition = "TEXT")
     private String hint;
 
@@ -69,14 +64,6 @@ public class Problem implements Serializable{
 
     public void setTestCases(List<TestCase> testCases) {
         this.testCases = testCases;
-    }
-
-    public List<String> getHints() {
-        return hints;
-    }
-
-    public void setHints(List<String> hints) {
-        this.hints = hints;
     }
 
     public String getTitle() {
