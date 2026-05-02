@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,9 +44,12 @@ import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 
 import java.time.Duration;
@@ -82,6 +86,12 @@ class GameServiceTest {
 
     @Mock
     private TaskScheduler taskScheduler;
+
+    @Mock
+    private PlayerSessionRepository playerSessionRepository;
+
+    @Mock
+    private ProblemRepository problemRepository;
 
     @Mock
     private ScheduledFuture<Object> warningFuture;
@@ -699,8 +709,212 @@ class GameServiceTest {
         assertTrue(notSolvedFullyCorrectly.isEmpty());
     }
 
-    //prepare correct playerGameSummaryDTO => all wrong
-    @Test 
+
+    @Test
+    void skipProblem_gameSessionNotFound_throwsNotFound() {
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(null);
+
+        assertThrows(ResponseStatusException.class, () ->
+                gameService.skipProblem(10L, 1L, 5L));
+    }
+
+    @Test
+    void skipProblem_playerSessionNotFound_throwsNotFound() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(new Problem())));
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(null);
+
+        assertThrows(ResponseStatusException.class, () ->
+                gameService.skipProblem(10L, 1L, 5L));
+    }
+
+    @Test
+    void skipProblem_gameNotActive_throwsConflict() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ENDED);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0);
+        playerSession.setNumOfSkippedProblems(0);
+        playerSession.setGameSession(gameSession);
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+
+        assertThrows(ResponseStatusException.class, () ->
+                gameService.skipProblem(10L, 1L, 5L));
+    }
+
+    @Test
+    void skipProblem_wrongProblemId_throwsConflict() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        testRoom.setMaxSkips(3);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0);
+        playerSession.setNumOfSkippedProblems(0);
+        playerSession.setGameSession(gameSession);
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+
+        assertThrows(ResponseStatusException.class, () ->
+                gameService.skipProblem(10L, 99L, 5L)); // 99L != p1's id (1L)
+    }
+
+    @Test
+    void skipProblem_maxSkipsReached_throwsConflict() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        testRoom.setMaxSkips(2);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0);
+        playerSession.setNumOfSkippedProblems(2); // already at max
+        playerSession.setGameSession(gameSession);
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+
+        assertThrows(ResponseStatusException.class, () ->
+                gameService.skipProblem(10L, 1L, 5L));
+    }
+
+    @Test
+    void skipProblem_validInput_returnsNextGameRoundDTO() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+
+        testRoom.setMaxSkips(3);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1, p2)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0);
+        playerSession.setNumOfSkippedProblems(0);
+        playerSession.setCurrentScore(0);
+        playerSession.setGameSession(gameSession);
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+        given(playerSessionRepository.save(any(PlayerSession.class))).willAnswer(i -> i.getArgument(0));
+
+        Optional<GameRoundDTO> result = gameService.skipProblem(10L, 1L, 5L);
+
+        assertTrue(result.isPresent());
+        assertEquals(2L, result.get().getProblemId());
+        assertEquals(1, playerSession.getNumOfSkippedProblems());
+        assertEquals(1, playerSession.getCurrentProblemIndex());
+    }
+
+    @Test
+    void skipProblem_nullMaxSkips_unlimitedSkipsAllowed() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+        Problem p2 = new Problem();
+        p2.setProblemId(2L);
+
+        testRoom.setMaxSkips(null); // null = unlimited
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1, p2)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0);
+        playerSession.setNumOfSkippedProblems(999);
+        playerSession.setCurrentScore(0);
+        playerSession.setGameSession(gameSession);
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+        given(playerSessionRepository.save(any(PlayerSession.class))).willAnswer(i -> i.getArgument(0));
+
+        Optional<GameRoundDTO> result = gameService.skipProblem(10L, 1L, 5L);
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void skipProblem_lastProblem_endsGameAndReturnsEmpty() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+
+        testRoom.setMaxSkips(3);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(10L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(testRoom);
+        gameSession.setProblems(new ArrayList<>(List.of(p1)));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(5L);
+        playerSession.setPlayer(gameHost);
+        playerSession.setCurrentProblemIndex(0); // only 1 problem, next index >= size = game over
+        playerSession.setNumOfSkippedProblems(0);
+        playerSession.setCurrentScore(0);
+        playerSession.setSubmissions(new ArrayList<>());
+        playerSession.setGameSession(gameSession);
+
+        gameSession.setPlayerSessions(new ArrayList<>(List.of(playerSession)));
+
+        given(gameSessionRepository.findByGameSessionId(10L)).willReturn(gameSession);
+        given(playerSessionRepository.findByPlayerSessionId(5L)).willReturn(playerSession);
+        given(playerSessionRepository.save(any(PlayerSession.class))).willAnswer(i -> i.getArgument(0));
+        given(gameSessionRepository.save(any(GameSession.class))).willAnswer(i -> i.getArgument(0));
+
+        Optional<GameRoundDTO> result = gameService.skipProblem(10L, 1L, 5L);
+
+        assertTrue(result.isEmpty());
+        assertEquals(GameStatus.ENDED, gameSession.getGameStatus());
+    }
+
+    @Test
     void endGameSession_prepareCorrectPlayerGameSummaryDTOOnlyWrongSubmissions_success() {
 
         Problem p1 = new Problem();
