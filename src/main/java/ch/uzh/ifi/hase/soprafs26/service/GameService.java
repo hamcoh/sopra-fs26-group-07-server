@@ -33,6 +33,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
@@ -60,13 +61,23 @@ public class GameService {
     private final GameSessionRepository gameSessionRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
+    private final ProblemRepository problemRepository;
 
     //needed such that gameSessionSampleSolutionsDTO is actually sent!
     @Lazy
     @Autowired
     private GameService self;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService, TaskScheduler taskScheduler) {
+    public GameService(RoomRepository roomRepository, 
+                        UserService userService,
+                        ProblemService problemService, 
+                        GameSessionRepository gameSessionRepository, 
+                        UserRepository userRepository, 
+                        SimpMessagingTemplate messagingTemplate, 
+                        WsRoomService wsRoomService, 
+                        WsGameService wsGameService, 
+                        TaskScheduler taskScheduler,
+                        ProblemRepository problemRepository) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
@@ -75,6 +86,7 @@ public class GameService {
         this.wsRoomService = wsRoomService;
         this.wsGameService = wsGameService;
         this.taskScheduler = taskScheduler;
+        this.problemRepository = problemRepository;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -97,14 +109,15 @@ public class GameService {
         }
         
         // 2. create game session + player sessions + extract problems
+        
+        //select randomly problems based on requestedNumOfProblems, configured GameLanguage and GameDifficulty
+        List<Problem> allProblems = new ArrayList<>(problemRepository.findAllByGameLanguageAndGameDifficulty(room.getGameLanguage(), room.getGameDifficulty()));
+
         Integer requestedNumOfProblems = room.getNumOfProblems();
-        if (requestedNumOfProblems > problemService.getAllProblems().size()) {
+        if (requestedNumOfProblems > allProblems.size()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "More problems requested than available!"); //Internal server error because this check already happens when room created
         }
 
-        //select randomly problems based on requestedNumOfProblems
-        //as soon as we have different categories of problem EASY/HARD, PYTHON/JAVA we need to implement a more sophisticated function here
-        List<Problem> allProblems = new ArrayList<>(problemService.getAllProblems());
         Collections.shuffle(allProblems);
         List<Problem> selectedRandomProblems = allProblems.stream().limit(requestedNumOfProblems).toList();
 

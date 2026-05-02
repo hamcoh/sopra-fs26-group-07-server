@@ -1,0 +1,18 @@
+{
+    "title": "Length of Longest Unique Substring",
+    "description": "Given a non-empty string s containing only lowercase alphabetic characters, determine the length of the longest substring with no repeated characters. A substring is a contiguous sequence of characters within a string. For instance: Input='ccdfczzca', Output=4",
+    "inputFormat": "A non-empty string s containing only lowercase alphabetic characters",
+    "outputFormat": "The length of the longest unique substring as integer",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    char_index = {}\n    max_length = 0\n    start_index = 0\n\n    for index, char in enumerate(s):\n        if char in char_index and char_index[char] >= start_index:\n            start_index = char_index[char] + 1\n        char_index[char] = index\n        max_length = max(max_length, index - start_index + 1)\n\n    return max_length\n",
+    "testCases": [
+        { "input": "ccdfczzca", "expectedOutput": 4 },
+        { "input": "a", "expectedOutput": 1 },
+        { "input": "aaaa", "expectedOutput": 1 },
+        { "input": "abcdefg", "expectedOutput": 7 },
+        { "input": "abcdabcd", "expectedOutput": 4 },
+        { "input": "aabc", "expectedOutput": 3 }
+    ]
+}

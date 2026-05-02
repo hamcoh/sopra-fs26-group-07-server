@@ -1,0 +1,20 @@
+{
+    "title": "Maximum Subarray",
+    "description": "Given a non-empty array of integers nums, find the subarray with the largest sum and return that sum. A subarray is a contiguous non-empty sequence of elements within an array. For instance: Input=[-2,1,-3,4,-1,2,1,-5], Output=6",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "The sum of the longest subarray as integer",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    current_sum = nums[0]\n    max_sum = current_sum\n\n    for num in nums[1:]:\n        current_sum = max(num, current_sum + num)\n        max_sum = max(max_sum, current_sum)\n\n    return max_sum\n",
+    "testCases": [
+        { "input": "[-2,1,-3,4,-1,2,1,-5]", "expectedOutput": 6 },
+        { "input": "[-2]", "expectedOutput": -2 },
+        { "input": "[0]", "expectedOutput": 0 },
+        { "input": "[1,2,3,4]", "expectedOutput": 10 },
+        { "input": "[-2,-3,-1, -4]", "expectedOutput": -1 },
+        { "input": "[8, 20, -30]", "expectedOutput": 28 },
+        { "input": "[-10, 2, 3, 0, -20]", "expectedOutput": 5 },
+        { "input": "[-10, 2, 3]", "expectedOutput": 5 }
+    ]
+}
