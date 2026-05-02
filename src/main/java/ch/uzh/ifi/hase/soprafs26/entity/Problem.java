@@ -52,6 +52,9 @@ public class Problem implements Serializable{
     @Column(name = "hint", columnDefinition = "TEXT")
     private List<String> hints = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
+    private String hint;
+
     /**
      *  Relationship of 1:M between Problem and TestCase 
      *  cascade = CascadeType.ALL means saving/deleting a Problem also affects its test cases
@@ -146,6 +149,14 @@ public class Problem implements Serializable{
 
     public void setSampleSolution(String sampleSolution) {
         this.sampleSolution = sampleSolution;
+    }
+
+    public String getHint() {
+        return hint;
+    }
+
+    public void setHint(String hint) {
+        this.hint = hint;
     }
 
 

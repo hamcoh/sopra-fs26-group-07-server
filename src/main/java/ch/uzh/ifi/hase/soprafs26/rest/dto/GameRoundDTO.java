@@ -25,7 +25,7 @@ public class GameRoundDTO {
     private Instant serverTime; 
     private Instant endsAt;
     private long totalDurationSeconds; 
-    private List<String> hints;
+    private String hint;
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -121,10 +121,11 @@ public class GameRoundDTO {
         this.totalDurationSeconds = totalDurationSeconds;
     }
 
-    public List<String> getHints() {
-        return hints;
+    public String getHint() {
+        return hint;
     }
-    public void setHints(List<String> hints) {
-        this.hints = hints;
+
+    public void setHint(String hint) {
+        this.hint = hint;
     }
 }
