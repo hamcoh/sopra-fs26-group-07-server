@@ -49,9 +49,9 @@ public class ProblemSeeder implements CommandLineRunner {
         }
 
         // This is a Spring utility that allows us to read all resources (files) that match a certain pattern. 
-        // In our case this is resources/problems/**/problem.json
+        // In our case this is resources/problems/**/*.json 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:problems/**/problem.json");
+        Resource[] resources = resolver.getResources("classpath:problems/**/*.json");
 
         // We loop through all the found JSON files, read their content, 
         // parse the JSON data, create Problem and TestCase entities, and save them in the database.
@@ -67,6 +67,12 @@ public class ProblemSeeder implements CommandLineRunner {
                 problem.setOutputFormat(String.valueOf(data.get("outputFormat")));
                 problem.setConstraints(String.valueOf(data.get("constraints")));
                 problem.setSampleSolution(String.valueOf(data.get("sampleSolution")));
+
+                if (data.containsKey("hint")) {
+                    problem.setHint(String.valueOf(data.get("hint")));
+                } else {
+                    problem.setHint("No hint available for this problem."); 
+                }
 
                 problem.setGameDifficulty(
                     GameDifficulty.valueOf(String.valueOf(data.get("gameDifficulty")).toUpperCase())

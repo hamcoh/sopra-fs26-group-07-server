@@ -1,0 +1,18 @@
+{
+    "title": "Valid Palindrome",
+    "description": "Given a lowercase string x containing only alphabetic characters (with no spaces), return True if it is a palindrome, False otherwise. A string is a palindrome if it reads the same forward and backward. For instance, 'radar' is a palindrome while 'python' is not",
+    "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
+    "outputFormat": "Boolean: True if x is palindrome, otherwise False",
+    "constraints": "0 < len(x) < 50",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        int left = 0, right = x.length() - 1;\n        while (left < right) {\n            if (x.charAt(left) != x.charAt(right)) return false;\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
+    "hint": "Use two pointers, one at the beginning and one at the end of the string, and compare characters as you move them towards each other.",
+    "testCases": [
+        { "input": "ekitike", "expectedOutput": "true" },
+        { "input": "borbone", "expectedOutput": "false" },
+        { "input": "a", "expectedOutput": "true" },
+        { "input": "abba", "expectedOutput": "true" },
+        { "input": "codosseum", "expectedOutput": "false" }
+    ]
+}

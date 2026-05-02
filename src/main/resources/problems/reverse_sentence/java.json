@@ -5,12 +5,13 @@
     "outputFormat": "Sentence x reversed (as a string)",
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
-    "gameLanguage": "PYTHON",
-    "sampleSolution": "def solve(x):\n    words = x.split()\n    return ' '.join(reversed(words))",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        StringBuilder reversed = new StringBuilder();\n        for (int i = words.length - 1; i >= 0; i--) {\n            reversed.append(words[i]);\n            if (i > 0) reversed.append(\" \");\n        }\n        return reversed.toString();\n    }\n}",
+    "hint": "Split the sentence into words and then reverse the order of those words.",
     "testCases": [
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },
         { "input": "python", "expectedOutput": "python" },
-        { "input": "one two three", "expectedOutput": "three two one" }
+        { "input": "one two three", "expectedOutput": "three two one" } 
     ]
 }

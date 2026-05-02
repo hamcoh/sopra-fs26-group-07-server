@@ -5,8 +5,9 @@
     "outputFormat": "Sentence x reversed (as a string)",
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
-    "gameLanguage": "JAVA",
-    "sampleSolution": "import java.util.*;\n\npublic class Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        List<String> list = Arrays.asList(words);\n        Collections.reverse(list);\n        return String.join(\" \", list);\n    }\n}",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(x):\n    words = x.split()\n    return ' '.join(reversed(words))",
+    "hint": "Split the sentence into words and then reverse the order of those words.",
     "testCases": [
         { "input": "spring boot", "expectedOutput": "boot spring" },
         { "input": "the sky is blue", "expectedOutput": "blue is sky the" },

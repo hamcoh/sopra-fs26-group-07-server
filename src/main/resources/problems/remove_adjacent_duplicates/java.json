@@ -1,0 +1,18 @@
+{
+    "title": "Remove Adjacent Duplicates",
+    "description": "Given a string x, remove consecutive duplicate characters. For example, 'aabbcc' becomes 'abc', and 'mississippi' becomes 'misisipi'.",
+    "inputFormat": "A string x",
+    "outputFormat": "A string without adjacent duplicates",
+    "constraints": "1 <= x.length <= 1000",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        if (x.isEmpty()) return \"\";\n        StringBuilder sb = new StringBuilder();\n        sb.append(x.charAt(0));\n        for (int i = 1; i < x.length(); i++) {\n            if (x.charAt(i) != x.charAt(i - 1)) {\n                sb.append(x.charAt(i));\n            }\n        }\n        return sb.toString();\n    }\n}",
+    "hint": "Iterate through the string and append characters to the result only if they are different from the previous character.",
+    "testCases": [
+        { "input": "aabbcc", "expectedOutput": "abc" },
+        { "input": "mississippi", "expectedOutput": "misisipi" },
+        { "input": "hello", "expectedOutput": "helo" },
+        { "input": "a", "expectedOutput": "a" },
+        { "input": "aaabbbcccaaa", "expectedOutput": "abca" }
+    ]
+}

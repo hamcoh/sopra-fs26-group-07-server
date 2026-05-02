@@ -5,13 +5,14 @@
     "outputFormat": "The string x reversed",
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
-    "gameLanguage": "JAVA",
-    "sampleSolution": "public class Solution {\n    public static String solve(String x) {\n        return new StringBuilder(x).reverse().toString();\n    }\n}",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(x):\n    return x[::-1]",
+    "hint": "You can use Python's slicing feature to reverse the string.",
     "testCases": [
-        { "input": "java", "expectedOutput": "avaj" },
+        { "input": "java",     "expectedOutput": "avaj" },
         { "input": "pythonic", "expectedOutput": "cinohtyp" },
-        { "input": "a", "expectedOutput": "a" },
-        { "input": "ekitike", "expectedOutput": "ekitike" },
-        { "input": "in", "expectedOutput": "ni" }
+        { "input": "a",        "expectedOutput": "a" },
+        { "input": "ekitike",  "expectedOutput": "ekitike" },
+        { "input": "in",       "expectedOutput": "ni" }
     ]
 }

@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    count = 0\n    for char in x:\n        if char in vowels:\n            count += 1\n    return count",
+    "hint": "Try defining a string or a set containing all the vowels ('aeiouAEIOU') and check against it",
     "testCases": [
         { "input": "python", "expectedOutput": 1 },
         { "input": "java", "expectedOutput": 2 },

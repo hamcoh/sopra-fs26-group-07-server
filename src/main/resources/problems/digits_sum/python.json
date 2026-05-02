@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    total = 0\n    for digit in str(x):\n        total += int(digit)\n    return total",
+    "hint": "Convert the integer to a string, iterate over each character, convert it back to an integer, and sum them up.",
     "testCases": [
         { "input": 158, "expectedOutput": 14 },
         { "input": 7777, "expectedOutput": 28 },

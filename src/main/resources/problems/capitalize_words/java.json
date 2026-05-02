@@ -1,0 +1,19 @@
+{
+    "title": "Capitalize Words",
+    "description": "Given a string x representing a sentence, capitalize the first letter of each word.",
+    "inputFormat": "A string x containing words separated by spaces",
+    "outputFormat": "A string with capitalized words",
+    "constraints": "1 <= x.length <= 1000",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        StringBuilder result = new StringBuilder();\n        for (int i = 0; i < words.length; i++) {\n            if (!words[i].isEmpty()) {\n                result.append(Character.toUpperCase(words[i].charAt(0)));\n                result.append(words[i].substring(1));\n            }\n            if (i < words.length - 1) result.append(\" \");\n        }\n        return result.toString();\n    }\n}",
+    "hint": "Split the string into words, capitalize the first letter of each word, and then join them back together.",
+    "testCases": [
+        { "input": "hello world", "expectedOutput": "Hello World" },
+        { "input": "java programming is fun", "expectedOutput": "Java Programming Is Fun" },
+        { "input": "capitalize each word", "expectedOutput": "Capitalize Each Word" },
+        { "input": "a single word", "expectedOutput": "A Single Word" },
+        { "input": "multiple   spaces", "expectedOutput": "Multiple   Spaces" }
+
+    ]
+}

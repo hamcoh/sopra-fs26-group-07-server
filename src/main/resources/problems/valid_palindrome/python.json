@@ -5,13 +5,15 @@
     "outputFormat": "Boolean: True if x is palindrome, otherwise False",
     "constraints": "0 < len(x) < 50",
     "gameDifficulty": "EASY",
-    "gameLanguage": "JAVA",
-    "sampleSolution": "public class Solution {\n    public static boolean solve(String x) {\n        return x.equals(new StringBuilder(x).reverse().toString());\n    }\n}",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(x):\n    return x == x[::-1]",
+    "hint": "Use two pointers, one at the beginning and one at the end of the string, and compare characters as you move them towards each other.",
     "testCases": [
-        { "input": "ekitike", "expectedOutput": "true" },
-        { "input": "borbone", "expectedOutput": "false" },
-        { "input": "a", "expectedOutput": "true" },
-        { "input": "abba", "expectedOutput": "true" },
-        { "input": "codosseum", "expectedOutput": "false" }
+        { "input": "ekitike", "expectedOutput": "True" },
+        { "input": "borbone",     "expectedOutput": "False" },
+        { "input": "a",   "expectedOutput": "True" },
+        { "input": "abba",   "expectedOutput": "True" },
+        { "input": "codosseum",   "expectedOutput": "False" }
     ]
 }
+

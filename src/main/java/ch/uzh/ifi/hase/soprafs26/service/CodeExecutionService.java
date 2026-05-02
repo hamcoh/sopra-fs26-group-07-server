@@ -345,10 +345,7 @@ public class CodeExecutionService {
             case PYTHON:
                 return wrapPythonCode(userCode);
             case JAVA:
-                throw new ResponseStatusException(
-                        HttpStatus.NOT_IMPLEMENTED,
-                        "Java is currently not supported for code execution"
-                );
+                return wrapJavaCode(userCode);
             default:
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
@@ -379,6 +376,24 @@ public class CodeExecutionService {
                 + "    else:\n"
                 + "        result = solve(args)\n"
                 + "    print(result)\n";
+    }
+
+    private String wrapJavaCode(String userCode) {
+        String safeCode = userCode.replace("public class Solution", "class Solution");
+
+        return safeCode + "\n\n"
+                + "class Main {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        java.util.Scanner scanner = new java.util.Scanner(System.in);\n"
+                + "        // \\A is a regex boundary that means 'beginning of the input'. \n"
+                + "        // This forces the scanner to read the entire input (including spaces/newlines) at once.\n"
+                + "        scanner.useDelimiter(\"\\\\A\");\n"
+                + "        String x = scanner.hasNext() ? scanner.next().trim() : \"\";\n"
+                + "        \n"
+                + "        System.out.println(Solution.solve(x));\n"
+                + "        scanner.close();\n"
+                + "    }\n"
+                + "}\n";
     }
 
     private String normalizeOutputString(String expectedOutput) {
