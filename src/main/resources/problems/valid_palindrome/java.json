@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
     "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        int left = 0, right = x.length() - 1;\n        while (left < right) {\n            if (x.charAt(left) != x.charAt(right)) return false;\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
+    "hint": "Use two pointers, one at the beginning and one at the end of the string, and compare characters as you move them towards each other.",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "true" },
         { "input": "borbone", "expectedOutput": "false" },

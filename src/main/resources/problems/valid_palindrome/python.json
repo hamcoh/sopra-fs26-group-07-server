@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    return x == x[::-1]",
+    "hint": "Use two pointers, one at the beginning and one at the end of the string, and compare characters as you move them towards each other.",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "True" },
         { "input": "borbone",     "expectedOutput": "False" },

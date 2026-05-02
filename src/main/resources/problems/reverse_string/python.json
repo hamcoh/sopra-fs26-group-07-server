@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    return x[::-1]",
+    "hint": "You can use Python's slicing feature to reverse the string.",
     "testCases": [
         { "input": "java",     "expectedOutput": "avaj" },
         { "input": "pythonic", "expectedOutput": "cinohtyp" },

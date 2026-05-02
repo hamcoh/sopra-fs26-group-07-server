@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
     "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        HashMap<Character, Integer> counts = new HashMap<>();\n        int maxCount = 0;\n        char maxChar = x.charAt(0);\n        for (char c : x.toCharArray()) {\n            if (c == ' ') continue;\n            int count = counts.getOrDefault(c, 0) + 1;\n            counts.put(c, count);\n            if (count > maxCount) {\n                maxCount = count;\n                maxChar = c;\n            }\n        }\n        return String.valueOf(maxChar);\n    }\n}",
+    "hint": "Use a hash map to count occurrences of each character, ignoring spaces.",
     "testCases": [
         { "input": "hello world", "expectedOutput": "l" },
         { "input": "aabbcc", "expectedOutput": "a" },
