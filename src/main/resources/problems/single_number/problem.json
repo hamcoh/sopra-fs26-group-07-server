@@ -1,0 +1,18 @@
+{
+    "title": "Single Number",
+    "description": "Given a non-empty array of integers nums, return the single number that appears only once while every other element appears exactly twice. You may assume that there always exists a single number. For instance: Input=[1,1,5,8,5], Output=8",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "The single number appearing once as integer",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    result = 0\n    for num in nums:\n        result ^= num\n    return result\n",
+    "testCases": [
+        { "input": "[1,1,5,8,5]", "expectedOutput": 8 },
+        { "input": "[5]", "expectedOutput": 5 },
+        { "input": "[-1, -1, -2]", "expectedOutput": -2 },
+        { "input": "[4, 1, 2, 1, 2, 4, 8, 6, 8, 6, 7]", "expectedOutput": 7 },
+        { "input": "[0, 1, 0]", "expectedOutput": 1 },
+        { "input": "[100, 200, 100]", "expectedOutput": 200 }
+    ]
+}

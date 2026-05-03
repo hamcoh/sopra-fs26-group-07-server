@@ -1,0 +1,22 @@
+{
+    "title": "Anagram In Sentence",
+    "description": "Given a non-empty string s containing only lowercase alphabetic characters and spaces, return True if any two words in the string are anagrams of each other. For instance: Input='the cat act crazy', Output=True",
+    "inputFormat": "A non-empty string s containing only lowercase alphabetic characters and spaces",
+    "outputFormat": "Boolean: if any two words in the string are anagrams, otherwise False",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    words = s.split()\n    sorted_words = [tuple(sorted(word)) for word in words]\n    return len(sorted_words) != len(set(sorted_words))\n",
+    "testCases": [
+    { "input": "the cat dog act", "expectedOutput": "True" },
+    { "input": "the quick brown fox", "expectedOutput": "False" },
+    { "input": "cat act", "expectedOutput": "True" },
+    { "input": "cat dog", "expectedOutput": "False" },
+    { "input": "cat act tac", "expectedOutput": "True" },
+    { "input": "hello", "expectedOutput": "False" },
+    { "input": "cat cat", "expectedOutput": "True" },
+    { "input": "cat dog act", "expectedOutput": "True" },
+    { "input": "a b a", "expectedOutput": "True" },
+    { "input": "hello world listen silent", "expectedOutput": "True" }
+]
+}

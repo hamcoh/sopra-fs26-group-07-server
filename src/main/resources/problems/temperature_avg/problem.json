@@ -1,0 +1,19 @@
+{
+    "title": "Temperature Average",
+    "description": "Given a non-empty array of integers nums representing daily temperatures, return the number of days where the temperature was above the average. For instance: Input=[19,26,18,30,35], Output=3",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "number of days where the temperature was above the average as integer",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(array):\n    avg = sum(array)/len(array)\n    return sum([1 for i in array if i > avg])\n",
+    "testCases": [
+    { "input": "[19,26,18,30,35]", "expectedOutput": 3 },
+    { "input": "[5, 5, 5, 5]", "expectedOutput": 0 },
+    { "input": "[1, 1, 1, 10]", "expectedOutput": 1 },
+    { "input": "[-3, -2, -1, 0]", "expectedOutput": 2 },
+    { "input": "[5]", "expectedOutput": 0 },
+    { "input": "[1, 3]", "expectedOutput": 1 },
+    { "input": "[10, 20, 30, 40, 50]", "expectedOutput": 2 }
+    ]
+}

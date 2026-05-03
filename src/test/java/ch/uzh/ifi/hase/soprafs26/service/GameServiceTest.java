@@ -43,6 +43,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
@@ -88,6 +89,9 @@ class GameServiceTest {
 
     @Mock
     private ScheduledFuture<Object> endFuture;
+
+    @Mock
+    private ProblemRepository problemRepository;
 
     @InjectMocks
     private GameService gameService;
@@ -158,7 +162,7 @@ class GameServiceTest {
         
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
         given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
-        given(problemService.getAllProblems()).willReturn(List.of(p1, p3, p7));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1, p3, p7));
         given(userService.getUserById(gameHost.getId())).willReturn(gameHost);
         given(userService.getUserById(player2.getId())).willReturn(player2);
         given(gameSessionRepository.save(any(GameSession.class)))
@@ -255,7 +259,7 @@ class GameServiceTest {
 
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
         given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
-        given(problemService.getAllProblems()).willReturn(List.of(p1));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1));
         given(userService.getUserById(gameHost.getId())).willReturn(gameHost);
         given(userService.getUserById(player2.getId())).willReturn(player2);
         given(gameSessionRepository.save(any(GameSession.class)))
@@ -289,7 +293,7 @@ class GameServiceTest {
 
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
         given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
-        given(problemService.getAllProblems()).willReturn(List.of(p1));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1));
         given(userService.getUserById(Mockito.anyLong())).willReturn(gameHost);
         given(gameSessionRepository.save(any(GameSession.class)))
             .willAnswer(inv -> {
@@ -329,7 +333,7 @@ class GameServiceTest {
 
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
         given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
-        given(problemService.getAllProblems()).willReturn(List.of(p1));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1));
         given(userService.getUserById(Mockito.anyLong())).willReturn(gameHost);
         given(gameSessionRepository.save(any(GameSession.class)))
             .willAnswer(inv -> {
@@ -378,7 +382,7 @@ class GameServiceTest {
 
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
         given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
-        given(problemService.getAllProblems()).willReturn(List.of(p1));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1));
         given(userService.getUserById(Mockito.anyLong())).willReturn(gameHost);
         given(gameSessionRepository.save(any(GameSession.class)))
             .willAnswer(inv -> {

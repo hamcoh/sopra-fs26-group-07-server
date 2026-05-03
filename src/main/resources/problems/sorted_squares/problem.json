@@ -1,0 +1,20 @@
+{
+    "title": "Sorted Squares",
+    "description": "Given a non-empty array of integers nums, return the square of each element sorted in ascending order. For instance: Input=[-4,-1,0,2,8], Output=[0,1,4,16,64]",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "Sorted array with square of each element sorted ascendingly",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    return sorted(x ** 2 for x in nums)\n",
+    "testCases": [
+        { "input": "[-4, -1, 0, 2, 8]", "expectedOutput": "[0, 1, 4, 16, 64]" },
+        { "input": "[-4, -3, -2, -1]", "expectedOutput": "[1, 4, 9, 16]" },
+        { "input": "[-3, -1, 0, 2, 4]", "expectedOutput": "[0, 1, 4, 9, 16]" },
+        { "input": "[5]", "expectedOutput": "[25]" },
+        { "input": "[0]", "expectedOutput": "[0]" },
+        { "input": "[-2, -2, 2, 2]", "expectedOutput": "[4, 4, 4, 4]" },
+        { "input": "[1, 0, 8, 7]", "expectedOutput": "[0, 1, 49, 64]" },
+        { "input": "[10, 9, 8, 7]", "expectedOutput": "[49, 64, 81, 100]" }
+    ]
+}

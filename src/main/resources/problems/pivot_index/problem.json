@@ -1,0 +1,22 @@
+{
+    "title": "Pivot Index",
+    "description": "Given a non-empty array of integers nums, return True if there exists a pivot index where the sum of all elements to the left equals the sum of all elements to the right, return False otherwise. For instance: Input=[1,4,2,6,7,0], Output=True",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "Boolean: True if there exists a pivot index, otherwise False",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    total = sum(nums)\n    left_sum = 0\n\n    for num in nums:\n        if left_sum == total - left_sum - num:\n            return True\n        left_sum += num\n\n    return False\n",
+    "testCases": [
+        { "input": "[1,4,2,6,7,0]", "expectedOutput": "True" },
+        { "input": "[8, 4, 15]", "expectedOutput": "False" },
+        { "input": "[0, 1, 0, 1]", "expectedOutput": "True" },
+        { "input": "[4, 4, 0, 8]", "expectedOutput": "True" },
+        { "input": "[1, 7, 3, 150]", "expectedOutput": "False" },
+        { "input": "[1]", "expectedOutput": "True" },
+        { "input": "[0, 0, 0]", "expectedOutput": "True" },
+        { "input": "[7, 7, 7, 7]", "expectedOutput": "False" },
+        { "input": "[-1, -1, 2, 1, 0]", "expectedOutput": "True" },
+        { "input": "[-3, 1, 2, 0, -1, 3, -1]", "expectedOutput": "True" }
+    ]
+}

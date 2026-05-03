@@ -1,0 +1,17 @@
+{
+    "title": "Second Largest Integer",
+    "description": "Given a non-empty array of integers nums with at least two elements, return the second largest element (i.e., the element itself). For instance: Input=[1,8,5,7,9], Output=8",
+    "inputFormat": "A non-empty array of integers nums with at least two elements",
+    "outputFormat": "The second largest element as integer",
+    "constraints": "1 < len(nums) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    return sorted(nums, reverse=True)[1]\n",
+    "testCases": [
+        { "input": "[1,8,5,7,9]", "expectedOutput": 8 },
+        { "input": "[1,2]", "expectedOutput": 1 },
+        { "input": "[1, 2, 2]", "expectedOutput": 2 },
+        { "input": "[-1, -2, -3]", "expectedOutput": -2 },
+        { "input": "[1, 2, 3, -3, 10, -50, 120]", "expectedOutput": 10 }
+    ]
+}

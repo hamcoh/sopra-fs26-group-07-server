@@ -1,0 +1,19 @@
+{
+    "title": "Encode Vowels & Consonants",
+    "description": "Given a non-empty string s containing only lowercase alphabetic characters, return the encoded string where all vowels are replaced by '*' and all consonants are replaced by '#'. For instance: Input='python', Output='####*#'",
+    "inputFormat": "A non-empty string s containing only lowercase alphabetic characters",
+    "outputFormat": "The encoded string",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    vowels = 'aeiou'\n    return ''.join('*' if char in vowels else '#' for char in s)\n",
+    "testCases": [
+        { "input": "python", "expectedOutput": "####*#" },
+        { "input": "aeiou", "expectedOutput": "*****" },
+        { "input": "bcdf", "expectedOutput": "####" },
+        { "input": "a", "expectedOutput": "*" },
+        { "input": "b", "expectedOutput": "#" },
+        { "input": "java", "expectedOutput": "#*#*" },
+        { "input": "programming", "expectedOutput": "##*##*##*##" }
+    ]
+}
