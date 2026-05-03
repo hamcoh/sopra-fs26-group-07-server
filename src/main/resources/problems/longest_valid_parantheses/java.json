@@ -1,0 +1,18 @@
+{
+    "title": "Longest Valid Parentheses",
+    "description": "Given a string x containing just the characters '(' and ')', return the length of the longest valid (well-formed) parentheses substring.",
+    "inputFormat": "A string x of parentheses",
+    "outputFormat": "Integer representing the maximum valid length",
+    "constraints": "0 <= x.length <= 30000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        int left = 0, right = 0, max = 0;\n        for (int i = 0; i < x.length(); i++) {\n            if (x.charAt(i) == '(') left++;\n            else right++;\n            if (left == right) max = Math.max(max, 2 * right);\n            else if (right > left) left = right = 0;\n        }\n        left = right = 0;\n        for (int i = x.length() - 1; i >= 0; i--) {\n            if (x.charAt(i) == '(') left++;\n            else right++;\n            if (left == right) max = Math.max(max, 2 * left);\n            else if (left > right) left = right = 0;\n        }\n        return max;\n    }\n}",
+    "hint": "You can solve this with or without a stack! Try doing two passes: one scanning left-to-right counting '(' and ')', and one scanning right-to-left. Reset counters when the pattern becomes invalid.",
+    "testCases": [
+        { "input": "(()", "expectedOutput": "2" },
+        { "input": ")()())", "expectedOutput": "4" },
+        { "input": "((()))", "expectedOutput": "6" },
+        { "input": "()(()", "expectedOutput": "2" },
+        { "input": "()", "expectedOutput": "2" }
+    ]
+}

@@ -1,0 +1,17 @@
+{
+    "title": "Most Frequent Character",
+    "description": "Given a string x, return the character that appears most frequently. If there is a tie, return the one that appears first in the string. Ignore spaces.",
+    "inputFormat": "A string x",
+    "outputFormat": "A string containing the most frequent character",
+    "constraints": "1 <= x.length <= 1000",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        HashMap<Character, Integer> counts = new HashMap<>();\n        int maxCount = 0;\n        char maxChar = x.charAt(0);\n        for (char c : x.toCharArray()) {\n            if (c == ' ') continue;\n            int count = counts.getOrDefault(c, 0) + 1;\n            counts.put(c, count);\n            if (count > maxCount) {\n                maxCount = count;\n                maxChar = c;\n            }\n        }\n        return String.valueOf(maxChar);\n    }\n}",
+    "testCases": [
+        { "input": "hello world", "expectedOutput": "l" },
+        { "input": "aabbcc", "expectedOutput": "a" },
+        { "input": "programming", "expectedOutput": "r" },
+        { "input": "mississippi", "expectedOutput": "i" },
+        { "input": "a", "expectedOutput": "a" }
+    ]
+}

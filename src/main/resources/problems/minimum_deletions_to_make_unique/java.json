@@ -1,0 +1,18 @@
+{
+    "title": "Minimum Deletions for Unique Frequencies",
+    "description": "Given a string x, find the minimum number of character deletions required so that no two different characters have the exact same frequency.",
+    "inputFormat": "A string x",
+    "outputFormat": "Integer representing the number of deletions",
+    "constraints": "1 <= x.length <= 100000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        HashMap<Character, Integer> counts = new HashMap<>();\n        for (char c : x.toCharArray()) {\n            counts.put(c, counts.getOrDefault(c, 0) + 1);\n        }\n        HashSet<Integer> usedFreqs = new HashSet<>();\n        int deletions = 0;\n        for (int freq : counts.values()) {\n            while (freq > 0 && usedFreqs.contains(freq)) {\n                freq--;\n                deletions++;\n            }\n            usedFreqs.add(freq);\n        }\n        return deletions;\n    }\n}",
+    "hint": "First, map out the frequencies of each character using a HashMap. Then, use a HashSet to keep track of frequencies you've already 'claimed'. If a frequency is taken, decrement it until it isn't.",
+    "testCases": [
+        { "input": "aab", "expectedOutput": "0" },
+        { "input": "aaabbbcc", "expectedOutput": "2" },
+        { "input": "ceabaacb", "expectedOutput": "2" },
+        { "input": "abc", "expectedOutput": "2" },
+        { "input": "a", "expectedOutput": "0" }
+    ]
+}
