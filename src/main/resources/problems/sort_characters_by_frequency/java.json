@@ -1,0 +1,18 @@
+{
+    "title": "Isomorphic Strings",
+    "description": "Given a string x containing two words separated by a comma (e.g., 'egg,add'), determine if the two words are isomorphic. Two strings are isomorphic if the characters in the first can be replaced to get the second.",
+    "inputFormat": "Two strings separated by a comma",
+    "outputFormat": "Boolean (true or false)",
+    "constraints": "Length of each word <= 50000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        String[] parts = x.split(\",\");\n        if (parts.length != 2) return false;\n        String s = parts[0], t = parts[1];\n        if (s.length() != t.length()) return false;\n        HashMap<Character, Character> mapS2T = new HashMap<>();\n        HashMap<Character, Character> mapT2S = new HashMap<>();\n        for (int i = 0; i < s.length(); i++) {\n            char c1 = s.charAt(i), c2 = t.charAt(i);\n            if ((mapS2T.containsKey(c1) && mapS2T.get(c1) != c2) ||\n                (mapT2S.containsKey(c2) && mapT2S.get(c2) != c1)) {\n                return false;\n            }\n            mapS2T.put(c1, c2);\n            mapT2S.put(c2, c1);\n        }\n        return true;\n    }\n}",
+    "hint": "Split the string by the comma. Use two HashMaps to track character mappings from Word A to Word B, and Word B to Word A to prevent two characters mapping to the same letter.",
+    "testCases": [
+        { "input": "egg,add", "expectedOutput": "true" },
+        { "input": "foo,bar", "expectedOutput": "false" },
+        { "input": "paper,title", "expectedOutput": "true" },
+        { "input": "badc,baba", "expectedOutput": "false" },
+        { "input": "a,a", "expectedOutput": "true" }
+    ]
+}

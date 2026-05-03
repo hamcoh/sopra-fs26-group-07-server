@@ -1,0 +1,18 @@
+{
+    "title": "Largest Anagram Group Size",
+    "description": "Given a string x containing a comma-separated list of words (e.g., 'eat,tea,tan,ate,nat,bat'), return the size of the largest group of anagrams.",
+    "inputFormat": "A string x containing words separated by commas",
+    "outputFormat": "Integer representing the max group size",
+    "constraints": "1 <= x.length <= 10000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        if (x.isEmpty()) return 0;\n        String[] words = x.split(\",\");\n        HashMap<String, Integer> map = new HashMap<>();\n        int maxGroup = 0;\n        for (String word : words) {\n            char[] chars = word.trim().toCharArray();\n            Arrays.sort(chars);\n            String sorted = new String(chars);\n            map.put(sorted, map.getOrDefault(sorted, 0) + 1);\n            maxGroup = Math.max(maxGroup, map.get(sorted));\n        }\n        return maxGroup;\n    }\n}",
+    "hint": "If you sort the characters within a single word, all anagrams of that word will become the exact same string. Use a HashMap to map that sorted string to its frequency count.",
+    "testCases": [
+        { "input": "eat,tea,tan,ate,nat,bat", "expectedOutput": "3" },
+        { "input": "abc,bca,cab", "expectedOutput": "3" },
+        { "input": "hello,world", "expectedOutput": "1" },
+        { "input": "a", "expectedOutput": "1" },
+        { "input": "a,b,c,a", "expectedOutput": "2" }
+    ]
+}

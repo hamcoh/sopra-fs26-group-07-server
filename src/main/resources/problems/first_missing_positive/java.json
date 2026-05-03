@@ -1,0 +1,18 @@
+{
+    "title": "First Missing Positive Integer",
+    "description": "Given an unsorted string of integers separated by commas (e.g., '3,4,-1,1'), find the smallest missing positive integer.",
+    "inputFormat": "A string x of comma-separated integers",
+    "outputFormat": "The smallest missing positive integer",
+    "constraints": "1 <= numbers in string <= 100000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        if(x.isEmpty()) return 1;\n        String[] parts = x.split(\",\");\n        HashSet<Integer> set = new HashSet<>();\n        for (String p : parts) {\n            if (!p.trim().isEmpty()) {\n                set.add(Integer.parseInt(p.trim()));\n            }\n        }\n        int missing = 1;\n        while (set.contains(missing)) {\n            missing++;\n        }\n        return missing;\n    }\n}",
+    "hint": "Parse the string into integers and dump them into a HashSet for O(1) lookups. Then, start a counter at 1 and keep incrementing until you find a number that isn't in your Set.",
+    "testCases": [
+        { "input": "1,2,0", "expectedOutput": "3" },
+        { "input": "3,4,-1,1", "expectedOutput": "2" },
+        { "input": "7,8,9,11,12", "expectedOutput": "1" },
+        { "input": "1,2,3", "expectedOutput": "4" },
+        { "input": "-5,-1", "expectedOutput": "1" }
+    ]
+}

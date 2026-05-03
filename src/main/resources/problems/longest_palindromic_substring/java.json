@@ -1,0 +1,18 @@
+{
+    "title": "Longest Palindromic Substring",
+    "description": "Given a string x, return the longest palindromic substring in x.",
+    "inputFormat": "A single string x",
+    "outputFormat": "A string representing the longest palindrome",
+    "constraints": "1 <= x.length <= 1000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        if (x == null || x.length() < 1) return \"\";\n        int start = 0, end = 0;\n        for (int i = 0; i < x.length(); i++) {\n            int len1 = expandAroundCenter(x, i, i);\n            int len2 = expandAroundCenter(x, i, i + 1);\n            int len = Math.max(len1, len2);\n            if (len > end - start) {\n                start = i - (len - 1) / 2;\n                end = i + len / 2;\n            }\n        }\n        return x.substring(start, end + 1);\n    }\n    private static int expandAroundCenter(String s, int left, int right) {\n        while (left >= 0 && right < s.length() && s.charAt(left) == s.charAt(right)) {\n            left--;\n            right++;\n        }\n        return right - left - 1;\n    }\n}",
+    "hint": "Loop through each character and treat it as the center of a potential palindrome, expanding outwards. Remember that palindromes can have both odd and even lengths!",
+    "testCases": [
+        { "input": "racecar", "expectedOutput": "racecar" },
+        { "input": "cbbd", "expectedOutput": "bb" },
+        { "input": "a", "expectedOutput": "a" },
+        { "input": "ac", "expectedOutput": "a" },
+        { "input": "abb", "expectedOutput": "bb" }
+    ]
+}
