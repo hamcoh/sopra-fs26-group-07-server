@@ -44,11 +44,16 @@ class RoomServiceTest {
     @Mock
     private ProblemService problemService;
 
+    @Mock
+    private WsRoomService wsRoomService;
+
     @InjectMocks
     private RoomService roomService;
 
     private Room testRoom;
     private User testUser;
+    private User player2;
+    private User testHost;
 
     @BeforeEach
     void setup() {
@@ -57,14 +62,23 @@ class RoomServiceTest {
         testUser = new User();
         testUser.setId(2L);
 
+        player2 = new User();
+        player2.setId(8L);
+        player2.setToken("validToken8");
+
+        testHost = new User();
+        testHost.setId(1L); 
+        testHost.setToken("validTokenHost");
+
         testRoom = new Room();
         testRoom.setRoomId(9L);
         testRoom.setRoomJoinCode("ABC123");
         testRoom.setRoomOpen(true);
         testRoom.setCurrentNumPlayers(1);
         Set<Long> playerIds = new HashSet<>();
-        playerIds.add(1L); //host with hostId=1L
+        playerIds.add(testHost.getId()); //host with hostId=1L
         testRoom.setPlayerIds(playerIds);
+        testRoom.setHostUserId(testHost.getId());
     }
 
     // Create Room Success 201
@@ -369,4 +383,81 @@ class RoomServiceTest {
         verify(userService).verifyTokenAndUserId(token, userId);
         verify(roomRepository, times(0)).findAll();
     }
+
+    //non-host leaves room sucess
+    @Test
+    void leaveRoom_nonHostLeaves_success() {
+        testRoom.getPlayerIds().add(player2.getId());
+        testRoom.setCurrentNumPlayers(testRoom.getCurrentNumPlayers()+1);
+        testRoom.setRoomOpen(false);
+
+        doNothing().when(userService).verifyTokenAndUserId(player2.getToken(), player2.getId());
+        given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
+        given(userService.getUserById(player2.getId())).willReturn(player2);
+        doNothing().when(wsRoomService).notifyRoomPlayerLeft(player2, testRoom.getRoomId(), false);
+
+        roomService.leaveRoom(testRoom.getRoomId(), player2.getId(), player2.getToken());
+
+        assertEquals(1, testRoom.getCurrentNumPlayers());
+        assertTrue(testRoom.isRoomOpen());
+        assertEquals(1, testRoom.getPlayerIds().size());
+        assertFalse(testRoom.getPlayerIds().contains(player2.getId()));
+
+        verify(roomRepository, times(1)).saveAndFlush(testRoom);
+        verify(wsRoomService, times(1)).notifyRoomPlayerLeft(player2, testRoom.getRoomId(), false);
+
+    }
+
+    //host leaves room sucess
+    @Test
+    void leaveRoom_hostLeaves_success() {
+        testRoom.getPlayerIds().add(player2.getId());
+        testRoom.setCurrentNumPlayers(testRoom.getCurrentNumPlayers()+1);
+        testRoom.setRoomOpen(false);
+
+        doNothing().when(userService).verifyTokenAndUserId(testHost.getToken(), testHost.getId());
+        given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
+        given(userService.getUserById(testHost.getId())).willReturn(testHost);
+        doNothing().when(wsRoomService).notifyRoomPlayerLeft(testHost, testRoom.getRoomId(), true);
+
+        roomService.leaveRoom(testRoom.getRoomId(), testHost.getId(), testHost.getToken());
+
+        verify(roomRepository, times(1)).delete(testRoom);
+        verify(roomRepository, times(1)).flush();
+        verify(wsRoomService, times(1)).notifyRoomPlayerLeft(testHost, testRoom.getRoomId(), true);
+
+    }
+
+    //leave room, room not found
+    @Test
+    void leaveRoom_invalidRoomId_throwsNotFound() {
+        
+        Long invalidRoomId = 4L; 
+
+        doNothing().when(userService).verifyTokenAndUserId(testHost.getToken(), testHost.getId());
+        given(roomRepository.findByRoomId(invalidRoomId)).willReturn(null);
+
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            roomService.leaveRoom(invalidRoomId, testHost.getId(), testHost.getToken());
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    //leave room, user not even in room to leave
+    @Test
+    void leaveRoom_playerNotInRoom_throwsForbidden() {
+        
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
+
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            roomService.leaveRoom(testRoom.getRoomId(), testUser.getId(), testUser.getToken());
+        });
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
 }

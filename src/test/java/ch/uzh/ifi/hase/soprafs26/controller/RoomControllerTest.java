@@ -4,8 +4,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 
 @WebMvcTest(RoomController.class)
 class RoomControllerTest {
@@ -42,6 +45,22 @@ class RoomControllerTest {
 
     @MockitoBean
     private RoomService roomService;
+
+    private User testUser;
+    private Room testRoom;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setToken("validToken");
+
+        testRoom = new Room();
+        testRoom.setRoomId(3L);
+        testRoom.setHostUserId(testUser.getId());
+        }
     
     // Create Room Success 201
     @Test
@@ -473,6 +492,60 @@ class RoomControllerTest {
                         .andExpect(jsonPath("$[1].timeLimitSeconds", is(180)))
                         .andExpect(jsonPath("$[1].numOfProblems", is(8)));
         }
+
+        //Leave room success 204
+        @Test
+        void leaveRoom_success() throws Exception {
+
+                doNothing().when(roomService).leaveRoom(testRoom.getRoomId(), testUser.getId(), testUser.getToken());
+
+                MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}", testRoom.getRoomId())
+                        .header("token", testUser.getToken())
+                        .header("userId", testUser.getId())
+                        .contentType("application/json");
+
+                mockMvc.perform(postRequest)
+                        .andExpect(status().isNoContent());
+        }
+
+        //Leave room fail 404
+        @Test
+        void leaveRoom_roomIdInvalid_notFound() throws Exception {
+
+                Long invalidRoomId = 4L;
+
+                String errorReason = "Room was not found!";
+                Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason))
+				.when(roomService).leaveRoom(invalidRoomId, testUser.getId(), testUser.getToken());
+                
+                MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}", invalidRoomId)
+                        .header("token", testUser.getToken())
+                        .header("userId", testUser.getId())
+                        .contentType("application/json");
+
+                mockMvc.perform(postRequest)
+                        .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.detail", is(errorReason)));
+        }
+
+        //Leave room fail 403
+        @Test
+        void leaveRoom_playerNotInRoom_forbidden() throws Exception {
+
+                String errorReason = "Player must be in Lobby to have access to room details!";
+                Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, errorReason))
+				.when(roomService).leaveRoom(testRoom.getRoomId(), testUser.getId(), testUser.getToken());
+                
+                MockHttpServletRequestBuilder postRequest = post("/rooms/{roomId}", testRoom.getRoomId())
+                        .header("token", testUser.getToken())
+                        .header("userId", testUser.getId())
+                        .contentType("application/json");
+
+                mockMvc.perform(postRequest)
+                        .andExpect(status().isForbidden())
+                        .andExpect(jsonPath("$.detail", is(errorReason)));
+        }
+
     /**
 	 * @param object
 	 * @return string

@@ -22,14 +22,17 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final ProblemService problemService;
+    private final WsRoomService wsRoomService;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService,
-                                                    ProblemService problemService) {
+                                                    ProblemService problemService,
+                                                    WsRoomService wsRoomService) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
+        this.wsRoomService = wsRoomService;
     }
 
     public Room createRoom(Room roomInput, Long userId, String token) {
@@ -95,6 +98,44 @@ public class RoomService {
 
         return targetRoom;
     }
+
+    public void leaveRoom(Long roomId, Long userId, String token) {
+        userService.verifyTokenAndUserId(token, userId);
+
+        Room room = roomRepository.findByRoomId(roomId);
+
+        if (room == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room was not found!");
+        }
+        if (!room.getPlayerIds().contains(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Player must be in Lobby to have access to room details!");
+        }
+        
+        User leavingUser = userService.getUserById(userId);
+
+        if (room.getHostUserId().equals(userId)){
+            //host leaves => room deleted
+            roomRepository.delete(room);
+            roomRepository.flush();
+
+            //fire WS-msg so that host realises what happened
+            wsRoomService.notifyRoomPlayerLeft(leavingUser, roomId, true);
+        }
+        else if (room.getCurrentNumPlayers() > 1) {
+            //non-host leaves => spot is freed
+            room.setCurrentNumPlayers(room.getCurrentNumPlayers() - 1);
+            room.setRoomOpen(true);
+            room.getPlayerIds().remove(userId);
+
+            roomRepository.saveAndFlush(room);
+            
+            //fire WS-msg so that host realises what happened
+            wsRoomService.notifyRoomPlayerLeft(leavingUser, roomId, false);
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Room is in illegal state: A room cannot exist without host!");
+        }
+    } 
 
     public Room getRoomDetails(Long roomId, Long userId, String token) {
         userService.verifyTokenAndUserId(token, userId);
