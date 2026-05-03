@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.util.PasswordHashUtil;
 
 import java.util.List;
 import java.util.Random;
@@ -27,12 +30,17 @@ import java.util.UUID;
 @Transactional
 public class UserService {
 
+	private static final int avatarCount = 10;
+
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+	private final PlayerSessionRepository playerSessionRepository;
+
+	public UserService(@Qualifier("userRepository") UserRepository userRepository, @Qualifier("playerSessionRepository") PlayerSessionRepository playerSessionRepository) {
 		this.userRepository = userRepository;
+		this.playerSessionRepository = playerSessionRepository;
 	}
 
 	public List<User> getGlobalUsersLeaderboard() {
@@ -51,6 +59,10 @@ public class UserService {
 		checkIfUserExists(newUser);
 		checkIfUsernameIsValid(newUser.getUsername());
 		checkIfPasswordIsValid(newUser.getPassword());
+		String salt = PasswordHashUtil.generateSalt();
+		String hashedPassword = PasswordHashUtil.hashPassword(newUser.getPassword(), salt);
+		newUser.setPassword(hashedPassword);
+		newUser.setSalt(salt);
 		checkIfBioIsValid(newUser.getBio());
 
 		initialiseGameStats(newUser);
@@ -74,7 +86,7 @@ public class UserService {
 		if (user == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Login failed: No user found with given username!");
 		}
-		else if (!user.getPassword().equals(loginUser.getPassword())){
+		else if (!user.getPassword().equals(PasswordHashUtil.hashPassword(loginUser.getPassword(), user.getSalt()))){
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login failed: Invalid credentials!");
 		}
 		else if (user.getStatus().equals(UserStatus.ONLINE)){
@@ -133,11 +145,11 @@ public class UserService {
 
 		verifyTokenAndUserId(token, userId);
 
-		if (userInput.getPassword() == null || userInput.getPassword().trim().isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cant be empty");
-		}
+		checkIfPasswordIsValid(userInput.getPassword());
 		User user = getUserbyId(userId);
-		user.setPassword(userInput.getPassword());
+		String salt = PasswordHashUtil.generateSalt();
+		user.setPassword(PasswordHashUtil.hashPassword(userInput.getPassword(), salt));
+		user.setSalt(salt);
 
 		userRepository.save(user);
 		userRepository.flush();
@@ -216,4 +228,21 @@ public class UserService {
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
 	}
+
+	public void changeAvatar(int avatarId, Long userId, String token) {
+		verifyTokenAndUserId(token, userId);
+		
+		if (playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(userId, PlayerSessionStatus.PLAYING)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot change avatar while user is in an active game session");
+		}
+
+		if (avatarId < 1 || avatarId > avatarCount) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid avatar ID");
+		}
+		User user = getUserById(userId);
+		user.setAvatarId(avatarId);
+		userRepository.save(user);
+		userRepository.flush();
+		log.debug("Successfully changed avatar for User: {}", user);
+	}	
 }
