@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.util.PasswordHashUtil;
 
@@ -28,12 +30,17 @@ import java.util.UUID;
 @Transactional
 public class UserService {
 
+	private static final int avatarCount = 10;
+
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+	private final PlayerSessionRepository playerSessionRepository;
+
+	public UserService(@Qualifier("userRepository") UserRepository userRepository, @Qualifier("playerSessionRepository") PlayerSessionRepository playerSessionRepository) {
 		this.userRepository = userRepository;
+		this.playerSessionRepository = playerSessionRepository;
 	}
 
 	public List<User> getGlobalUsersLeaderboard() {
@@ -221,4 +228,21 @@ public class UserService {
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
 	}
+
+	public void changeAvatar(int avatarId, Long userId, String token) {
+		verifyTokenAndUserId(token, userId);
+		
+		if (playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(userId, PlayerSessionStatus.PLAYING)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot change avatar while user is in an active game session");
+		}
+
+		if (avatarId < 1 || avatarId > avatarCount) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid avatar ID");
+		}
+		User user = getUserById(userId);
+		user.setAvatarId(avatarId);
+		userRepository.save(user);
+		userRepository.flush();
+		log.debug("Successfully changed avatar for User: {}", user);
+	}	
 }
