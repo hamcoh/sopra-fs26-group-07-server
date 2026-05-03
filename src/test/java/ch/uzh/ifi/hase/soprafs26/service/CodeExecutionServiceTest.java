@@ -1,11 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
-import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
-import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
@@ -890,7 +888,7 @@ class CodeExecutionServiceTest {
     @Test
     void getLatestSubmissionResult_lastProblem_endsGameAndReturnsEmpty() {
         playerSession1.setCurrentProblemIndex(0);
-        testGameSession.getProblems().add(p1); 
+        testGameSession.getProblems().add(p1);
         playerSession1.setGameSession(testGameSession);
 
         Submission submission = new Submission();
@@ -905,20 +903,13 @@ class CodeExecutionServiceTest {
         when(submissionRepository.findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
                 testGameSession.getGameSessionId(), p1.getProblemId(), playerSession1.getPlayerSessionId(), SubmissionType.SUBMIT
         )).thenReturn(submission);
+        when(gameService.handlePlayerProgression(playerSession1.getPlayerSessionId())).thenReturn(Optional.empty());
 
         Optional<GameRoundDTO> result = codeExecutionService.getLatestSubmissionResult(
                 testGameSession.getGameSessionId(), p1.getProblemId(), playerSession1.getPlayerSessionId()
         );
 
-        // verify that it calls WS-method to broadcast game end
-        verify(gameService, times(1)).endGameSession(testGameSession, GameEndReason.PLAYER_FINISHED);
-
-        // all playerSessions should be marked as FINISHED
-        for (PlayerSession ps : testGameSession.getPlayerSessions()) {
-            assertEquals(PlayerSessionStatus.FINISHED, ps.getPlayerSessionStatus());
-            assertNotNull(ps.getFinishedAt());
-        }
-        
+        verify(gameService, times(1)).handlePlayerProgression(playerSession1.getPlayerSessionId());
         assertTrue(result.isEmpty());
     }
 
@@ -937,24 +928,23 @@ class CodeExecutionServiceTest {
         submission.setStatus(SubmissionStatus.FINISHED);
         submission.setPassedTestCases(5);
 
+        GameRoundDTO expectedDTO = new GameRoundDTO();
+        expectedDTO.setProblemId(p3.getProblemId());
+
         when(playerSessionRepository.findByPlayerSessionId(playerSession1.getPlayerSessionId())).thenReturn(playerSession1);
         when(problemService.getProblemById(p1.getProblemId())).thenReturn(p1);
         when(submissionRepository.findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
                 testGameSession.getGameSessionId(), p1.getProblemId(), playerSession1.getPlayerSessionId(), SubmissionType.SUBMIT
         )).thenReturn(submission);
+        when(gameService.handlePlayerProgression(playerSession1.getPlayerSessionId())).thenReturn(Optional.of(expectedDTO));
 
         Optional<GameRoundDTO> result = codeExecutionService.getLatestSubmissionResult(
                 testGameSession.getGameSessionId(), p1.getProblemId(), playerSession1.getPlayerSessionId()
         );
 
-        // player advances to next problem
-        ArgumentCaptor<PlayerSession> captor = ArgumentCaptor.forClass(PlayerSession.class);
-        verify(playerSessionRepository, atLeastOnce()).save(captor.capture());
+        verify(gameService, times(1)).handlePlayerProgression(playerSession1.getPlayerSessionId());
 
-        PlayerSession savedPlayerSession = captor.getValue();
-        assertEquals(1, savedPlayerSession.getCurrentProblemIndex()); //goes to next problem
-
-        GameRoundDTO gameRoundDTO = result.get(); //assert that result is a GameRoundDTO object
+        GameRoundDTO gameRoundDTO = result.get();
         assertNotNull(gameRoundDTO);
         assertInstanceOf(GameRoundDTO.class, gameRoundDTO);
         assertEquals(p3.getProblemId(), gameRoundDTO.getProblemId());
