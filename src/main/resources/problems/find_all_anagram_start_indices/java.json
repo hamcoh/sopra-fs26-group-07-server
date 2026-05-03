@@ -11,7 +11,8 @@
     "testCases": [
         { "input": "cbaebabacd,abc", "expectedOutput": "0,6" },
         { "input": "abab,ab", "expectedOutput": "0,1,2" },
-        { "input": "hello,world", "expectedOutput": "" },
+        { "input": "fksadfj,asdf", "expectedOutput": "0" },
+        { "input": "aaaaa,aa", "expectedOutput": "0,1,2,3" },
         { "input": "a,a", "expectedOutput": "0" },
         { "input": "baa,aa", "expectedOutput": "1" }
     ]
