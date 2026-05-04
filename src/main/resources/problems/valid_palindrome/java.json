@@ -6,7 +6,7 @@
     "constraints": "0 < len(x) < 50",
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
-    "sampleSolution": "public class Solution {\n    public static boolean solve(String x) {\n        return x.equals(new StringBuilder(x).reverse().toString());\n    }\n}",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        int left = 0, right = x.length() - 1;\n        while (left < right) {\n            if (x.charAt(left) != x.charAt(right)) return false;\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
     "testCases": [
         { "input": "ekitike", "expectedOutput": "true" },
         { "input": "borbone", "expectedOutput": "false" },

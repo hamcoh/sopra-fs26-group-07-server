@@ -1,0 +1,19 @@
+{
+    "title": "Longest Substring Without Repeating Characters",
+    "description": "Given a string x, find the length of the longest substring without repeating characters.",
+    "inputFormat": "A single string x",
+    "outputFormat": "Integer representing the length of the longest valid substring",
+    "constraints": "0 <= x.length <= 50000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        HashSet<Character> set = new HashSet<>();\n        int max = 0, left = 0;\n        for (int right = 0; right < x.length(); right++) {\n            while (set.contains(x.charAt(right))) {\n                set.remove(x.charAt(left++));\n            }\n            set.add(x.charAt(right));\n            max = Math.max(max, right - left + 1);\n        }\n        return max;\n    }\n}",
+    "hint": "Use a sliding window approach with a HashSet. Expand your window to the right until you see a duplicate, then shrink it from the left until the duplicate is gone.",
+    "testCases": [
+        { "input": "abcabcbb", "expectedOutput": "3" },
+        { "input": "bbbbb", "expectedOutput": "1" },
+        { "input": "pwwkew", "expectedOutput": "3" },
+        { "input": "abcdefg", "expectedOutput": "7" },
+        { "input": "aab", "expectedOutput": "2" }
+
+    ]
+}

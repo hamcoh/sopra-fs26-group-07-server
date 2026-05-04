@@ -1,0 +1,18 @@
+{
+    "title": "At Most Two Distinct Characters",
+    "description": "Given a string x, find the length of the longest substring that contains at most two distinct characters.",
+    "inputFormat": "A string x",
+    "outputFormat": "Integer representing the max substring length",
+    "constraints": "1 <= x.length <= 100000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        HashMap<Character, Integer> map = new HashMap<>();\n        int max = 0, left = 0;\n        for (int right = 0; right < x.length(); right++) {\n            char c = x.charAt(right);\n            map.put(c, map.getOrDefault(c, 0) + 1);\n            while (map.size() > 2) {\n                char leftChar = x.charAt(left);\n                map.put(leftChar, map.get(leftChar) - 1);\n                if (map.get(leftChar) == 0) map.remove(leftChar);\n                left++;\n            }\n            max = Math.max(max, right - left + 1);\n        }\n        return max;\n    }\n}",
+    "hint": "Use the Sliding Window technique alongside a HashMap. The HashMap should track the frequencies of characters currently inside your window. If the map size exceeds 2, shrink the window from the left.",
+    "testCases": [
+        { "input": "eceba", "expectedOutput": "3" },
+        { "input": "ccaabbb", "expectedOutput": "5" },
+        { "input": "abc", "expectedOutput": "2" },
+        { "input": "a", "expectedOutput": "1" },
+        { "input": "aabbcc", "expectedOutput": "4" }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "title": "Find All Anagrams",
+    "description": "Given a string x containing a main word and a target word separated by a comma (e.g., 'cbaebabacd,abc'), find all start indices of the target word's anagrams inside the main word. Return the indices as a comma-separated string.",
+    "inputFormat": "Two words separated by a comma",
+    "outputFormat": "Comma-separated string of start indices",
+    "constraints": "1 <= x.length <= 30000",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "JAVA",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        String[] parts = x.split(\",\");\n        if (parts.length != 2) return \"\";\n        String s = parts[0], p = parts[1];\n        if (s.length() < p.length()) return \"\";\n        int[] pCount = new int[26];\n        int[] sCount = new int[26];\n        for (char c : p.toCharArray()) pCount[c - 'a']++;\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < s.length(); i++) {\n            sCount[s.charAt(i) - 'a']++;\n            if (i >= p.length()) {\n                sCount[s.charAt(i - p.length()) - 'a']--;\n            }\n            if (Arrays.equals(pCount, sCount)) {\n                if (sb.length() > 0) sb.append(\",\");\n                sb.append(i - p.length() + 1);\n            }\n        }\n        return sb.toString();\n    }\n}",
+    "hint": "Use a sliding window of the exact same size as the target word. Compare frequency arrays of size 26 (using Arrays.equals) to check if the current window is an anagram.",
+    "testCases": [
+        { "input": "cbaebabacd,abc", "expectedOutput": "0,6" },
+        { "input": "abab,ab", "expectedOutput": "0,1,2" },
+        { "input": "fksadfj,asdf", "expectedOutput": "0" },
+        { "input": "aaaaa,aa", "expectedOutput": "0,1,2,3" },
+        { "input": "a,a", "expectedOutput": "0" },
+        { "input": "baa,aa", "expectedOutput": "1" }
+    ]
+}
