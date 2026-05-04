@@ -106,6 +106,14 @@ public class UserController {
 	public void checkToken(@RequestHeader(value = "token", required = false)  String token) {
 		userService.verifyToken(token);
 	}
+
+	@PutMapping("/users/{userId}/avatar")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void changeAvatar(@PathVariable Long userId,
+							@RequestBody int avatarId,
+							@RequestHeader(value = "token", required = false)  String token) {
+		userService.changeAvatar(avatarId, userId, token);
+	}
 }
 
 // trigger docker build 

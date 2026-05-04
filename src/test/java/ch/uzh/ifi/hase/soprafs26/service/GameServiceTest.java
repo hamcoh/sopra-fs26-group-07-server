@@ -58,6 +58,7 @@ import java.util.concurrent.ScheduledFuture;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class GameServiceTest {
 
     @Mock

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @WebAppConfiguration
 @SpringBootTest
-public class UserServiceIntegrationTest {
+class UserServiceIntegrationTest {
 
 	@Qualifier("userRepository")
 	@Autowired
@@ -31,12 +31,12 @@ public class UserServiceIntegrationTest {
 	private UserService userService;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		userRepository.deleteAll();
 	}
 
 	@Test
-	public void createUser_validInputs_success() {
+	void createUser_validInputs_success() {
 		// given
 		assertNull(userRepository.findByUsername("testUsername"));
 
@@ -61,7 +61,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void createUser_duplicateUsername_throwsException() {
+	void createUser_duplicateUsername_throwsException() {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
@@ -78,5 +78,35 @@ public class UserServiceIntegrationTest {
 
 		// check that an error is thrown
 		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser2));
+	}
+
+	@Test
+	void changeAvatar_validInputs_persistsChange() {
+		// given
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setPassword("testPassword");
+		User createdUser = userService.createUser(testUser);
+		int newAvatarId = (createdUser.getAvatarId() % 10) + 1; // guaranteed valid and different from any possible current value
+
+		// when
+		userService.changeAvatar(newAvatarId, createdUser.getId(), createdUser.getToken());
+
+		// then
+		User updatedUser = userRepository.findUserById(createdUser.getId());
+		assertEquals(newAvatarId, updatedUser.getAvatarId());
+	}
+
+	@Test
+	void changeAvatar_invalidAvatarId_throwsException() {
+		// given
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setPassword("testPassword");
+		User createdUser = userService.createUser(testUser);
+
+		// then
+		assertThrows(ResponseStatusException.class,
+				() -> userService.changeAvatar(99, createdUser.getId(), createdUser.getToken()));
 	}
 }

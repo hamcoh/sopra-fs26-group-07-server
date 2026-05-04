@@ -27,6 +27,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeTokenDTO;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked") 
 class JudgeServiceTest {
 
     @Mock private SecretManagerService secretManagerService;

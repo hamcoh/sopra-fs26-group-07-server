@@ -8,8 +8,10 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.util.PasswordHashUtil;
 
@@ -22,6 +24,9 @@ class UserServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
+
+	@Mock
+	private PlayerSessionRepository playerSessionRepository;
 
 	@InjectMocks
 	private UserService userService;
@@ -231,9 +236,74 @@ class UserServiceTest {
 	void getGlobalUsersLeaderboard_noUsers_returnsEmptyList() { // function does not break when no users stored
 
 		Mockito.when(userRepository.findAllByOrderByTotalPointsDesc()).thenReturn(List.of()); //return empty list
-		
+
 		List<User> users = userService.getGlobalUsersLeaderboard();
-		
+
 		assertTrue(users.isEmpty());
-}
+	}
+
+	@Test
+	void changeAvatar_validAvatarId_success() {
+		// given
+		testUser.setToken("validToken");
+		testUser.setAvatarId(1);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findByToken("validToken")).thenReturn(testUser);
+		Mockito.when(userRepository.findUserById(1L)).thenReturn(testUser);
+		Mockito.when(playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(1L, PlayerSessionStatus.PLAYING)).thenReturn(false);
+
+		// when
+		userService.changeAvatar(5, 1L, "validToken");
+
+		// then
+		assertEquals(5, testUser.getAvatarId());
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	void changeAvatar_avatarIdTooLow_throwsException() {
+		// given
+		testUser.setToken("validToken");
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findByToken("validToken")).thenReturn(testUser);
+		Mockito.when(playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(1L, PlayerSessionStatus.PLAYING)).thenReturn(false);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeAvatar(0, 1L, "validToken"));
+	}
+
+	@Test
+	void changeAvatar_avatarIdTooHigh_throwsException() {
+		// given
+		testUser.setToken("validToken");
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findByToken("validToken")).thenReturn(testUser);
+		Mockito.when(playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(1L, PlayerSessionStatus.PLAYING)).thenReturn(false);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeAvatar(11, 1L, "validToken"));
+	}
+
+	@Test
+	void changeAvatar_activePlayerSession_throwsException() {
+		// given
+		testUser.setToken("validToken");
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findByToken("validToken")).thenReturn(testUser);
+		Mockito.when(playerSessionRepository.existsByPlayer_IdAndPlayerSessionStatus(1L, PlayerSessionStatus.PLAYING)).thenReturn(true);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeAvatar(3, 1L, "validToken"));
+	}
+
+	@Test
+	void changeAvatar_invalidToken_throwsException() {
+		// given
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findByToken("badToken")).thenReturn(null);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeAvatar(3, 1L, "badToken"));
+	}
 }
