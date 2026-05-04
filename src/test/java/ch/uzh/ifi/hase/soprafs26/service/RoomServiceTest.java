@@ -47,6 +47,8 @@ class RoomServiceTest {
 
     @Mock
     private WsRoomService wsRoomService;
+
+    @Mock
     private ProblemRepository problemRepository;
 
     @InjectMocks

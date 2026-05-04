@@ -22,23 +22,17 @@ public class RoomService {
     
     private final RoomRepository roomRepository;
     private final UserService userService;
-    private final ProblemService problemService;
     private final WsRoomService wsRoomService;
     private final ProblemRepository problemRepository;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService,
-                                                    ProblemService problemService,
-                                                    WsRoomService wsRoomService) {
-        this.roomRepository = roomRepository;
-        this.userService = userService;
-        this.problemService = problemService;
-        this.wsRoomService = wsRoomService;
+                                                    WsRoomService wsRoomService,
                                                     ProblemRepository problemRepository) {
         this.roomRepository = roomRepository;
         this.userService = userService;
-        this.problemService = problemService;
+        this.wsRoomService = wsRoomService;
         this.problemRepository = problemRepository;
     }
 
