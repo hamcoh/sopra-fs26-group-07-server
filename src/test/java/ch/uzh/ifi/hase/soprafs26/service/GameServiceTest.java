@@ -99,9 +99,6 @@ class GameServiceTest {
     @Mock
     private ScheduledFuture<Object> endFuture;
 
-    @Mock
-    private ProblemRepository problemRepository;
-
     @InjectMocks
     private GameService gameService;
 
