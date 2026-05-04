@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
     "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        return new StringBuilder(x).reverse().toString();\n    }\n}",
+    "hint": "Stringbuilder might be useful",
     "testCases": [
         { "input": "java", "expectedOutput": "avaj" },
         { "input": "pythonic", "expectedOutput": "cinohtyp" },

@@ -68,6 +68,12 @@ public class ProblemSeeder implements CommandLineRunner {
                 problem.setConstraints(String.valueOf(data.get("constraints")));
                 problem.setSampleSolution(String.valueOf(data.get("sampleSolution")));
 
+                if (data.containsKey("hint")) {
+                    problem.setHint(String.valueOf(data.get("hint")));
+                } else {
+                    problem.setHint("No hint available for this problem."); 
+                }
+
                 problem.setGameDifficulty(
                     GameDifficulty.valueOf(String.valueOf(data.get("gameDifficulty")).toUpperCase())
                 );

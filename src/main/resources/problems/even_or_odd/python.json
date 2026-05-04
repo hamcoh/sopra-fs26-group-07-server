@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    result = {'even': [], 'odd': []}\n    for num in x:\n        if num % 2 == 0:\n            result['even'].append(num)\n        else:\n            result['odd'].append(num)\n    return result",
+    "hint": "Check if each number is divisible by 2.",
     "testCases": [
         { "input": "[7,14,33,48,91]", "expectedOutput": "{'even': [14, 48], 'odd': [7, 33, 91]}" },
         { "input": "[12,36,78]", "expectedOutput": "{'even': [12, 36, 78], 'odd': []}" },

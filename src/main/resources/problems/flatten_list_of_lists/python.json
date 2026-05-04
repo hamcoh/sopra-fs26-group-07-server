@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    flat = []\n    for sublist in x:\n        for value in sublist:\n            flat.append(value)\n    return flat",
+    "hint": "You can use nested loops to iterate through each sublist and then through each integer within those sublists, appending them to a new flat list.",
     "testCases": [
         { "input": "[[5,12],[33,4],[87]]", "expectedOutput": "[5, 12, 33, 4, 87]" },
         { "input": "[[42],[7],[19]]", "expectedOutput": "[42, 7, 19]" },

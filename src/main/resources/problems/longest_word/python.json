@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(x):\n    words = x.split()\n    longest = words[0]\n    for word in words:\n        if len(word) > len(longest):\n            longest = word\n    return longest",
+    "hint": "Split the sentence into words and keep track of the longest one found.",
     "testCases": [
         { "input": "hello everyone i am here", "expectedOutput": "everyone" },
         { "input": "i love python", "expectedOutput": "python" },

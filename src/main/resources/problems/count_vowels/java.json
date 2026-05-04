@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
     "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static int solve(String x) {\n        int count = 0;\n        String vowels = \"aeiouAEIOU\";\n        for (char c : x.toCharArray()) {\n            if (vowels.indexOf(c) != -1) count++;\n        }\n        return count;\n    }\n}",
+    "hint": "Try defining a string or a set containing all the vowels ('aeiouAEIOU') and check against it",
     "testCases": [
         { "input": "python", "expectedOutput": 1 },
         { "input": "java", "expectedOutput": 2 },

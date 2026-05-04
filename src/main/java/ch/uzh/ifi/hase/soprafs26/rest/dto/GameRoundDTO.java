@@ -4,6 +4,8 @@ import java.time.Instant;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 
+import java.util.List;
+
 public class GameRoundDTO {
 
     private Long gameSessionId;
@@ -23,6 +25,7 @@ public class GameRoundDTO {
     private Instant serverTime; 
     private Instant endsAt;
     private long totalDurationSeconds; 
+    private String hint;
 
     public Long getGameSessionId() {
         return gameSessionId;
@@ -116,5 +119,13 @@ public class GameRoundDTO {
     }
     public void setTotalDurationSeconds(long totalDurationSeconds) {
         this.totalDurationSeconds = totalDurationSeconds;
+    }
+
+    public String getHint() {
+        return hint;
+    }
+
+    public void setHint(String hint) {
+        this.hint = hint;
     }
 }

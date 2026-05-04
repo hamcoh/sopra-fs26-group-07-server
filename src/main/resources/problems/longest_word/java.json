@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
     "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static String solve(String x) {\n        String[] words = x.split(\" \");\n        String longest = \"\";\n        for (String word : words) {\n            if (word.length() > longest.length()) {\n                longest = word;\n            }\n        }\n        return longest;\n    }\n}",
+    "hint": "Split the sentence into words and keep track of the longest one found.",
     "testCases": [
         { "input": "hello everyone i am here", "expectedOutput": "everyone" },
         { "input": "i love python", "expectedOutput": "python" },
