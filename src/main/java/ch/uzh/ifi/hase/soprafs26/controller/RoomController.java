@@ -13,7 +13,7 @@ import ch.uzh.ifi.hase.soprafs26.service.RoomService;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.web.bind.annotation.GetMapping;
+
 
 
 @RestController
@@ -78,4 +78,12 @@ public class RoomController {
                      .toList();
     }
 
+    @PostMapping("/rooms/{roomId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void leaveRoom(@PathVariable("roomId") Long roomId,
+                                  @RequestHeader(value = "userId", required = false) Long userId, 
+                                  @RequestHeader(value = "token", required = false) String token) {
+
+        roomService.leaveRoom(roomId, userId, token);
+    }
 }

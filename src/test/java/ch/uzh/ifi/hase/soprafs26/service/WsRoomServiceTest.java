@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 
@@ -34,10 +36,31 @@ public class WsRoomServiceTest {
     @InjectMocks
     private WsRoomService wsRoomService;
 
+    private User testUser;
+    private User testUser7;
+    private Room testRoom;
+
+    @BeforeEach
+    void setup() {
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
+        testUser.setToken("validToken");
+
+        testUser7 = new User();
+        testUser7.setId(7L);
+        testUser7.setUsername("testUser7");
+        testUser7.setToken("validToken7");
+
+        testRoom = new Room();
+        testRoom.setRoomId(1L);
+    }
+
     @Test
     void notifyPlayerJoinedRoom_host_success() {
         
-        Long roomId = 1L;
+        Long roomId = testRoom.getRoomId();
         String username = "testUser";
         boolean isHost = true;
 
@@ -59,7 +82,7 @@ public class WsRoomServiceTest {
     @Test
     void notifyPlayerJoinedRoom_player2_success() {
         
-        Long roomId = 1L;
+        Long roomId = testRoom.getRoomId();
         String username = "player2";
         boolean isHost = false;
 
@@ -79,11 +102,7 @@ public class WsRoomServiceTest {
 
     @Test
     void notifyPlayerGameStarted_success() {
-        
-        User testUser = new User();
-        testUser.setId(1L);
-        testUser.setUsername("testUser");
-
+    
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
 
         Mockito.when(userService.getUserById(Mockito.any())).thenReturn(testUser);
@@ -99,10 +118,6 @@ public class WsRoomServiceTest {
 
     @Test
     void notifyPlayerGameStarted_sendsCorrectGameRoundDTO_success() {
-
-        User testUser = new User();
-        testUser.setId(1L);
-        testUser.setUsername("testUser");
 
         GameRoundDTO gameRoundDTO = new GameRoundDTO();
         gameRoundDTO.setGameSessionId(9L);
@@ -158,6 +173,44 @@ public class WsRoomServiceTest {
 
         assertThrows(ResponseStatusException.class, () ->
                 wsRoomService.notifyPlayerGameStarted(gameRoundDTO));
+    }
+
+    @Test
+    void notifyRoomPlayerLeft_hostIsLeaving_success() {
+        
+        Long roomId = testRoom.getRoomId();
+        boolean isHost = true;
+
+        wsRoomService.notifyRoomPlayerLeft(testUser, roomId, isHost);
+
+        verify(simpMessagingTemplate).convertAndSend(
+            eq("/topic/room/" + roomId), 
+            eq((Object) Map.of( 
+                "type", "ROOM_CLOSED",
+                "roomId", roomId.toString(),
+                "username", testUser.getUsername(),
+                "message", testUser.getUsername() + " closed the room. Room was deleted."
+            ))
+        );
+    }
+
+    @Test
+    void notifyRoomPlayerLeft_nonHostIsLeaving_success() {
+        
+        Long roomId = testRoom.getRoomId();
+        boolean isHost = false;
+
+        wsRoomService.notifyRoomPlayerLeft(testUser, roomId, isHost);
+
+        verify(simpMessagingTemplate).convertAndSend(
+            eq("/topic/room/" + roomId), 
+            eq((Object) Map.of( 
+                "type", "PLAYER_LEFT",
+                "roomId", roomId.toString(),
+                "username", testUser.getUsername(),
+                "message", testUser.getUsername() + " left the room. Room persists."
+            ))
+        );
     }
 }
 
