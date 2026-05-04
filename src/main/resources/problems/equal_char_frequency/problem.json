@@ -1,0 +1,20 @@
+{
+    "title": "Equal Character Frequency",
+    "description": "Given a non-empty string s containing only lowercase alphabetic characters, return True if all characters in the string appear the exact same number of times, return False otherwise. For instance: Input='eeffgg', Output=True",
+    "inputFormat": "A non-empty string s containing only lowercase alphabetic characters",
+    "outputFormat": "Boolean: True if all characters appear same number of times, otherwise False",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    new_list = []\n    for char in s:\n        new_list.append(s.count(char))\n    return len(set(new_list)) == 1\n",
+    "testCases": [
+        { "input": "eeffgg", "expectedOutput": "True" },
+        { "input": "eeffg", "expectedOutput": "False" },
+        { "input": "a", "expectedOutput": "True" },
+        { "input": "iii", "expectedOutput": "True" },
+        { "input": "aabb", "expectedOutput": "True" },
+        { "input": "abcd", "expectedOutput": "True" },
+        { "input": "fffccczzz", "expectedOutput": "True" },
+        { "input": "fffccczzzz", "expectedOutput": "False" }
+    ]
+}

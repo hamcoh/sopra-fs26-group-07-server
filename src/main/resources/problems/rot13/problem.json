@@ -1,0 +1,20 @@
+{
+    "title": "ROT13 cipher",
+    "description": "Given a non-empty string s containing only lowercase alphabetic characters, return the ROT13 encoded string where each character is shifted forward by exactly 13 positions. For instance: Input='caesar', Output='pnrfne'",
+    "inputFormat": "A non-empty string s containing only lowercase alphabetic characters",
+    "outputFormat": "The ROT13 encoded string",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    return ''.join(chr((ord(char) - ord('a') + 13) % 26 + ord('a')) for char in s)\n",
+    "testCases": [
+        { "input": "caesar", "expectedOutput": "pnrfne" },
+        { "input": "b", "expectedOutput": "o" },
+        { "input": "abcdefghijklmnopqrstuvwxyz", "expectedOutput": "nopqrstuvwxyzabcdefghijklm" },
+        { "input": "fcde", "expectedOutput": "spqr" },
+        { "input": "ebznivpgevk", "expectedOutput": "romavictrix" },
+        { "input": "xyz", "expectedOutput": "klm" },
+        { "input": "aaa", "expectedOutput": "nnn" },
+        { "input": "nopqrstuvwxyzabcdefghijklm", "expectedOutput": "abcdefghijklmnopqrstuvwxyz" }
+    ]
+}
