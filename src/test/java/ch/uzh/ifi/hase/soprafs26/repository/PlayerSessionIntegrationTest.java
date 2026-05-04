@@ -64,6 +64,7 @@ public class PlayerSessionIntegrationTest {
         User user = new User();
         user.setUsername("testUser");
         user.setPassword("testPw");
+        user.setSalt("dummySalt");
         user.setToken("validToken");
         user.setStatus(UserStatus.ONLINE);
         user.setWinCount(10);

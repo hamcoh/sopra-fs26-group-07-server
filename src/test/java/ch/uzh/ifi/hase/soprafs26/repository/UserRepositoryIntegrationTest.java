@@ -28,6 +28,7 @@ class UserRepositoryIntegrationTest {
 		User user = new User();
 		user.setUsername("firstname@lastname");
 		user.setPassword("newPassword");
+		user.setSalt("dummySalt");
 		user.setBio("hello world");
 		user.setStatus(UserStatus.ONLINE);
 		user.setToken("valid_token");
@@ -63,6 +64,7 @@ class UserRepositoryIntegrationTest {
 		User user = new User();
 		user.setUsername("firstname@lastname");
 		user.setPassword("newPassword");
+		user.setSalt("dummySalt");
 		user.setBio("hello world");
 		user.setStatus(UserStatus.ONLINE);
 		user.setToken("valid_token");
@@ -100,6 +102,7 @@ class UserRepositoryIntegrationTest {
 		user1.setTotalPoints(100L);
 		user1.setUsername("user1");
 		user1.setPassword("newPassword1");
+		user1.setSalt("dummySalt1");
 		user1.setStatus(UserStatus.ONLINE);
 		user1.setToken("validToken1");
 		user1.setWinCount(5);
@@ -110,6 +113,7 @@ class UserRepositoryIntegrationTest {
 		user2.setTotalPoints(5432L);
 		user2.setUsername("user2");
 		user2.setPassword("newPassword2");
+		user2.setSalt("dummySalt2");
 		user2.setStatus(UserStatus.ONLINE);
 		user2.setToken("validToken2");
 		user2.setWinCount(123);
@@ -120,6 +124,7 @@ class UserRepositoryIntegrationTest {
 		user3.setTotalPoints(50L);
 		user3.setUsername("user3");
 		user3.setPassword("newPassword3");
+		user3.setSalt("dummySalt3");
 		user3.setStatus(UserStatus.ONLINE);
 		user3.setToken("validToken3");
 		user3.setWinCount(2);

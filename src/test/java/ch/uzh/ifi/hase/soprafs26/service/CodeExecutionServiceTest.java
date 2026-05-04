@@ -888,7 +888,7 @@ class CodeExecutionServiceTest {
     @Test
     void getLatestSubmissionResult_lastProblem_endsGameAndReturnsEmpty() {
         playerSession1.setCurrentProblemIndex(0);
-        testGameSession.getProblems().add(p1); 
+        testGameSession.getProblems().add(p1);
         playerSession1.setGameSession(testGameSession);
 
         Submission submission = new Submission();

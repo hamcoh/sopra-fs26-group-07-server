@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.util.PasswordHashUtil;
 
 import java.util.List;
 import java.util.Random;
@@ -51,6 +52,10 @@ public class UserService {
 		checkIfUserExists(newUser);
 		checkIfUsernameIsValid(newUser.getUsername());
 		checkIfPasswordIsValid(newUser.getPassword());
+		String salt = PasswordHashUtil.generateSalt();
+		String hashedPassword = PasswordHashUtil.hashPassword(newUser.getPassword(), salt);
+		newUser.setPassword(hashedPassword);
+		newUser.setSalt(salt);
 		checkIfBioIsValid(newUser.getBio());
 
 		initialiseGameStats(newUser);
@@ -74,7 +79,7 @@ public class UserService {
 		if (user == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Login failed: No user found with given username!");
 		}
-		else if (!user.getPassword().equals(loginUser.getPassword())){
+		else if (!user.getPassword().equals(PasswordHashUtil.hashPassword(loginUser.getPassword(), user.getSalt()))){
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login failed: Invalid credentials!");
 		}
 		else if (user.getStatus().equals(UserStatus.ONLINE)){
@@ -133,11 +138,11 @@ public class UserService {
 
 		verifyTokenAndUserId(token, userId);
 
-		if (userInput.getPassword() == null || userInput.getPassword().trim().isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password cant be empty");
-		}
+		checkIfPasswordIsValid(userInput.getPassword());
 		User user = getUserbyId(userId);
-		user.setPassword(userInput.getPassword());
+		String salt = PasswordHashUtil.generateSalt();
+		user.setPassword(PasswordHashUtil.hashPassword(userInput.getPassword(), salt));
+		user.setSalt(salt);
 
 		userRepository.save(user);
 		userRepository.flush();
