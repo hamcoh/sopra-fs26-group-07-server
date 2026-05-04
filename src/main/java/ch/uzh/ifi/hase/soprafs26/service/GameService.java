@@ -65,7 +65,6 @@ public class GameService {
     private final ProblemRepository problemRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
-    private final ProblemRepository problemRepository;
 
     //needed such that gameSessionSampleSolutionsDTO is actually sent!
     @Lazy
