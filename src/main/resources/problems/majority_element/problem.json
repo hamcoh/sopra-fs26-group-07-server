@@ -1,0 +1,21 @@
+{
+    "title": "Majority Element",
+    "description": "Given a non-empty array of integers nums, return the majority element, which is the element that appears more than n/2 times. You can assume that a majority element always exists. For instance: Input=[5,4,3,2,5,5], Output=5",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "The majority element as integer",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    count = 0\n    candidate = None\n\n    for num in nums:\n        if count == 0:\n            candidate = num\n            count = 1\n        elif num == candidate:\n            count += 1\n        else:\n            count -= 1\n\n    return candidate\n",
+    "testCases": [
+        { "input": "[5,4,3,2,5,5]", "expectedOutput": 5 },
+        { "input": "[1]", "expectedOutput": 1 },
+        { "input": "[1, 1, 1, 1]", "expectedOutput": 1 },
+        { "input": "[5, 5, 5, 7, 8]", "expectedOutput": 5 },
+        { "input": "[4, 18, 3, 3, 3]", "expectedOutput": 3 },
+        { "input": "[17, 3, 3, 3, 16]", "expectedOutput": 3 },
+        { "input": "[8, 12, 12]", "expectedOutput": 12 },
+        { "input": "[-10, -10, 2]", "expectedOutput": -10 },
+        { "input": "[-4, 2, -4, -4, 2]", "expectedOutput": -4 }
+    ]
+}

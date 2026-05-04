@@ -1,0 +1,19 @@
+{
+    "title": "Longest Increasing Subsequence",
+    "description": "Given a non-empty array of integers nums, return the length of the longest increasing subsequence as integer. For instance: Input=[10,9,8,5,6,7,4], Output=3",
+    "inputFormat": "A non-empty array of integers nums",
+    "outputFormat": "The length of the longest increasing subsequence as integer",
+    "constraints": "0 < len(nums) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    lis = [1] * len(nums)\n\n    for i in range(1, len(nums)):\n        for j in range(i):\n            if nums[j] < nums[i]:\n                lis[i] = max(lis[i], lis[j] + 1)\n\n    return max(lis)\n",
+    "testCases": [
+        { "input": "[10,9,8,5,6,7,4]", "expectedOutput": 3 },
+        { "input": "[1]", "expectedOutput": 1 },
+        { "input": "[1, 2, 3, 4, 5]", "expectedOutput": 5 },
+        { "input": "[5, 4, 3, 2, 1]", "expectedOutput": 1 },
+        { "input": "[5, 5, 5, 5]", "expectedOutput": 1 },
+        { "input": "[1, 2, 2, 3, 4]", "expectedOutput": 4 },
+        { "input": "[-3, -2, -1, 0, 1]", "expectedOutput": 5 }
+    ]
+}

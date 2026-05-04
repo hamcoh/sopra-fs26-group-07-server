@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -22,14 +23,17 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final ProblemService problemService;
+    private final ProblemRepository problemRepository;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService,
-                                                    ProblemService problemService) {
+                                                    ProblemService problemService,
+                                                    ProblemRepository problemRepository) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
+        this.problemRepository = problemRepository;
     }
 
     public Room createRoom(Room roomInput, Long userId, String token) {
@@ -44,13 +48,13 @@ public class RoomService {
         
         Integer requestNumOfProblems = roomInput.getNumOfProblems();
         if (requestNumOfProblems != null){
-            Integer storedNumOfProblems = problemService.getAllProblems().size();
+            Integer storedNumOfProblems = problemRepository.findAllByGameLanguageAndGameDifficulty(roomInput.getGameLanguage(), roomInput.getGameDifficulty()).size();
             if(requestNumOfProblems > storedNumOfProblems ) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create room: number of problems requested: " + requestNumOfProblems + " exceeds amount of problems available: " + storedNumOfProblems + " !");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create room: number of problems requested (" + requestNumOfProblems + ") for specific language/difficulty combination exceeds amount of problems available (" + storedNumOfProblems + ") !");
             }
             roomInput.setNumOfProblems(requestNumOfProblems);
         }
-        // roomInput.setNumOfProblems(10); //all problems so far
+       
         // roomInput.setMaxSkips(2); // arbitrary
         // roomInput.setTimeLimitSeconds(600); //10 mins
 

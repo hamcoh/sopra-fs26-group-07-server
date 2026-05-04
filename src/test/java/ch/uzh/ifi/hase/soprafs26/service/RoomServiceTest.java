@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.RoomPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
@@ -43,6 +44,9 @@ class RoomServiceTest {
 
     @Mock
     private ProblemService problemService;
+
+    @Mock
+    private ProblemRepository problemRepository;
 
     @InjectMocks
     private RoomService roomService;
@@ -120,7 +124,7 @@ class RoomServiceTest {
         testRoom.setNumOfProblems(5432);
         
         given(userService.getUserbyId(host.getId())).willReturn(host);
-        given(problemService.getAllProblems()).willReturn(List.of(new Problem()));
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(new Problem()));
 
         assertThrows(ResponseStatusException.class, () ->
                 roomService.createRoom(testRoom, host.getId(), host.getToken()));

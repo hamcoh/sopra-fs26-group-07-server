@@ -1,0 +1,19 @@
+{
+    "title": "Is Binary Divisible By Three",
+    "description": "Given a non-empty string s containing only the characters '0' and '1', return True if the string represents a valid binary number that is divisible by 3, return False otherwise. For instance: Input='110', Output=True",
+    "inputFormat": "A non-empty string s containing only the characters '0' and '1'",
+    "outputFormat": "Boolean: True if s represents a valid binary number that is divisible by 3, otherwise False",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    remainder = 0\n\n    for bit in str(s):\n        remainder = (remainder * 2 + int(bit)) % 3\n    return remainder == 0\n",
+    "testCases": [
+        { "input": "110", "expectedOutput": "True" },
+        { "input": "101", "expectedOutput": "False" },
+        { "input": "0", "expectedOutput": "True" },
+        { "input": "1", "expectedOutput": "False" },
+        { "input": "000", "expectedOutput": "True" },
+        { "input": "1001", "expectedOutput": "True" },
+        { "input": "1010", "expectedOutput": "False" }
+    ]
+}
