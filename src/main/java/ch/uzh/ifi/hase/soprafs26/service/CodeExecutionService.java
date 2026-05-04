@@ -667,7 +667,7 @@ public class CodeExecutionService {
             broadcastPoints(submission);
 
             //determine whether to advance player (and return GameRoundDTO or to end game via WebSocket)
-            return handlePlayerProgression(submission);
+            return gameService.handlePlayerProgression(submission.getPlayerSessionId());
         }
         else {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission should be finished but is not: something went wrong");
@@ -870,58 +870,6 @@ public class CodeExecutionService {
         } catch (Exception e) {
             return Collections.emptyList();
         }
-    }
-
-    private Optional<GameRoundDTO> handlePlayerProgression(Submission submission) {
-        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
-        if (playerSession == null) { //this is already checked before, hence, it should work
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission has no associated PlayerSession!");
-        } 
-
-        GameSession gameSession = playerSession.getGameSession();
-        int nextProblemIndex = playerSession.getCurrentProblemIndex() + 1;
-
-        if (nextProblemIndex >= gameSession.getProblems().size()) {
-
-            gameService.endGameSession(gameSession, GameEndReason.PLAYER_FINISHED);
-            
-            for (PlayerSession ps : gameSession.getPlayerSessions()){
-                ps.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
-                ps.setFinishedAt(LocalDateTime.now());
-                playerSessionRepository.save(ps);
-                playerSessionRepository.flush();
-            }
-            //returns empty Optional instance when game ends => frontend will get void HTTP-response with 204 Status
-            return Optional.empty();
-        } else {
-            playerSession.setCurrentProblemIndex(nextProblemIndex);
-            playerSessionRepository.save(playerSession);
-            playerSessionRepository.flush();
-            GameRoundDTO gameRoundDTO = buildNextGameRoundDTO(playerSession, gameSession, nextProblemIndex);
-            return Optional.of(gameRoundDTO);
-        }
-    }
-
-    private GameRoundDTO  buildNextGameRoundDTO(PlayerSession playerSession, GameSession gameSession, int nextProblemIndex) {
-
-            GameRoundDTO gameRoundDTO = new GameRoundDTO();
-            gameRoundDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
-            gameRoundDTO.setGameStatus(playerSession.getGameSession().getGameStatus());
-            gameRoundDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
-            gameRoundDTO.setPlayerId(playerSession.getPlayer().getId());
-            gameRoundDTO.setCurrentScore(playerSession.getCurrentScore());
-            gameRoundDTO.setNumOfSkippedProblems(playerSession.getNumOfSkippedProblems());
-
-            //prepare next problem
-            Problem nextProblem = gameSession.getProblems().get(nextProblemIndex);
-            gameRoundDTO.setProblemId(nextProblem.getProblemId());
-            gameRoundDTO.setTitle(nextProblem.getTitle());
-            gameRoundDTO.setDescription(nextProblem.getDescription());
-            gameRoundDTO.setInputFormat(nextProblem.getInputFormat());
-            gameRoundDTO.setOutputFormat(nextProblem.getOutputFormat());
-            gameRoundDTO.setConstraints(nextProblem.getConstraints());
-
-            return gameRoundDTO;
     }
 
     //awards the points won during a single Game Session (total points across all games updated at end of game)

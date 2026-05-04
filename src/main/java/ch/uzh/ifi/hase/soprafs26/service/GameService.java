@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -50,8 +52,9 @@ public class GameService {
 
  
     
-    private final Duration GAME_DURATION = Duration.ofMinutes(15);
-    private final Duration WARNING_OFFSET = Duration.ofMinutes(1);
+    private final PlayerSessionRepository playerSessionRepository;
+    private final Duration gameDuration = Duration.ofMinutes(15);
+    private final Duration warningOffset = Duration.ofMinutes(1);
     private final TaskScheduler taskScheduler;
     private final Map<Long, List<ScheduledFuture<?>>> scheduledTasksByGame = new ConcurrentHashMap<>();
     private final RoomRepository roomRepository;
@@ -59,9 +62,9 @@ public class GameService {
     private final UserRepository userRepository;
     private final ProblemService problemService;
     private final GameSessionRepository gameSessionRepository;
+    private final ProblemRepository problemRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
-    private final ProblemRepository problemRepository;
 
     //needed such that gameSessionSampleSolutionsDTO is actually sent!
     @Lazy
@@ -77,7 +80,9 @@ public class GameService {
                         WsRoomService wsRoomService, 
                         WsGameService wsGameService, 
                         TaskScheduler taskScheduler,
-                        ProblemRepository problemRepository) {
+                        ProblemRepository problemRepository,
+                        PlayerSessionRepository playerSessionRepository) {
+      
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
@@ -86,6 +91,7 @@ public class GameService {
         this.wsRoomService = wsRoomService;
         this.wsGameService = wsGameService;
         this.taskScheduler = taskScheduler;
+        this.playerSessionRepository = playerSessionRepository;
         this.problemRepository = problemRepository;
     }
 
@@ -150,7 +156,7 @@ public class GameService {
 
         Instant startedAtInstant = gameSession.getStartedAt().atZone(ZoneId.systemDefault()).toInstant();
         
-        Instant endAtInstant = startedAtInstant.plus(GAME_DURATION);
+        Instant endAtInstant = startedAtInstant.plus(gameDuration);
         Instant serverTimeNow = Instant.now();
 
         // prepare and send personalised GameRoundDTO via WS
@@ -166,7 +172,7 @@ public class GameService {
 
             gameRoundDTO.setServerTime(serverTimeNow);
             gameRoundDTO.setEndsAt(endAtInstant);
-            gameRoundDTO.setTotalDurationSeconds(GAME_DURATION.getSeconds());
+            gameRoundDTO.setTotalDurationSeconds(gameDuration.getSeconds());
 
             Problem firstProblem = gameSession.getProblems().get(0); // get first problem
             gameRoundDTO.setProblemId(firstProblem.getProblemId());
@@ -284,8 +290,8 @@ public class GameService {
 
 
     private void scheduleGameTimer(Long gameSessionId, Instant startedAt) {
-        Instant warningAt = startedAt.plus(GAME_DURATION.minus(WARNING_OFFSET));
-        Instant endAt = startedAt.plus(GAME_DURATION);
+        Instant warningAt = startedAt.plus(gameDuration.minus(warningOffset));
+        Instant endAt = startedAt.plus(gameDuration);
 
         ScheduledFuture<?> warningFuture = taskScheduler.schedule(() -> {
             GameSession session = gameSessionRepository.findByGameSessionId(gameSessionId);
@@ -293,7 +299,7 @@ public class GameService {
                 return;
             GameTimeWarningDTO dto = new GameTimeWarningDTO();
             dto.setGameSessionId(gameSessionId);
-            dto.setRemainingTimeSeconds(WARNING_OFFSET.getSeconds());
+            dto.setRemainingTimeSeconds(warningOffset.getSeconds());
             wsGameService.notifyPlayerGameTimeWarning(dto);
         }, warningAt);
 
@@ -306,5 +312,96 @@ public class GameService {
 
         scheduledTasksByGame.put(gameSessionId, List.of(warningFuture, endFuture));
     }
+
+        Optional<GameRoundDTO> handlePlayerProgression(long playerSessionId) {
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(playerSessionId);
+        if (playerSession == null) { //this is already checked before, hence, it should work
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission has no associated PlayerSession!");
+        } 
+
+        GameSession gameSession = playerSession.getGameSession();
+        int nextProblemIndex = playerSession.getCurrentProblemIndex() + 1;
+
+        if (nextProblemIndex >= gameSession.getProblems().size()) {
+
+            endGameSession(gameSession, GameEndReason.PLAYER_FINISHED);
+            
+            for (PlayerSession ps : gameSession.getPlayerSessions()){
+                ps.setPlayerSessionStatus(PlayerSessionStatus.FINISHED);
+                ps.setFinishedAt(LocalDateTime.now());
+                playerSessionRepository.save(ps);
+                playerSessionRepository.flush();
+            }
+            //returns empty Optional instance when game ends => frontend will get void HTTP-response with 204 Status
+            return Optional.empty();
+        } else {
+            playerSession.setCurrentProblemIndex(nextProblemIndex);
+            playerSessionRepository.save(playerSession);
+            playerSessionRepository.flush();
+            GameRoundDTO gameRoundDTO = buildNextGameRoundDTO(playerSession, gameSession, nextProblemIndex);
+            return Optional.of(gameRoundDTO);
+        }
+    }
+
+    private GameRoundDTO buildNextGameRoundDTO(PlayerSession playerSession, GameSession gameSession, int nextProblemIndex) {
+
+            GameRoundDTO gameRoundDTO = new GameRoundDTO();
+            gameRoundDTO.setGameSessionId(playerSession.getGameSession().getGameSessionId());
+            gameRoundDTO.setGameStatus(playerSession.getGameSession().getGameStatus());
+            gameRoundDTO.setPlayerSessionId(playerSession.getPlayerSessionId());
+            gameRoundDTO.setPlayerId(playerSession.getPlayer().getId());
+            gameRoundDTO.setCurrentScore(playerSession.getCurrentScore());
+            gameRoundDTO.setNumOfSkippedProblems(playerSession.getNumOfSkippedProblems());
+
+            //prepare next problem
+            Problem nextProblem = gameSession.getProblems().get(nextProblemIndex);
+            gameRoundDTO.setProblemId(nextProblem.getProblemId());
+            gameRoundDTO.setTitle(nextProblem.getTitle());
+            gameRoundDTO.setDescription(nextProblem.getDescription());
+            gameRoundDTO.setInputFormat(nextProblem.getInputFormat());
+            gameRoundDTO.setOutputFormat(nextProblem.getOutputFormat());
+            gameRoundDTO.setConstraints(nextProblem.getConstraints());
+
+            return gameRoundDTO;
+    }
+
+    public Optional<GameRoundDTO> skipProblem(Long gameSessionId, Long problemId, Long playerSessionId) {
+        GameSession gameSession = gameSessionRepository.findByGameSessionId(gameSessionId);
+
+        if (gameSession == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game session not found");
+        }
+
+        PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(playerSessionId);
+
+        if (playerSession == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Player session not found");
+        }
+        
+        Problem currentProblem = gameSession.getProblems().get(playerSession.getCurrentProblemIndex());
+
+        if (!currentProblem.getProblemId().equals(problemId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Problem is not the players current problem.");
+        }
+
+        if (gameSession.getGameStatus() != GameStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Game session is not active");
+        }
+
+        Integer maxSkips = gameSession.getRoom().getMaxSkips();
+        if (maxSkips != null && playerSession.getNumOfSkippedProblems() >= maxSkips) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Maximum number of skips reached");
+        }
+
+        playerSession.setNumOfSkippedProblems(playerSession.getNumOfSkippedProblems() + 1);
+        playerSessionRepository.save(playerSession);
+        playerSessionRepository.flush();
+
+        return handlePlayerProgression(playerSessionId);
+
+        
+
+    }
 }
+
 // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ScheduledFuture.html
