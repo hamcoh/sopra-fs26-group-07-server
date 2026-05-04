@@ -8,7 +8,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 
 @Service
@@ -46,5 +45,22 @@ public class WsRoomService {
             gameRoundDTO
         );
         log.info("GameRoundDTO sent to: {}", player.getUsername());
+    }
+
+    public void notifyRoomPlayerLeft(User user, Long roomId, Boolean isHost){
+        String username = user.getUsername();
+
+        log.info("User=" + username + " is leaving room=" + roomId);
+        log.info("User=" + username + " isHost=" + isHost);
+
+        Map<String, String> notification = Map.of(
+            "type", isHost ? "ROOM_CLOSED" : "PLAYER_LEFT",
+            "roomId", roomId.toString(),
+            "username", username,
+            "message", username + (isHost ? " closed the room. Room was deleted." : " left the room. Room persists.")
+        );
+        
+        log.info("Sending room-wide info to roomId=" + roomId);
+        simpMessagingTemplate.convertAndSend("/topic/room/" + roomId, notification);
     }
 }

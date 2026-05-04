@@ -65,13 +65,25 @@ public class GameService {
     private final ProblemRepository problemRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
+    private final ProblemRepository problemRepository;
 
     //needed such that gameSessionSampleSolutionsDTO is actually sent!
     @Lazy
     @Autowired
     private GameService self;
 
-    public GameService(RoomRepository roomRepository, UserService userService,ProblemService problemService, GameSessionRepository gameSessionRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, WsRoomService wsRoomService, WsGameService wsGameService, TaskScheduler taskScheduler, PlayerSessionRepository playerSessionRepository, ProblemRepository problemRepository) {
+    public GameService(RoomRepository roomRepository, 
+                        UserService userService,
+                        ProblemService problemService, 
+                        GameSessionRepository gameSessionRepository, 
+                        UserRepository userRepository, 
+                        SimpMessagingTemplate messagingTemplate, 
+                        WsRoomService wsRoomService, 
+                        WsGameService wsGameService, 
+                        TaskScheduler taskScheduler,
+                        ProblemRepository problemRepository,
+                        PlayerSessionRepository playerSessionRepository) {
+      
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.problemService = problemService;
@@ -104,14 +116,15 @@ public class GameService {
         }
         
         // 2. create game session + player sessions + extract problems
+        
+        //select randomly problems based on requestedNumOfProblems, configured GameLanguage and GameDifficulty
+        List<Problem> allProblems = new ArrayList<>(problemRepository.findAllByGameLanguageAndGameDifficulty(room.getGameLanguage(), room.getGameDifficulty()));
+
         Integer requestedNumOfProblems = room.getNumOfProblems();
-        if (requestedNumOfProblems > problemService.getAllProblems().size()) {
+        if (requestedNumOfProblems > allProblems.size()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "More problems requested than available!"); //Internal server error because this check already happens when room created
         }
 
-        //select randomly problems based on requestedNumOfProblems
-        //as soon as we have different categories of problem EASY/HARD, PYTHON/JAVA we need to implement a more sophisticated function here
-        List<Problem> allProblems = new ArrayList<>(problemService.getAllProblems());
         Collections.shuffle(allProblems);
         List<Problem> selectedRandomProblems = allProblems.stream().limit(requestedNumOfProblems).toList();
 

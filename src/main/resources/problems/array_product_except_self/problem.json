@@ -1,0 +1,19 @@
+{
+    "title": "Array Product Except Self",
+    "description": "Given a non-empty array of integers nums with at least two elements, return a new array output where each element of the output[i] (at index i) is equal to the product of all numbers in nums except nums[i] (i.e., element at index i). For instance: Input=[1,2,3,4], Output=[24,12,8,6]",
+    "inputFormat": "A non-empty array of integers nums with at least two elements",
+    "outputFormat": "An integer array where output[i] is the product of all elements in nums except nums[i]",
+    "constraints": "1 < len(nums) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(nums):\n    n = len(nums)\n    output = [1] * n\n\n    prefix = 1\n    for i in range(n):\n        output[i] = prefix\n        prefix *= nums[i]\n\n    suffix = 1\n    for i in range(n - 1, -1, -1):\n        output[i] *= suffix\n        suffix *= nums[i]\n\n    return output\n",
+    "testCases": [
+        { "input": "[1,2,3,4]", "expectedOutput": "[24, 12, 8, 6]" },
+        { "input": "[5, 4]", "expectedOutput": "[4, 5]" },
+        { "input": "[1, 2, 0, 4]", "expectedOutput": "[0, 0, 8, 0]" },
+        { "input": "[0, 0, 3]", "expectedOutput": "[0, 0, 0]" },
+        { "input": "[2, 2, 2, 2]", "expectedOutput": "[8, 8, 8, 8]" },
+        { "input": "[-1, -2, -3, -4]", "expectedOutput": "[-24, -12, -8, -6]" },
+        { "input": "[-1, 2, -3, 4]", "expectedOutput": "[-24, 12, -8, 6]" }
+    ]
+}

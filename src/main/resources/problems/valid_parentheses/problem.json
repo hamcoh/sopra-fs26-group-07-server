@@ -1,0 +1,22 @@
+{
+    "title": "Valid Parentheses",
+    "description": "Given a non-empty string s containing only the characters '(', ')', '{', '}', '[' and ']', return True if the brackets are correctly opened and closed in the right order (i.e., string is well-formatted), False otherwise. For instance: Input='{()[]}', Output=True",
+    "inputFormat": "A non-empty non-empty string s containing only the characters '(', ')', '{', '}', '[' and ']'",
+    "outputFormat": "Boolean: True if s is well-formatted, otherwise False",
+    "constraints": "0 < len(s) < 30",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "PYTHON",
+    "sampleSolution": "def solve(s):\n    stack = []\n    matching = {')': '(', '}': '{', ']': '['}\n\n    for char in s:\n        if char in matching:\n            if not stack or stack[-1] != matching[char]:\n                return False\n            stack.pop()\n        else:\n            stack.append(char)\n\n    return len(stack) == 0\n",
+    "testCases": [
+        { "input": "'()'", "expectedOutput": "True" },
+        { "input": "'{()[]}'", "expectedOutput": "True" },
+        { "input": "'{[()]}'", "expectedOutput": "True" },
+        { "input": "'('", "expectedOutput": "False" },
+        { "input": "'([)]'", "expectedOutput": "False" },
+        { "input": "'((()'", "expectedOutput": "False" },
+        { "input": "'][]'", "expectedOutput": "False" },
+        { "input": "'((()))'", "expectedOutput": "True"},
+        { "input": "'((()'", "expectedOutput": "False"},
+        { "input": "'{[()]}({[]})'", "expectedOutput": "True"}
+    ]
+}

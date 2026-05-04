@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,15 +22,18 @@ public class RoomService {
     
     private final RoomRepository roomRepository;
     private final UserService userService;
-    private final ProblemService problemService;
+    private final WsRoomService wsRoomService;
+    private final ProblemRepository problemRepository;
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService,
-                                                    ProblemService problemService) {
+                                                    WsRoomService wsRoomService,
+                                                    ProblemRepository problemRepository) {
         this.roomRepository = roomRepository;
         this.userService = userService;
-        this.problemService = problemService;
+        this.wsRoomService = wsRoomService;
+        this.problemRepository = problemRepository;
     }
 
     public Room createRoom(Room roomInput, Long userId, String token) {
@@ -44,13 +48,13 @@ public class RoomService {
         
         Integer requestNumOfProblems = roomInput.getNumOfProblems();
         if (requestNumOfProblems != null){
-            Integer storedNumOfProblems = problemService.getAllProblems().size();
+            Integer storedNumOfProblems = problemRepository.findAllByGameLanguageAndGameDifficulty(roomInput.getGameLanguage(), roomInput.getGameDifficulty()).size();
             if(requestNumOfProblems > storedNumOfProblems ) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create room: number of problems requested: " + requestNumOfProblems + " exceeds amount of problems available: " + storedNumOfProblems + " !");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot create room: number of problems requested (" + requestNumOfProblems + ") for specific language/difficulty combination exceeds amount of problems available (" + storedNumOfProblems + ") !");
             }
             roomInput.setNumOfProblems(requestNumOfProblems);
         }
-        // roomInput.setNumOfProblems(10); //all problems so far
+       
         // roomInput.setMaxSkips(2); // arbitrary
         // roomInput.setTimeLimitSeconds(600); //10 mins
 
@@ -95,6 +99,44 @@ public class RoomService {
 
         return targetRoom;
     }
+
+    public void leaveRoom(Long roomId, Long userId, String token) {
+        userService.verifyTokenAndUserId(token, userId);
+
+        Room room = roomRepository.findByRoomId(roomId);
+
+        if (room == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room was not found!");
+        }
+        if (!room.getPlayerIds().contains(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Player must be in Lobby to have access to room details!");
+        }
+        
+        User leavingUser = userService.getUserById(userId);
+
+        if (room.getHostUserId().equals(userId)){
+            //host leaves => room deleted
+            roomRepository.delete(room);
+            roomRepository.flush();
+
+            //fire WS-msg so that host realises what happened
+            wsRoomService.notifyRoomPlayerLeft(leavingUser, roomId, true);
+        }
+        else if (room.getCurrentNumPlayers() > 1) {
+            //non-host leaves => spot is freed
+            room.setCurrentNumPlayers(room.getCurrentNumPlayers() - 1);
+            room.setRoomOpen(true);
+            room.getPlayerIds().remove(userId);
+
+            roomRepository.saveAndFlush(room);
+            
+            //fire WS-msg so that host realises what happened
+            wsRoomService.notifyRoomPlayerLeft(leavingUser, roomId, false);
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Room is in illegal state: A room cannot exist without host!");
+        }
+    } 
 
     public Room getRoomDetails(Long roomId, Long userId, String token) {
         userService.verifyTokenAndUserId(token, userId);
