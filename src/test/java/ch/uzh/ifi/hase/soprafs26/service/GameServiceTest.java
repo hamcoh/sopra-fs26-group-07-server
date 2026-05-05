@@ -530,7 +530,7 @@ class GameServiceTest {
         // POINTS SHOULD NO LONGER UPDATE HERE - EXPECT 100, bcs we wanted to avoid duplicate point updates
         assertEquals(100, player2.getTotalPoints().intValue()); 
         assertEquals(11, player2.getWinCount());
-        assertTrue(player2.getWinRatePercentage() > ((double) 10 / 40 * 100)); //since player 2 did win
+        assertTrue(player2.getWinRatePercentage() > ((double) 10 / 40 * 100)); //since player 2 did win 
     }
 
     //game stats update is actually saved and flushed
