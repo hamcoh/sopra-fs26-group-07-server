@@ -444,7 +444,7 @@ public class GameService {
         playerSessionRepository.save(opponentSession);
         
         // 6) Broadcast the attack to the opponent via WebSocket
-        wsGameService.sendSabotage(opponentSession.getPlayer().getId(), dto.getItem());
+        wsGameService.sendSabotage(opponentSession.getPlayer().getUsername(), dto.getItem());
     }
 
 }
