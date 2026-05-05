@@ -77,10 +77,11 @@ public class WsGameService {
     }
 
     public void sendSabotage(Long opponentUserId, SabotageType item) {
+        User opponent = userService.getUserById(opponentUserId);
         SabotageMessageDTO message = new SabotageMessageDTO(item);
-        // Spring routes this to /user/{opponentUserId}/queue/sabotage
+        // Spring routes this to /user/{opponentUsername}/queue/sabotage
         simpMessagingTemplate.convertAndSendToUser(
-            opponentUserId.toString(), 
+            opponent.getUsername(), 
             "/queue/sabotage", 
             message
         );
