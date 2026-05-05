@@ -895,6 +895,11 @@ public class CodeExecutionService {
     //awards the points won during a single Game Session (total points across all games updated at end of game)
     private void awardPoints(Submission submission) {
 
+        // Idempotency guard: skip if points have already been awarded for this submission
+        if (submission.isPointsAwarded()) {
+            return;
+        }
+
         PlayerSession playerSession = playerSessionRepository.findByPlayerSessionId(submission.getPlayerSessionId());
         if (playerSession == null) { //this is already checked before, hence, it should work
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Submission has no associated PlayerSession!");
@@ -908,12 +913,17 @@ public class CodeExecutionService {
 
         /*  NEW: Immediately update the User's overall points and coins!
          *  So the user can instantly then use the earned coins.
-         */ 
+         */
         User user = playerSession.getPlayer();
         user.setCoins(user.getCoins() + achievedPoints);
         user.setTotalPoints(user.getTotalPoints() + achievedPoints);
         userRepository.save(user);
         userRepository.flush();
+
+        // Mark points as awarded after all operations succeed to avoid a stale flag on failure
+        submission.setPointsAwarded(true);
+        submissionRepository.save(submission);
+        submissionRepository.flush();
 
     }
 
