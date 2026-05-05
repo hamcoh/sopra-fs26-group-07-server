@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    words = s.split()\n    sorted_words = [tuple(sorted(word)) for word in words]\n    return len(sorted_words) != len(set(sorted_words))\n",
+    "hint": "Split the string into words, sort the characters of each word, and check if any sorted word appears more than once.",
     "testCases": [
     { "input": "the cat dog act", "expectedOutput": "True" },
     { "input": "the quick brown fox", "expectedOutput": "False" },

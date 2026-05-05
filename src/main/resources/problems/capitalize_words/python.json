@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    return ' '.join(word.capitalize() for word in s.split())\n",
+    "hint": "Split the string into words and capitalize each word.",
     "testCases": [
     { "input": "borbone is the best coffee", "expectedOutput": "Borbone Is The Best Coffee" },
     { "input": "HELLO WORLD", "expectedOutput": "Hello World" },

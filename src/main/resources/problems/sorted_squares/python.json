@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    return sorted(x ** 2 for x in nums)\n",
+    "hint": "Square each element in the array and then sort the resulting array.",
     "testCases": [
         { "input": "[-4, -1, 0, 2, 8]", "expectedOutput": "[0, 1, 4, 16, 64]" },
         { "input": "[-4, -3, -2, -1]", "expectedOutput": "[1, 4, 9, 16]" },

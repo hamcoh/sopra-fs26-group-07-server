@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    count = 0\n    candidate = None\n\n    for num in nums:\n        if count == 0:\n            candidate = num\n            count = 1\n        elif num == candidate:\n            count += 1\n        else:\n            count -= 1\n\n    return candidate\n",
+    "hint": "Use the Boyer-Moore Voting Algorithm to find the majority element in linear time and constant space.",
     "testCases": [
         { "input": "[5,4,3,2,5,5]", "expectedOutput": 5 },
         { "input": "[1]", "expectedOutput": 1 },

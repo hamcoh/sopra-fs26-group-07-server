@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    return sorted(nums, reverse=True)[1]\n",
+    "hint": "Sort the array in descending order and return the element at index 1.",
     "testCases": [
         { "input": "[1,8,5,7,9]", "expectedOutput": 8 },
         { "input": "[1,2]", "expectedOutput": 1 },
