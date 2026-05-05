@@ -54,8 +54,10 @@ public class GameController {
     @ResponseStatus(HttpStatus.OK)
     public void purchaseSabotage(
             @PathVariable Long gameSessionId,
+            @RequestHeader(value = "token", required = false) String token,
             @RequestBody SabotagePostDTO sabotagePostDTO) {
         
+        userService.verifyToken(token);
         gameService.purchaseSabotage(gameSessionId, sabotagePostDTO);
     }
     
