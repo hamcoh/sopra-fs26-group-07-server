@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(array):\n    return sum([i for i in array if i % 2 == 0])\n",
+    "hint": "Iterate through the array and sum up the numbers that are divisible by 2.",
     "testCases": [
         { "input": "[1, 2, 3, 4, 8]", "expectedOutput": "14" },
         { "input": "[2, 4, 6, 8, 10]", "expectedOutput": "30" },

@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    total = sum(nums)\n    left_sum = 0\n\n    for num in nums:\n        if left_sum == total - left_sum - num:\n            return True\n        left_sum += num\n\n    return False\n",
+    "hint": "Calculate the total sum of the array. Iterate through the array while keeping track of the left sum. For each element, check if the left sum equals the total sum minus the left sum minus the current element. If it does, return True. If you finish iterating without finding such an index, return False.",
     "testCases": [
         { "input": "[1,4,2,6,7,0]", "expectedOutput": "True" },
         { "input": "[8, 4, 15]", "expectedOutput": "False" },

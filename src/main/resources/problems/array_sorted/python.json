@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(array):\n    return array == sorted(array)\n",
+    "hint": "Compare the array with its sorted version.",
     "testCases": [
         { "input": "[1,2,3,4,5]", "expectedOutput": "True" },
         { "input": "[1]", "expectedOutput": "True" },

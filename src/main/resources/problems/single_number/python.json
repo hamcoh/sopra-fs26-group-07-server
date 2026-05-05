@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    result = 0\n    for num in nums:\n        result ^= num\n    return result\n",
+    "hint": "Use the XOR bitwise operation to cancel out pairs of identical numbers, leaving only the single number.",
     "testCases": [
         { "input": "[1,1,5,8,5]", "expectedOutput": 8 },
         { "input": "[5]", "expectedOutput": 5 },

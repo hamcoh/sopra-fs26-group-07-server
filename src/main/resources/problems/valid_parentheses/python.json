@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    stack = []\n    matching = {')': '(', '}': '{', ']': '['}\n\n    for char in s:\n        if char in matching:\n            if not stack or stack[-1] != matching[char]:\n                return False\n            stack.pop()\n        else:\n            stack.append(char)\n\n    return len(stack) == 0\n",
+    "hint": "Use a stack to keep track of opening brackets. For each closing bracket, check if it matches the most recent opening bracket on the stack. If it does, pop the stack; if it doesn't, return False. At the end, if the stack is empty, return True.",
     "testCases": [
         { "input": "'()'", "expectedOutput": "True" },
         { "input": "'{()[]}'", "expectedOutput": "True" },

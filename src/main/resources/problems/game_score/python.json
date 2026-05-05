@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(array):\n    game_score = sum(array)\n    return game_score if game_score > 0 else 0\n",
+    "hint": "Calculate the sum of the scores and return it if it's positive, otherwise return 0.",
     "testCases": [
     { "input": "[1,7,-4,-20,15]", "expectedOutput": 0 },
     { "input": "[-1, -2, -3]", "expectedOutput": 0 },

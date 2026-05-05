@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    new_list = []\n    for char in s:\n        new_list.append(s.count(char))\n    return len(set(new_list)) == 1\n",
+    "hint": "Count the frequency of each character and check if all frequencies are the same.",
     "testCases": [
         { "input": "eeffgg", "expectedOutput": "True" },
         { "input": "eeffg", "expectedOutput": "False" },

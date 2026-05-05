@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    char_index = {}\n    max_length = 0\n    start_index = 0\n\n    for index, char in enumerate(s):\n        if char in char_index and char_index[char] >= start_index:\n            start_index = char_index[char] + 1\n        char_index[char] = index\n        max_length = max(max_length, index - start_index + 1)\n\n    return max_length\n",
+    "hint": "Use a sliding window approach with a dictionary to track the last index of each character. Move the start of the window when a repeated character is found.",
     "testCases": [
         { "input": "ccdfczzca", "expectedOutput": 4 },
         { "input": "a", "expectedOutput": 1 },

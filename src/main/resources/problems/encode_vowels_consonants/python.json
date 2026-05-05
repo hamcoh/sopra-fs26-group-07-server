@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(s):\n    vowels = 'aeiou'\n    return ''.join('*' if char in vowels else '#' for char in s)\n",
+    "hint": "Iterate through each character in the string and replace vowels with '*' and consonants with '#'.",
     "testCases": [
         { "input": "python", "expectedOutput": "####*#" },
         { "input": "aeiou", "expectedOutput": "*****" },

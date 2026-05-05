@@ -7,6 +7,7 @@
     "gameDifficulty": "HARD",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(nums):\n    current_sum = nums[0]\n    max_sum = current_sum\n\n    for num in nums[1:]:\n        current_sum = max(num, current_sum + num)\n        max_sum = max(max_sum, current_sum)\n\n    return max_sum\n",
+    "hint": "Use Kadane's algorithm to find the maximum subarray sum in linear time.",
     "testCases": [
         { "input": "[-2,1,-3,4,-1,2,1,-5]", "expectedOutput": 6 },
         { "input": "[-2]", "expectedOutput": -2 },

@@ -7,6 +7,7 @@
     "gameDifficulty": "EASY",
     "gameLanguage": "PYTHON",
     "sampleSolution": "def solve(array):\n    avg = sum(array)/len(array)\n    return sum([1 for i in array if i > avg])\n",
+    "hint": "Calculate the average temperature and count the number of days where the temperature was above the average.",
     "testCases": [
     { "input": "[19,26,18,30,35]", "expectedOutput": 3 },
     { "input": "[5, 5, 5, 5]", "expectedOutput": 0 },
