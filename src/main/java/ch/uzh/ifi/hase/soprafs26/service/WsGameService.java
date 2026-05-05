@@ -10,6 +10,8 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SabotageMessageDTO;
+import ch.uzh.ifi.hase.soprafs26.constant.SabotageType;
 
 @Service
 public class WsGameService {
@@ -73,4 +75,15 @@ public class WsGameService {
         );
         log.info("playerGameSummaryDTO sent to: {}", player.getUsername());
     }
+
+    public void sendSabotage(Long opponentUserId, SabotageType item) {
+        SabotageMessageDTO message = new SabotageMessageDTO(item);
+        // Spring routes this to /user/{opponentUserId}/queue/sabotage
+        simpMessagingTemplate.convertAndSendToUser(
+            opponentUserId.toString(), 
+            "/queue/sabotage", 
+            message
+        );
+    }
+
 }

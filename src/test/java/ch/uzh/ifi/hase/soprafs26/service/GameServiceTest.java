@@ -500,7 +500,7 @@ class GameServiceTest {
     }
 
     //player stats are updated in user profile
-    @Test 
+    @Test
     void endGameSession_updatesEachPlayersGameStats() {
 
         //players already have points
@@ -521,12 +521,14 @@ class GameServiceTest {
         gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
 
         assertEquals(21, gameHost.getTotalGamesPlayed());
-        assertEquals(101, gameHost.getTotalPoints().intValue());
+        // POINTS SHOULD NO LONGER UPDATE HERE - EXPECT 100, bcs we wanted to avoid duplicate point updates
+        assertEquals(100, gameHost.getTotalPoints().intValue()); 
         assertEquals(10, gameHost.getWinCount());
         assertTrue((gameHost.getWinRatePercentage() < ((double) 10 / 20 * 100))); //since host did not win
 
         assertEquals(41, player2.getTotalGamesPlayed());
-        assertEquals(108, player2.getTotalPoints().intValue());
+        // POINTS SHOULD NO LONGER UPDATE HERE - EXPECT 100, bcs we wanted to avoid duplicate point updates
+        assertEquals(100, player2.getTotalPoints().intValue()); 
         assertEquals(11, player2.getWinCount());
         assertTrue(player2.getWinRatePercentage() > ((double) 10 / 40 * 100)); //since player 2 did win
     }

@@ -17,6 +17,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
@@ -64,6 +65,9 @@ class CodeExecutionServiceTest {
     @Mock
     private WsGameService wsGameService;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
@@ -89,7 +93,8 @@ class CodeExecutionServiceTest {
             playerSessionRepository,
             gameService,
             wsGameService,
-            gameSessionRepository
+            gameSessionRepository,
+            userRepository
         );
 
         gameHost = new User();

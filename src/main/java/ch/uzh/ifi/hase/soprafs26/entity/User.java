@@ -68,6 +68,9 @@ public class User implements Serializable {
 	@Transient //@Transient means field is not persistent, it is simply defined and used to ad hoc rank players (no need to store in db)
 	private Integer rank;
 
+	@Column(nullable = false)
+	private int coins = 0;
+
 	public Long getId() {
 		return id;
 	}
@@ -178,5 +181,13 @@ public class User implements Serializable {
 
 	public void setAvatarId(int avatarId) {
 		this.avatarId = avatarId;
+	}
+
+	public int getCoins() {
+		return coins;
+	}
+
+	public void setCoins(int coins) {
+		this.coins = coins;
 	}
 }
