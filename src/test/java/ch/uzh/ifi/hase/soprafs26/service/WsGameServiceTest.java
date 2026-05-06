@@ -106,7 +106,7 @@ public class WsGameServiceTest {
 
     @Test
     void sendSabotage_sendsToCorrectUserDestination() {
-        String opponentUsername = "evilPlayer"; // Changed to String
+        String opponentUsername = "opponent"; // Changed to String
         SabotageType item = SabotageType.ROTATE_SABOTAGE; 
 
         wsGameService.sendSabotage(opponentUsername, item);
@@ -114,7 +114,7 @@ public class WsGameServiceTest {
         ArgumentCaptor<SabotageMessageDTO> messageCaptor = ArgumentCaptor.forClass(SabotageMessageDTO.class);
         
         verify(simpMessagingTemplate, times(1)).convertAndSendToUser(
-                eq("evilPlayer"), // Changed to expect the String
+                eq("opponent"), // Changed to expect the String
                 eq("/queue/sabotage"), 
                 messageCaptor.capture()
         );
