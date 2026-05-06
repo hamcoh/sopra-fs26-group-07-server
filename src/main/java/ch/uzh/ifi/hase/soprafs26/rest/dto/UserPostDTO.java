@@ -8,6 +8,8 @@ public class UserPostDTO {
 
 	private String bio;
 
+    private int avatarId;
+
 	public String getUsername() {
 		return username;
 	}
@@ -32,5 +34,12 @@ public class UserPostDTO {
 		this.bio = bio;
 	}
 
-	
+    public int getAvatarId() {
+        return avatarId;
+    }
+
+    public void setAvatarId(int avatarId) {
+        this.avatarId = avatarId;
+    }
+
 }

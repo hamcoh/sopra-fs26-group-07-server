@@ -114,6 +114,14 @@ public class UserController {
 							@RequestHeader(value = "token", required = false)  String token) {
 		userService.changeAvatar(avatarId, userId, token);
 	}
+
+    @GetMapping("/users/check/{username}")
+    @ResponseStatus(HttpStatus.OK)
+    public void checkUsername(@PathVariable("username") String username) {
+
+        userService.verifyUsernameIsUnique(username);
+    }
+
 }
 
 // trigger docker build 
