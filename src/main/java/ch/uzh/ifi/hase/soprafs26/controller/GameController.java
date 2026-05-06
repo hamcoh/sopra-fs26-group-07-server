@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SabotagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SkipPostDTO;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,6 +48,17 @@ public class GameController {
         return gameService.skipProblem(gameSessionId, problemId, skipPostDTO.getPlayerSessionId())
                           .map(ResponseEntity::ok)
                           .orElse(ResponseEntity.noContent().build());
+    }
+
+    @PostMapping("/games/{gameSessionId}/sabotage")
+    @ResponseStatus(HttpStatus.OK)
+    public void purchaseSabotage(
+            @PathVariable Long gameSessionId,
+            @RequestHeader(value = "token", required = false) String token,
+            @RequestBody SabotagePostDTO sabotagePostDTO) {
+        
+        userService.verifyToken(token);
+        gameService.purchaseSabotage(gameSessionId, sabotagePostDTO);
     }
     
 }

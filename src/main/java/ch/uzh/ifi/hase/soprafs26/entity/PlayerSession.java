@@ -60,6 +60,8 @@ public class PlayerSession implements Serializable {
     inverseJoinColumns = @JoinColumn(name = "submission_id"))
     private List<Submission> submissions = new ArrayList<>();
 
+    private LocalDateTime sabotageEndTime; // New field to track when the sabotage effect ends
+
     public Long getPlayerSessionId() {
         return playerSessionId;
     }
@@ -131,4 +133,13 @@ public class PlayerSession implements Serializable {
     public void setSubmissions(List<Submission> submissions) {
         this.submissions = submissions;
     }
+
+    public LocalDateTime getSabotageEndTime() {
+        return sabotageEndTime;
+    }
+
+    public void setSabotageEndTime(LocalDateTime sabotageEndTime) {
+        this.sabotageEndTime = sabotageEndTime;
+    }
+
 }

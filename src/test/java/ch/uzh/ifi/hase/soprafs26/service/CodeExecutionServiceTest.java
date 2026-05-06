@@ -17,6 +17,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerSessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
@@ -64,6 +65,9 @@ class CodeExecutionServiceTest {
     @Mock
     private WsGameService wsGameService;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CodeExecutionService codeExecutionService;
 
@@ -89,7 +93,8 @@ class CodeExecutionServiceTest {
             playerSessionRepository,
             gameService,
             wsGameService,
-            gameSessionRepository
+            gameSessionRepository,
+            userRepository
         );
 
         gameHost = new User();
@@ -882,6 +887,37 @@ class CodeExecutionServiceTest {
 
         PlayerSession savedPlayerSession = captor.getValue();
         assertEquals(submission.getPassedTestCases() * POINTS_PER_TEST_CASE + 25, savedPlayerSession.getCurrentScore()); //player has 50 points now
+    }
+
+    //getLatestSubmissionResult: points already awarded - skips awarding again (idempotency)
+    @Test
+    void getLatestSubmissionResult_pointsAlreadyAwarded_skipsAward() {
+
+        testGameSession.getProblems().add(p1);
+        playerSession1.setGameSession(testGameSession);
+        playerSession1.setCurrentScore(10);
+        Long playerSessionId = playerSession1.getPlayerSessionId();
+
+        Submission submission = new Submission();
+        submission.setGameSessionId(testGameSession.getGameSessionId());
+        submission.setProblemId(p1.getProblemId());
+        submission.setPlayerSessionId(playerSessionId);
+        submission.setStatus(SubmissionStatus.FINISHED);
+        submission.setPassedTestCases(5);
+        submission.setPointsAwarded(true); // points already awarded on a previous poll
+
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession1);
+        when(problemService.getProblemById(p1.getProblemId())).thenReturn(p1);
+        when(submissionRepository.findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
+                testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId, SubmissionType.SUBMIT)).thenReturn(submission);
+
+        codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
+
+        // Score must remain unchanged because points were already awarded
+        assertEquals(10, playerSession1.getCurrentScore());
+        // Both save calls inside awardPoints must be skipped when the guard exits early
+        verify(submissionRepository, never()).save(submission);
+        verify(playerSessionRepository, never()).save(playerSession1);
     }
 
     //getLatestSubmissionResult: last problem should end the game

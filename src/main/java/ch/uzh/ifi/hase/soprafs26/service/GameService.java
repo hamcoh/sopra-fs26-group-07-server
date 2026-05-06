@@ -44,6 +44,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameTimeWarningDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerScoreDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SabotagePostDTO;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -227,7 +228,8 @@ public class GameService {
         // add game session results to user profile
         for (PlayerSession ps : playerSessions) {
             User user = ps.getPlayer();
-            user.setTotalPoints(user.getTotalPoints() + ps.getCurrentScore());
+
+            // user.setTotalPoints(user.getTotalPoints() + ps.getCurrentScore()); COMMENTED TO AVOID DUPLICATE POINTS GIVEN, SINCE WE WILL NOW GIVE THE COINS DIRECTLY in CodeExecutionService
             user.setTotalGamesPlayed(user.getTotalGamesPlayed() + 1);
 
             if (!tie && winner != null && winner.getPlayer().getId().equals(user.getId())) {
@@ -402,6 +404,50 @@ public class GameService {
         
 
     }
+
+    public void purchaseSabotage(Long gameSessionId, SabotagePostDTO dto) {
+        // 1) Validate the buyer's session
+        PlayerSession buyerSession = playerSessionRepository.findByPlayerSessionId(dto.getPlayerSessionId());
+        if (buyerSession == null || !buyerSession.getGameSession().getGameSessionId().equals(gameSessionId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Player Session or Game Session!");
+        }
+
+        GameSession gameSession = buyerSession.getGameSession();
+        if (gameSession.getGameStatus() != GameStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Game is not active!");
+        }
+
+        // 2) Find the opponent (since it's 1v1, it's the other player in the session)
+        PlayerSession opponentSession = gameSession.getPlayerSessions().stream()
+                .filter(ps -> !ps.getPlayerSessionId().equals(buyerSession.getPlayerSessionId()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Opponent not found!"));
+
+        // 3) Check Buyer's Coin Balance
+        User buyer = buyerSession.getPlayer();
+        int itemPrice = 5; // TO ADJUST IF NEEDED!!
+        
+        if (buyer.getCoins() < itemPrice) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough coins!");
+        }
+
+        // 4) Check if the opponent is already sabotaged
+        if (opponentSession.getSabotageEndTime() != null && opponentSession.getSabotageEndTime().isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Opponent is currently already sabotaged!");
+        }
+
+        // 5) Execute Transaction
+        buyer.setCoins(buyer.getCoins() - itemPrice);
+        opponentSession.setSabotageEndTime(LocalDateTime.now().plusSeconds(10));
+
+        userRepository.save(buyer);
+        playerSessionRepository.save(opponentSession);
+        playerSessionRepository.flush();
+        
+        // 6) Broadcast the attack to the opponent via WebSocket
+        wsGameService.sendSabotage(opponentSession.getPlayer().getUsername(), dto.getItem());
+    }
+
 }
 
 // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ScheduledFuture.html

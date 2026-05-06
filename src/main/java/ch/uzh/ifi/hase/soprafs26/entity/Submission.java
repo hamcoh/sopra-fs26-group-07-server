@@ -62,6 +62,9 @@ public class Submission implements Serializable { // Careful submission doesn't 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String judgeTokensJson;
 
+    @Column(nullable = false)
+    private boolean pointsAwarded = false;
+
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String judgeResultJson; // For the user to debug
@@ -196,6 +199,13 @@ public class Submission implements Serializable { // Careful submission doesn't 
     public void setJudgeResultsJson(String judgeResultsJson) {
         this.judgeResultJson = judgeResultsJson;
     }
-  
+
+    public boolean isPointsAwarded() {
+        return pointsAwarded;
+    }
+
+    public void setPointsAwarded(boolean pointsAwarded) {
+        this.pointsAwarded = pointsAwarded;
+    }
 
 }
