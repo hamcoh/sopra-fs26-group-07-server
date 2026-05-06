@@ -67,9 +67,6 @@ public class UserService {
 
 		initialiseGameStats(newUser);
 
-		//generate random avatarId (goes from 1-10)
-		newUser.setAvatarId(new Random().nextInt(10) + 1);
-
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -244,5 +241,15 @@ public class UserService {
 		userRepository.save(user);
 		userRepository.flush();
 		log.debug("Successfully changed avatar for User: {}", user);
-	}	
+	}
+
+    public void verifyUsernameIsUnique(String username) {
+        checkIfUsernameIsValid(username);
+
+        User userByUsername = userRepository.findByUsername(username);
+        if (userByUsername != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "The username provided is already taken!");
+        }
+    }
 }
