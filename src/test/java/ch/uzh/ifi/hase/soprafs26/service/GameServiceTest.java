@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,8 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
 import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
@@ -36,6 +40,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.SabotageType;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
 import ch.uzh.ifi.hase.soprafs26.entity.GameSession;
 import ch.uzh.ifi.hase.soprafs26.entity.PlayerSession;
@@ -51,6 +56,8 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameSessionSampleSolutionsDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SabotagePostDTO;
+import ch.uzh.ifi.hase.soprafs26.constant.SabotageType;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -954,4 +961,152 @@ class GameServiceTest {
         assertEquals(1, notSolvedFullyCorrectly.size());
         assertTrue(notSolvedFullyCorrectly.contains(p1.getProblemId()));
     }
+
+    @Test
+    void purchaseSabotage_success_deductsCoinsAndLocksOpponent() {
+        // 1. Setup Game Session
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        // 2. Setup Buyer
+        User buyer = new User();
+        buyer.setId(10L);
+        buyer.setCoins(20); // Price is 5, has enough
+
+        PlayerSession buyerSession = new PlayerSession();
+        buyerSession.setPlayerSessionId(100L);
+        buyerSession.setPlayer(buyer);
+        buyerSession.setGameSession(gameSession);
+
+        // 3. Setup Opponent
+        User opponent = new User();
+        opponent.setId(20L);
+        opponent.setUsername("opponent");
+
+        PlayerSession opponentSession = new PlayerSession();
+        opponentSession.setPlayerSessionId(200L);
+        opponentSession.setPlayer(opponent);
+        opponentSession.setGameSession(gameSession);
+        // Opponent is NOT immune (time in past)
+        opponentSession.setSabotageEndTime(LocalDateTime.now().minusMinutes(1)); 
+
+        gameSession.setPlayerSessions(List.of(buyerSession, opponentSession));
+
+        // 4. Setup DTO
+        SabotagePostDTO dto = new SabotagePostDTO();
+        dto.setPlayerSessionId(100L);
+        dto.setItem(SabotageType.SQUID_INK_SABOTAGE);
+
+        when(playerSessionRepository.findByPlayerSessionId(100L)).thenReturn(buyerSession);
+
+        // 5. Execute
+        gameService.purchaseSabotage(1L, dto);
+
+        // 6. Verify
+        assertEquals(15, buyer.getCoins()); // Coins deducted
+        assertNotNull(opponentSession.getSabotageEndTime());
+        assertTrue(opponentSession.getSabotageEndTime().isAfter(LocalDateTime.now())); // Now immune
+        
+        verify(userRepository, times(1)).save(buyer);
+        verify(playerSessionRepository, times(1)).save(opponentSession);
+        verify(wsGameService, times(1)).sendSabotage("opponent", SabotageType.SQUID_INK_SABOTAGE);
+    }
+
+    @Test
+    void purchaseSabotage_insufficientCoins_throwsBadRequest() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        User buyer = new User();
+        buyer.setCoins(2); // Not enough coins!
+
+        PlayerSession buyerSession = new PlayerSession();
+        buyerSession.setPlayerSessionId(100L);
+        buyerSession.setPlayer(buyer);
+        buyerSession.setGameSession(gameSession);
+
+        PlayerSession opponentSession = new PlayerSession();
+        opponentSession.setPlayerSessionId(200L);
+        gameSession.setPlayerSessions(List.of(buyerSession, opponentSession));
+
+        SabotagePostDTO dto = new SabotagePostDTO();
+        dto.setPlayerSessionId(100L);
+        dto.setItem(SabotageType.JITTER_SABOTAGE);
+
+        when(playerSessionRepository.findByPlayerSessionId(100L)).thenReturn(buyerSession);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> gameService.purchaseSabotage(1L, dto));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Not enough coins!", exception.getReason());
+        assertEquals(2, buyer.getCoins()); // Coins NOT deducted
+        
+        verify(userRepository, never()).save(any()); 
+        verify(wsGameService, never()).sendSabotage(any(), any());
+    }
+
+    @Test
+    void purchaseSabotage_opponentAlreadyImmune_throwsConflict() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        User buyer = new User();
+        buyer.setCoins(50); // Has plenty of coins
+
+        PlayerSession buyerSession = new PlayerSession();
+        buyerSession.setPlayerSessionId(100L);
+        buyerSession.setPlayer(buyer);
+        buyerSession.setGameSession(gameSession);
+
+        PlayerSession opponentSession = new PlayerSession();
+        opponentSession.setPlayerSessionId(200L);
+        
+        // Opponent IS immune (sabotage ends in the future)
+        opponentSession.setSabotageEndTime(LocalDateTime.now().plusSeconds(5)); 
+        gameSession.setPlayerSessions(List.of(buyerSession, opponentSession));
+
+        SabotagePostDTO dto = new SabotagePostDTO();
+        dto.setPlayerSessionId(100L);
+        dto.setItem(SabotageType.ROTATE_SABOTAGE);
+
+        when(playerSessionRepository.findByPlayerSessionId(100L)).thenReturn(buyerSession);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> gameService.purchaseSabotage(1L, dto));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals("Opponent is currently already sabotaged!", exception.getReason());
+        assertEquals(50, buyer.getCoins()); // Coins NOT deducted
+        
+        verify(userRepository, never()).save(any());
+        verify(wsGameService, never()).sendSabotage(any(), any());
+    }
+
+    @Test
+    void purchaseSabotage_gameNotActive_throwsConflict() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ENDED); // Game is over
+
+        PlayerSession buyerSession = new PlayerSession();
+        buyerSession.setPlayerSessionId(100L);
+        buyerSession.setGameSession(gameSession);
+
+        SabotagePostDTO dto = new SabotagePostDTO();
+        dto.setPlayerSessionId(100L);
+        dto.setItem(SabotageType.SQUID_INK_SABOTAGE);
+
+        when(playerSessionRepository.findByPlayerSessionId(100L)).thenReturn(buyerSession);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> gameService.purchaseSabotage(1L, dto));
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals("Game is not active!", exception.getReason());
+    }
+
 }
