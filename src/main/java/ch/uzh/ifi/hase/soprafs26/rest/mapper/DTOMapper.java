@@ -49,6 +49,7 @@ public interface DTOMapper {
 	@Mapping(source = "totalPoints", target = "totalPoints")
 	@Mapping(source = "rank", target = "rank")
 	@Mapping(source = "avatarId", target = "avatarId")
+	@Mapping(source = "coins", target = "coins")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
