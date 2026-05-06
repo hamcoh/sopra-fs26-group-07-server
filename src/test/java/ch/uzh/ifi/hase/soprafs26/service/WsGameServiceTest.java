@@ -14,10 +14,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import ch.uzh.ifi.hase.soprafs26.constant.SabotageType;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameEndDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GamePointsUpdateDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerGameSummaryDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SabotageMessageDTO;
+
 
 @ExtendWith(MockitoExtension.class)
 public class WsGameServiceTest {
@@ -99,6 +102,25 @@ public class WsGameServiceTest {
             "/queue/game-summary",
             playerGameSummaryDTO
             );
+    }
+
+    @Test
+    void sendSabotage_sendsToCorrectUserDestination() {
+        String opponentUsername = "evilPlayer"; // Changed to String
+        SabotageType item = SabotageType.ROTATE_SABOTAGE; 
+
+        wsGameService.sendSabotage(opponentUsername, item);
+
+        ArgumentCaptor<SabotageMessageDTO> messageCaptor = ArgumentCaptor.forClass(SabotageMessageDTO.class);
+        
+        verify(simpMessagingTemplate, times(1)).convertAndSendToUser(
+                eq("evilPlayer"), // Changed to expect the String
+                eq("/queue/sabotage"), 
+                messageCaptor.capture()
+        );
+
+        SabotageMessageDTO capturedMessage = messageCaptor.getValue();
+        assertEquals(SabotageType.ROTATE_SABOTAGE, capturedMessage.getItem()); 
     }
     
 }
