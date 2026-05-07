@@ -1,12 +1,14 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +24,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Room;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.websocket.dto.RoomChatMessageDTO;
 
 @ExtendWith(MockitoExtension.class)
 public class WsRoomServiceTest {
@@ -33,12 +38,19 @@ public class WsRoomServiceTest {
     @Mock
     UserService userService;
 
+    @Mock
+    UserRepository userRepository;
+
+    @Mock
+    RoomRepository roomRepository;
+
     @InjectMocks
     private WsRoomService wsRoomService;
 
     private User testUser;
     private User testUser7;
     private Room testRoom;
+    private RoomChatMessageDTO roomChatMessageDTO;
 
     @BeforeEach
     void setup() {
@@ -55,6 +67,10 @@ public class WsRoomServiceTest {
 
         testRoom = new Room();
         testRoom.setRoomId(1L);
+
+        roomChatMessageDTO = new RoomChatMessageDTO();
+        roomChatMessageDTO.setSenderUsername("testUser");
+        roomChatMessageDTO.setContent("hello world");
     }
 
     @Test
@@ -211,6 +227,104 @@ public class WsRoomServiceTest {
                 "message", testUser.getUsername() + " left the room. Room persists."
             ))
         );
+    }
+
+    @Test
+    void sendRoomChatMessage_success() {
+
+        testRoom.setPlayerIds(Set.of(testUser.getId()));
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
+
+        wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO);
+
+        ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<RoomChatMessageDTO> payloadCaptorRoomChatMessageDTO= ArgumentCaptor.forClass(RoomChatMessageDTO.class);
+
+        verify(simpMessagingTemplate, times(1)).convertAndSend(
+            destinationCaptor.capture(),
+            payloadCaptorRoomChatMessageDTO.capture()
+        );
+
+        assertEquals("/topic/chat/room/" + testRoom.getRoomId(), destinationCaptor.getValue());
+
+        RoomChatMessageDTO captured = payloadCaptorRoomChatMessageDTO.getValue();
+        assertEquals(roomChatMessageDTO.getContent(), captured.getContent());
+        assertEquals(roomChatMessageDTO.getSenderUsername(), captured.getSenderUsername());
+        assertNotNull(captured.getTimestamp());
+    }
+
+    @Test
+    void sendRoomChatMessage_invalidRoomId_throwsException() {
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(null);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    @Test
+    void sendRoomChatMessage_invalidSender_throwsException() {
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(null);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    @Test
+    void sendRoomChatMessage_senderNotInRoom_throwsException() {
+        
+        testRoom.setPlayerIds(Set.of(testUser7.getId()));
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    @Test
+    void sendRoomChatMessage_blankMessage_throwsException() {
+
+        testRoom.setPlayerIds(Set.of(testUser.getId()));
+        roomChatMessageDTO.setContent("  ");
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    @Test
+    void sendRoomChatMessage_emptyMessage_throwsException() {
+
+        testRoom.setPlayerIds(Set.of(testUser.getId()));
+        roomChatMessageDTO.setContent("");
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    @Test
+    void sendRoomChatMessage_messageTooLong_throwsException() {
+
+        int charLimit = 255; 
+
+        testRoom.setPlayerIds(Set.of(testUser.getId()));
+        roomChatMessageDTO.setContent("a".repeat(charLimit+1));
+
+        Mockito.when(roomRepository.findByRoomId(Mockito.any())).thenReturn(testRoom);
+        Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(testUser);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
     }
 }
 
