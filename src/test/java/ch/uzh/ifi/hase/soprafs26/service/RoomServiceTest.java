@@ -3,9 +3,11 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User; // <- ensure this is the correct User type
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
@@ -17,10 +19,12 @@ import static org.mockito.BDDMockito.given;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -34,6 +38,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class RoomServiceTest {
 
     @Mock
@@ -50,6 +55,12 @@ class RoomServiceTest {
 
     @Mock
     private ProblemRepository problemRepository;
+
+    @Mock
+    private TaskScheduler taskScheduler;
+
+    @Mock
+    private ScheduledFuture scheduledFuture;
 
     @InjectMocks
     private RoomService roomService;
@@ -108,6 +119,8 @@ class RoomServiceTest {
             room.setRoomId(1L);
             return room;
         }); //returns same object that was passed in to avoid nullpointer exception
+        Mockito.when(taskScheduler.schedule(Mockito.any(Runnable.class), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
 
         Room createdRoom = roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
         
@@ -452,7 +465,7 @@ class RoomServiceTest {
     //leave room, user not even in room to leave
     @Test
     void leaveRoom_playerNotInRoom_throwsForbidden() {
-        
+
         doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
         given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
 
@@ -462,6 +475,188 @@ class RoomServiceTest {
         });
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    // lobby timer is scheduled when room is created
+    @Test
+    void createRoom_validInput_schedulesLobbyTimer() {
+        User host = new User();
+        host.setId(1L);
+        host.setUsername("hostUser");
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+
+        Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
+        Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
+            Room room = invocation.getArgument(0);
+            room.setRoomId(1L);
+            return room;
+        });
+        Mockito.when(taskScheduler.schedule(Mockito.any(Runnable.class), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
+
+        roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
+
+        verify(taskScheduler, times(1)).schedule(Mockito.any(Runnable.class), Mockito.any(Instant.class));
+    }
+
+    // lobby timer fires: open room gets closed and WS notification is sent
+    @Test
+    void lobbyTimer_openRoom_closesRoomAndNotifies() {
+        User host = new User();
+        host.setId(1L);
+        host.setUsername("hostUser");
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+
+        Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
+        Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
+            Room room = invocation.getArgument(0);
+            room.setRoomId(1L);
+            return room;
+        });
+
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+        Mockito.when(taskScheduler.schedule(runnableCaptor.capture(), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
+
+        roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
+
+        // reset invocation counts so we only assert what the timer callback does, not createRoom()
+        Mockito.clearInvocations(roomRepository, wsRoomService);
+
+        Room openRoom = new Room();
+        openRoom.setRoomId(1L);
+        openRoom.setRoomOpen(true);
+        Mockito.when(roomRepository.findByRoomId(1L)).thenReturn(openRoom);
+
+        runnableCaptor.getValue().run();
+
+        assertFalse(openRoom.isRoomOpen());
+        verify(roomRepository, times(1)).save(openRoom);
+        verify(roomRepository, times(1)).flush();
+        verify(wsRoomService, times(1)).notifyRoomExpired(1L);
+    }
+
+    // lobby timer fires: room already closed (player joined), does nothing
+    @Test
+    void lobbyTimer_alreadyClosedRoom_doesNothing() {
+        User host = new User();
+        host.setId(1L);
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+
+        Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
+        Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
+            Room room = invocation.getArgument(0);
+            room.setRoomId(1L);
+            return room;
+        });
+
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+        Mockito.when(taskScheduler.schedule(runnableCaptor.capture(), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
+
+        roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
+
+        // reset invocation counts so we only assert what the timer callback does, not createRoom()
+        Mockito.clearInvocations(roomRepository, wsRoomService);
+
+        Room closedRoom = new Room();
+        closedRoom.setRoomId(1L);
+        closedRoom.setRoomOpen(false);
+        Mockito.when(roomRepository.findByRoomId(1L)).thenReturn(closedRoom);
+
+        runnableCaptor.getValue().run();
+
+        verify(roomRepository, times(0)).save(closedRoom);
+        verify(wsRoomService, times(0)).notifyRoomExpired(Mockito.any());
+    }
+
+    // lobby timer fires: room was already deleted (game started and host left), does nothing
+    @Test
+    void lobbyTimer_roomNotFound_doesNothing() {
+        User host = new User();
+        host.setId(1L);
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+
+        Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
+        Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
+            Room room = invocation.getArgument(0);
+            room.setRoomId(1L);
+            return room;
+        });
+
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+        Mockito.when(taskScheduler.schedule(runnableCaptor.capture(), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
+
+        roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "validToken");
+
+        // reset invocation counts so we only assert what the timer callback does, not createRoom()
+        Mockito.clearInvocations(roomRepository, wsRoomService);
+
+        Mockito.when(roomRepository.findByRoomId(1L)).thenReturn(null);
+
+        runnableCaptor.getValue().run();
+
+        verify(roomRepository, times(0)).save(Mockito.any());
+        verify(wsRoomService, times(0)).notifyRoomExpired(Mockito.any());
+    }
+
+    // host leaving cancels the pending lobby timer
+    @Test
+    void leaveRoom_hostLeaves_cancelsLobbyTimer() {
+        User host = new User();
+        host.setId(1L);
+        host.setUsername("hostUser");
+        host.setToken("hostToken");
+
+        RoomPostDTO roomPostDTO = new RoomPostDTO();
+        roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
+        roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
+        roomPostDTO.setGameMode(GameMode.RACE);
+
+        Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
+        Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
+            Room room = invocation.getArgument(0);
+            room.setRoomId(1L);
+            return room;
+        });
+        Mockito.when(taskScheduler.schedule(Mockito.any(Runnable.class), Mockito.any(Instant.class)))
+            .thenReturn((ScheduledFuture) scheduledFuture);
+
+        roomService.createRoom(DTOMapper.INSTANCE.convertRoomPostDTOtoEntity(roomPostDTO), host.getId(), "hostToken");
+
+        Room room = new Room();
+        room.setRoomId(1L);
+        Set<Long> playerIds = new HashSet<>();
+        playerIds.add(host.getId());
+        room.setPlayerIds(playerIds);
+        room.setHostUserId(host.getId());
+
+        doNothing().when(userService).verifyTokenAndUserId("hostToken", host.getId());
+        Mockito.when(roomRepository.findByRoomId(1L)).thenReturn(room);
+        Mockito.when(userService.getUserById(host.getId())).thenReturn(host);
+        doNothing().when(wsRoomService).notifyRoomPlayerLeft(host, 1L, true);
+
+        roomService.leaveRoom(1L, host.getId(), "hostToken");
+
+        verify(scheduledFuture, times(1)).cancel(false);
+        verify(roomRepository, times(1)).delete(room);
     }
 
 }

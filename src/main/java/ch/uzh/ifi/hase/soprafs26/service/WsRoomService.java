@@ -57,6 +57,15 @@ public class WsRoomService {
         log.info("GameRoundDTO sent to: {}", player.getUsername());
     }
 
+    public void notifyRoomExpired(Long roomId) {
+        Map<String, String> notification = Map.of(
+            "type", "ROOM_EXPIRED",
+            "roomId", roomId.toString(),
+            "message", "Lobby closed due to inactivity."
+        );
+        simpMessagingTemplate.convertAndSend("/topic/room/" + roomId, notification);
+    }
+
     public void notifyRoomPlayerLeft(User user, Long roomId, Boolean isHost){
         String username = user.getUsername();
 
