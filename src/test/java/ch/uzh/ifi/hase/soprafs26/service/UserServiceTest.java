@@ -244,6 +244,71 @@ class UserServiceTest {
 	}
 
 	@Test
+	void changeBio_validBio_success() {
+		// given
+		testUser.setToken("validToken");
+		testUser.setBio("old bio");
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+		Mockito.when(userRepository.findUserById(1L)).thenReturn(testUser);
+
+		// when
+		userService.changeBio("new bio", 1L);
+
+		// then
+		assertEquals("new bio", testUser.getBio());
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	void changeBio_emptyBio_clearsBio() {
+		// given
+		testUser.setBio("some existing bio");
+		Mockito.when(userRepository.findUserById(1L)).thenReturn(testUser);
+
+		// when
+		userService.changeBio("", 1L);
+
+		// then
+		assertEquals("", testUser.getBio());
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	void changeBio_nullBio_clearsBio() {
+		// given
+		testUser.setBio("some bio");
+		Mockito.when(userRepository.findUserById(1L)).thenReturn(testUser);
+
+		// when
+		userService.changeBio(null, 1L);
+
+		// then
+		assertNull(testUser.getBio());
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	void changeBio_bioTooLong_throwsException() {
+		// given
+		String tooLongBio = "a".repeat(256);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeBio(tooLongBio, 1L));
+	}
+
+	@Test
+	void changeBio_userNotFound_throwsException() {
+		// given
+		Mockito.when(userRepository.findUserById(99L)).thenReturn(null);
+
+		// then
+		assertThrows(ResponseStatusException.class, () -> userService.changeBio("bio", 99L));
+	}
+
+	@Test
 	void changeAvatar_validAvatarId_success() {
 		// given
 		testUser.setToken("validToken");

@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangeBioDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
@@ -33,9 +34,8 @@ public class UserController {
 
 	@GetMapping("/users/leaderboard")
 	@ResponseStatus(HttpStatus.OK)
-	public List<UserGetDTO> getGlobalLeaderboard(@RequestHeader(value = "token", required = false)  String token) {
-		
-		//check for permission
+	public List<UserGetDTO> getGlobalLeaderboard(@RequestHeader(value = "token", required = false) String token) {
+
 		userService.verifyToken(token);
 
 		// fetch all users in the internal representation and sort them by totalPoints
@@ -107,6 +107,15 @@ public class UserController {
 		userService.verifyToken(token);
 	}
 
+	@PutMapping("/users/{userId}/bio")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void changeBio(@PathVariable Long userId,
+						  @RequestBody ChangeBioDTO changeBioDTO,
+						  @RequestHeader(value = "token", required = false) String token) {
+		userService.verifyTokenAndUserId(token, userId);
+		userService.changeBio(changeBioDTO.getNewBio(), userId);
+	}
+
 	@PutMapping("/users/{userId}/avatar")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void changeAvatar(@PathVariable Long userId,
@@ -123,7 +132,3 @@ public class UserController {
     }
 
 }
-
-// trigger docker build 
-// trigger sonar build
-// just for commit

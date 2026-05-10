@@ -226,6 +226,14 @@ public class UserService {
 		user.setTotalPoints(0L);
 	}
 
+	public void changeBio(String newBio, Long userId) {
+		checkIfBioIsValid(newBio);
+		User user = getUserById(userId);
+		user.setBio(newBio);
+		userRepository.save(user);
+		userRepository.flush();
+	}
+
 	public void changeAvatar(int avatarId, Long userId, String token) {
 		verifyTokenAndUserId(token, userId);
 		
