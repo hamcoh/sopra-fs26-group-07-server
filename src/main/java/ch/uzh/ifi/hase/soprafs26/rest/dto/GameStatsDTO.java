@@ -1,6 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-public class ArchiveProblemDTO {
+public class GameStatsDTO {
 
     private Long problemId;
     private String title;
@@ -11,8 +11,8 @@ public class ArchiveProblemDTO {
     private Long totalSubmissionCount;
     private Double totalSuccessRate;
 
-    private Integer playerSumPassedTestCases;
-    private Integer playerSumTotalTestCases; 
+    private Long playerSumPassedTestCases;
+    private Long playerSumTotalTestCases; 
     private Double playerSuccessRate;
 
     public Long getProblemId() {
@@ -58,16 +58,16 @@ public class ArchiveProblemDTO {
     public void setTotalSuccessRate(Double totalSuccessRate) {
         this.totalSuccessRate = totalSuccessRate;
     }
-    public Integer getPlayerSumPassedTestCases() {
+    public Long getPlayerSumPassedTestCases() {
         return playerSumPassedTestCases;
     }
-    public void setPlayerSumPassedTestCases(Integer playerSumPassedTestCases) {
+    public void setPlayerSumPassedTestCases(Long playerSumPassedTestCases) {
         this.playerSumPassedTestCases = playerSumPassedTestCases;
     }
-    public Integer getPlayerSumTotalTestCases() {
+    public Long getPlayerSumTotalTestCases() {
         return playerSumTotalTestCases;
     }
-    public void setPlayerSumTotalTestCases(Integer playerSumTotalTestCases) {
+    public void setPlayerSumTotalTestCases(Long playerSumTotalTestCases) {
         this.playerSumTotalTestCases = playerSumTotalTestCases;
     }
     public Double getPlayerSuccessRate() {
