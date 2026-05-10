@@ -102,6 +102,9 @@ class GameServiceTest {
     private ProblemRepository problemRepository;
 
     @Mock
+    private RoomService roomService;
+
+    @Mock
     private ScheduledFuture<Object> warningFuture;
 
     @Mock
@@ -1107,6 +1110,38 @@ class GameServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
         assertEquals("Game is not active!", exception.getReason());
+    }
+
+    // starting a game cancels the room's pending lobby timer
+    @Test
+    void createGameSession_validInputs_cancelsLobbyTimer() {
+        Problem p1 = new Problem();
+        p1.setProblemId(1L);
+        Problem p3 = new Problem();
+        p3.setProblemId(3L);
+        Problem p7 = new Problem();
+        p7.setProblemId(7L);
+
+        testRoom.setNumOfProblems(3);
+
+        given(roomRepository.findByRoomId(testRoom.getRoomId())).willReturn(testRoom);
+        given(userRepository.findUserById(gameHost.getId())).willReturn(gameHost);
+        given(problemRepository.findAllByGameLanguageAndGameDifficulty(Mockito.any(), Mockito.any())).willReturn(List.of(p1, p3, p7));
+        given(userService.getUserById(gameHost.getId())).willReturn(gameHost);
+        given(userService.getUserById(player2.getId())).willReturn(player2);
+        given(gameSessionRepository.save(any(GameSession.class)))
+            .willAnswer(invocation -> {
+                GameSession s = invocation.getArgument(0);
+                s.setGameSessionId(99L);
+                return s;
+            });
+        given(taskScheduler.schedule(any(Runnable.class), any(Instant.class)))
+            .willReturn((ScheduledFuture) warningFuture, (ScheduledFuture) endFuture);
+        doNothing().when(wsRoomService).notifyPlayerGameStarted(Mockito.any());
+
+        gameService.createGameSession(gameHost.getId(), testRoom.getRoomId());
+
+        verify(roomService, times(1)).cancelLobbyTimer(testRoom.getRoomId());
     }
 
 }

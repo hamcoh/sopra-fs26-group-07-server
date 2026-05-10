@@ -66,6 +66,7 @@ public class GameService {
     private final ProblemRepository problemRepository;
     private final WsRoomService wsRoomService;
     private final WsGameService wsGameService;
+    private final RoomService roomService;
 
     //needed such that gameSessionSampleSolutionsDTO is actually sent!
     @Lazy
@@ -82,7 +83,8 @@ public class GameService {
                         WsGameService wsGameService, 
                         TaskScheduler taskScheduler,
                         ProblemRepository problemRepository,
-                        PlayerSessionRepository playerSessionRepository) {
+                        PlayerSessionRepository playerSessionRepository,
+                        RoomService roomService) {
       
         this.roomRepository = roomRepository;
         this.userService = userService;
@@ -94,6 +96,7 @@ public class GameService {
         this.taskScheduler = taskScheduler;
         this.playerSessionRepository = playerSessionRepository;
         this.problemRepository = problemRepository;
+        this.roomService = roomService;
     }
 
     public void createGameSession(Long hostId, Long roomId){
@@ -114,6 +117,8 @@ public class GameService {
         else if (room.getCurrentNumPlayers() < 2){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Not enough players to start the game!");
         }
+
+        roomService.cancelLobbyTimer(roomId); 
         
         // 2. create game session + player sessions + extract problems
         

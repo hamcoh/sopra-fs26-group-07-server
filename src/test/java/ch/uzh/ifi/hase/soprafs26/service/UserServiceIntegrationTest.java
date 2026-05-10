@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,11 @@ class UserServiceIntegrationTest {
 
 	@BeforeEach
 	void setup() {
+		userRepository.deleteAll();
+	}
+
+	@AfterEach
+	void teardown() {
 		userRepository.deleteAll();
 	}
 

@@ -315,7 +315,7 @@ public class WsRoomServiceTest {
     @Test
     void sendRoomChatMessage_messageTooLong_throwsException() {
 
-        int charLimit = 255; 
+        int charLimit = 255;
 
         testRoom.setPlayerIds(Set.of(testUser.getId()));
         roomChatMessageDTO.setContent("a".repeat(charLimit+1));
@@ -325,6 +325,23 @@ public class WsRoomServiceTest {
 
         assertThrows(IllegalArgumentException.class, () ->
             wsRoomService.sendRoomChatMessage(testRoom.getRoomId(), roomChatMessageDTO));
+    }
+
+    // notifyRoomExpired sends ROOM_EXPIRED event to the room topic
+    @Test
+    void notifyRoomExpired_success() {
+        Long roomId = testRoom.getRoomId();
+
+        wsRoomService.notifyRoomExpired(roomId);
+
+        verify(simpMessagingTemplate).convertAndSend(
+            eq("/topic/room/" + roomId),
+            eq((Object) Map.of(
+                "type", "ROOM_EXPIRED",
+                "roomId", roomId.toString(),
+                "message", "Lobby closed due to inactivity."
+            ))
+        );
     }
 }
 

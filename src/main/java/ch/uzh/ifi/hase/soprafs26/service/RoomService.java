@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,24 +17,36 @@ import ch.uzh.ifi.hase.soprafs26.repository.RoomRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import org.springframework.scheduling.TaskScheduler;
+
 @Service
 @Transactional
 public class RoomService {
-    
+
+    private static final Duration lobbyTimeoutTime = Duration.ofMinutes(30);
+
     private final RoomRepository roomRepository;
     private final UserService userService;
     private final WsRoomService wsRoomService;
     private final ProblemRepository problemRepository;
+    private final TaskScheduler taskScheduler;
+    private final Map<Long, ScheduledFuture<?>> lobbyTimers = new ConcurrentHashMap<>();
 
     public RoomService(@Qualifier("roomRepository") RoomRepository roomRepository,
                                                     UserRepository userRepository,
                                                     UserService userService,
                                                     WsRoomService wsRoomService,
-                                                    ProblemRepository problemRepository) {
+                                                    ProblemRepository problemRepository,
+                                                    TaskScheduler taskScheduler) {
         this.roomRepository = roomRepository;
         this.userService = userService;
         this.wsRoomService = wsRoomService;
         this.problemRepository = problemRepository;
+        this.taskScheduler = taskScheduler;
     }
 
     public Room createRoom(Room roomInput, Long userId, String token) {
@@ -64,6 +77,8 @@ public class RoomService {
 
         Room createdRoom = roomRepository.save(roomInput);
         roomRepository.flush();
+
+        scheduleLobbyTimer(createdRoom.getRoomId());
 
         return createdRoom;
     }
@@ -116,6 +131,7 @@ public class RoomService {
 
         if (room.getHostUserId().equals(userId)){
             //host leaves => room deleted
+            cancelLobbyTimer(roomId);
             roomRepository.delete(room);
             roomRepository.flush();
 
@@ -160,6 +176,23 @@ public class RoomService {
         return allRooms.stream()
                        .filter(Room::isRoomOpen)
                        .toList();   
+    }
+
+    public void cancelLobbyTimer(Long roomId) {
+        ScheduledFuture<?> future = lobbyTimers.remove(roomId);
+        if (future != null) future.cancel(false);
+    }
+
+    private void scheduleLobbyTimer(Long roomId) {
+        ScheduledFuture<?> future = taskScheduler.schedule(() -> {
+            Room room = roomRepository.findByRoomId(roomId);
+            if (room == null || !room.isRoomOpen()) return;
+            room.setRoomOpen(false);
+            roomRepository.save(room);
+            roomRepository.flush();
+            wsRoomService.notifyRoomExpired(roomId);
+        }, Instant.now().plus(lobbyTimeoutTime));
+        lobbyTimers.put(roomId, future);
     }
 
     private String generateRoomCode() {
