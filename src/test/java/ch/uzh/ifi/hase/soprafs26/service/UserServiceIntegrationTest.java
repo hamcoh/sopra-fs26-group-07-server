@@ -48,7 +48,7 @@ class UserServiceIntegrationTest {
 
 		User testUser = new User();
 		testUser.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
 
 		// when
 		User createdUser = userService.createUser(testUser);
@@ -72,7 +72,7 @@ class UserServiceIntegrationTest {
 
 		User testUser = new User();
 		testUser.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
 		userService.createUser(testUser);
 
 		// attempt to create second user with same username
@@ -80,7 +80,7 @@ class UserServiceIntegrationTest {
 
 		// change the name but forget about the username
 		testUser2.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
 
 		// check that an error is thrown
 		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser2));
@@ -91,7 +91,7 @@ class UserServiceIntegrationTest {
 		// given
 		User testUser = new User();
 		testUser.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
 		User createdUser = userService.createUser(testUser);
 		int newAvatarId = (createdUser.getAvatarId() % 10) + 1; // guaranteed valid and different from any possible current value
 
@@ -108,7 +108,7 @@ class UserServiceIntegrationTest {
 		// given
 		User testUser = new User();
 		testUser.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
 		User createdUser = userService.createUser(testUser);
 
 		// then

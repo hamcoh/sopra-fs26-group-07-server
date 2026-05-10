@@ -44,7 +44,7 @@ class RoomRestIntegrationTest {
     private User registeredUser(String username) {
         User u = new User();
         u.setUsername(username);
-        u.setPassword("test");
+        u.setPassword("Test123@");
         return userService.createUser(u);
     }
 
