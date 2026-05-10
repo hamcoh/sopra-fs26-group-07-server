@@ -6,6 +6,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangeBioDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.ChangePassDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
@@ -575,6 +576,144 @@ class UserControllerTest {
 
 		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
 		Mockito.verify(userService, Mockito.never()).changePassword(Mockito.any(User.class), Mockito.eq(userId), Mockito.eq(token));
+	}
+
+	// /users/{userId}/bio; expect: 204 (bio change successful)
+	@Test
+	void changeBio_validInput_bioChangeSuccessful() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("My new bio");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isNoContent());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService).changeBio("My new bio", userId);
+	}
+
+	// /users/{userId}/bio; expect: 204 (clearing bio is valid)
+	@Test
+	void changeBio_emptyBio_bioCleared() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isNoContent());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService).changeBio("", userId);
+	}
+
+	// /users/{userId}/bio; expect: 400 (bio exceeds 255 characters)
+	@Test
+	void changeBio_bioTooLong_badRequest() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("a".repeat(256));
+
+		String errorReason = "Bio is invalid: bio cannot exceed 255 characters!";
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, errorReason))
+				.when(userService).changeBio(Mockito.any(), Mockito.eq(userId));
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.detail", is(errorReason)));
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+	}
+
+	// /users/{userId}/bio; expect: 401 (token is missing)
+	@Test
+	void changeBio_missingToken_unauthorized() throws Exception {
+		Long userId = 1L;
+		String token = null;
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("Some bio");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isUnauthorized());
+
+		Mockito.verify(userService).verifyTokenAndUserId(null, userId);
+		Mockito.verify(userService, Mockito.never()).changeBio(Mockito.any(), Mockito.eq(userId));
+	}
+
+	// /users/{userId}/bio; expect: 403 (token/user mismatch)
+	@Test
+	void changeBio_invalidToken_userMismatch() throws Exception {
+		Long userId = 1L;
+		String token = "invalidToken";
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("Some bio");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isForbidden());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).changeBio(Mockito.any(), Mockito.eq(userId));
+	}
+
+	// /users/{userId}/bio; expect: 404 (user not found)
+	@Test
+	void changeBio_userNotFound() throws Exception {
+		Long userId = 1L;
+		String token = "validToken";
+
+		ChangeBioDTO changeBioDTO = new ChangeBioDTO();
+		changeBioDTO.setNewBio("Some bio");
+
+		Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+				.when(userService).verifyTokenAndUserId(token, userId);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}/bio", userId)
+				.header("token", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(changeBioDTO));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isNotFound());
+
+		Mockito.verify(userService).verifyTokenAndUserId(token, userId);
+		Mockito.verify(userService, Mockito.never()).changeBio(Mockito.any(), Mockito.eq(userId));
 	}
 
 	// /auth; expect: 200 (auth. successful)
