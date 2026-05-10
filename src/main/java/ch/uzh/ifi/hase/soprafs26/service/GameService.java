@@ -187,6 +187,7 @@ public class GameService {
             gameRoundDTO.setInputFormat(firstProblem.getInputFormat());
             gameRoundDTO.setOutputFormat(firstProblem.getOutputFormat());
             gameRoundDTO.setConstraints(firstProblem.getConstraints());
+            gameRoundDTO.setHint(firstProblem.getHint());
 
             //send personalised message to each player
             wsRoomService.notifyPlayerGameStarted(gameRoundDTO);
@@ -368,6 +369,7 @@ public class GameService {
             gameRoundDTO.setInputFormat(nextProblem.getInputFormat());
             gameRoundDTO.setOutputFormat(nextProblem.getOutputFormat());
             gameRoundDTO.setConstraints(nextProblem.getConstraints());
+            gameRoundDTO.setHint(nextProblem.getHint());
 
             return gameRoundDTO;
     }
