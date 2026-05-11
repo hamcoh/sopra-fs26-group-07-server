@@ -1289,6 +1289,6 @@ class CodeExecutionServiceTest {
         
         // CRITICAL: Ensure the expected output wasn't aggressively trimmed by normalizeOutputString
         assertEquals("  hello  ", batchRequest.getSubmissions().get(0).getStdin());
-        assertEquals("  olleh  \n", batchRequest.getSubmissions().get(0).getExpected_output());
+        assertEquals("  olleh  \n", batchRequest.getSubmissions().get(0).getExpected_output()); 
     }
 }
