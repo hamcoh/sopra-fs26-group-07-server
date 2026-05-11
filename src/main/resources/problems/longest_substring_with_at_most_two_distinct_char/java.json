@@ -1,7 +1,7 @@
 {
     "title": "At Most Two Distinct Characters",
     "description": "Given a string x, find the length of the longest substring that contains at most two distinct characters.",
-    "inputFormat": "A string x",
+    "inputFormat": "A string x, you might need to parse the input",
     "outputFormat": "Integer representing the max substring length",
     "constraints": "1 <= x.length <= 100000",
     "gameDifficulty": "HARD",

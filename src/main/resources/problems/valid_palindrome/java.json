@@ -1,7 +1,7 @@
 {
     "title": "Valid Palindrome",
     "description": "Given a lowercase string x containing only alphabetic characters (with no spaces), return True if it is a palindrome, False otherwise. A string is a palindrome if it reads the same forward and backward. For instance, 'radar' is a palindrome while 'python' is not",
-    "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces)",
+    "inputFormat": "A single lowercase string containing only alphabetic characters (with no spaces), you might need to parse the input",
     "outputFormat": "Boolean: True if x is palindrome, otherwise False",
     "constraints": "0 < len(x) < 50",
     "gameDifficulty": "EASY",

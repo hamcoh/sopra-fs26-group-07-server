@@ -1,7 +1,7 @@
 {
     "title": "Find All Anagrams",
     "description": "Given a string x containing a main word and a target word separated by a comma (e.g., 'cbaebabacd,abc'), find all start indices of the target word's anagrams inside the main word. Return the indices as a comma-separated string.",
-    "inputFormat": "Two words separated by a comma",
+    "inputFormat": "Two words separated by a comma, you might need to parse the input",
     "outputFormat": "Comma-separated string of start indices",
     "constraints": "1 <= x.length <= 30000",
     "gameDifficulty": "HARD",

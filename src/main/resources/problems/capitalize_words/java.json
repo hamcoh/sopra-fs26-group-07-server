@@ -1,7 +1,7 @@
 {
     "title": "Capitalize Words",
     "description": "Given a string x representing a sentence, capitalize the first letter of each word.",
-    "inputFormat": "A string x containing words separated by spaces",
+    "inputFormat": "A string x containing words separated by spaces, you might need to parse the input",
     "outputFormat": "A string with capitalized words",
     "constraints": "1 <= x.length <= 1000",
     "gameDifficulty": "EASY",

@@ -1,7 +1,7 @@
 {
     "title": "Longest Substring Without Repeating Characters",
     "description": "Given a string x, find the length of the longest substring without repeating characters.",
-    "inputFormat": "A single string x",
+    "inputFormat": "A single string x, you might need to parse the input",
     "outputFormat": "Integer representing the length of the longest valid substring",
     "constraints": "0 <= x.length <= 50000",
     "gameDifficulty": "HARD",

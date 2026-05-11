@@ -1,7 +1,7 @@
 {
     "title": "First Missing Positive Integer",
     "description": "Given an unsorted string of integers separated by commas (e.g., '3,4,-1,1'), find the smallest missing positive integer.",
-    "inputFormat": "A string x of comma-separated integers",
+    "inputFormat": "A string x of comma-separated integers, you might need to parse the input",
     "outputFormat": "The smallest missing positive integer",
     "constraints": "1 <= numbers in string <= 100000",
     "gameDifficulty": "HARD",

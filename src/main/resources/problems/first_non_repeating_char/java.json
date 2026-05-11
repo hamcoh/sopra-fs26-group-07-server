@@ -1,7 +1,7 @@
 {
     "title": "First Non-Repeating Character",
     "description": "Given a string x, find the first non-repeating character and return it as a string. If it doesn't exist, return an empty string.",
-    "inputFormat": "A string x",
+    "inputFormat": "A string x, you might need to parse the input",
     "outputFormat": "A string of length 1",
     "constraints": "1 <= x.length <= 1000",
     "gameDifficulty": "EASY",

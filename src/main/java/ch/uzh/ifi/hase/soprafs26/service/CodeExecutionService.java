@@ -248,17 +248,34 @@ public class CodeExecutionService {
         }
 
         if (requestBody.getSourceCode() == null || requestBody.getSourceCode().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source code is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code cannot be empty");
         }
 
         String code = requestBody.getSourceCode();
-        if (!code.contains("def solve")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
+        GameLanguage language = problem.getGameLanguage();
+
+        // Language-Specific edgecase checks
+        if (language == GameLanguage.PYTHON) {
+            if (!code.contains("def solve")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
+            }
+        } else if (language == GameLanguage.JAVA) {
+            // More forgiving check: allows spacing changes or variable name changes
+            if (!code.contains("Object solve(String")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the method signature: Object solve(String ...)");
+            }
+            if (!code.contains("class Solution")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must be wrapped in: class Solution");
+            }
+            if (!code.contains("static")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your solve method must be static.");
+            }
         }
+
+        // Check if any language has a "return" statement
         if (!code.contains("return")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain a return statement.");
         }
-
     }
 
     private Submission createSubmission(long gameSessionId,
@@ -390,12 +407,34 @@ public class CodeExecutionService {
                 + "class Main {\n"
                 + "    public static void main(String[] args) {\n"
                 + "        java.util.Scanner scanner = new java.util.Scanner(System.in);\n"
-                + "        // \\A is a regex boundary that means 'beginning of the input'. \n"
-                + "        // This forces the scanner to read the entire input (including spaces/newlines) at once.\n"
                 + "        scanner.useDelimiter(\"\\\\A\");\n"
-                + "        String x = scanner.hasNext() ? scanner.next().trim() : \"\";\n"
+                + "        String x = scanner.hasNext() ? scanner.next() : \"\";\n"
                 + "        \n"
-                + "        System.out.println(Solution.solve(x));\n"
+                + "        // Safely remove only the trailing newline without destroying intentional trailing spaces\n"
+                + "        if (x.endsWith(\"\\n\")) { x = x.substring(0, x.length() - 1); }\n"
+                + "        if (x.endsWith(\"\\r\")) { x = x.substring(0, x.length() - 1); }\n"
+                + "        \n"
+                + "        // Execute user code\n"
+                + "        Object result = Solution.solve(x);\n"
+                + "        \n"
+                + "        // Safely print arrays so they don't output memory addresses (e.g. [I@15db9742)\n"
+                + "        if (result instanceof int[]) {\n"
+                + "            System.out.println(java.util.Arrays.toString((int[]) result));\n"
+                + "        } else if (result instanceof double[]) {\n"
+                + "            System.out.println(java.util.Arrays.toString((double[]) result));\n"
+                + "        } else if (result instanceof long[]) {\n"
+                + "            System.out.println(java.util.Arrays.toString((long[]) result));\n"
+                + "        } else if (result instanceof char[]) {\n"
+                + "            System.out.println(java.util.Arrays.toString((char[]) result));\n"
+                + "        } else if (result instanceof boolean[]) {\n"
+                + "            System.out.println(java.util.Arrays.toString((boolean[]) result));\n"
+                + "        } else if (result instanceof Object[]) {\n"
+                + "            System.out.println(java.util.Arrays.deepToString((Object[]) result));\n"
+                + "        } else {\n"
+                + "            // Strings, Integers, Booleans, and Lists (ArrayList) will fall here and print perfectly\n"
+                + "            System.out.println(result);\n"
+                + "        }\n"
+                + "        \n"
                 + "        scanner.close();\n"
                 + "    }\n"
                 + "}\n";

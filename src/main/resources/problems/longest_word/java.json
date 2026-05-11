@@ -1,7 +1,7 @@
 {
     "title": "Longest Word",
     "description": "Given a sentence x containing only lowercase alphabetic characters and spaces, return the longest word. If two words have the same length, return the first one. For instance: Input='i love python', Output='python'",
-    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces",
+    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces, you might need to parse the input",
     "outputFormat": "The string in x that is the longest in its original format",
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",
