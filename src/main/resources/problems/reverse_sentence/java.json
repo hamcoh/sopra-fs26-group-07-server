@@ -1,7 +1,7 @@
 {
     "title": "Reverse Sentence",
     "description": "Given a sentence x containing only lowercase alphabetic characters and spaces, return the sentence with the order of words reversed. For instance: Input='hello world', Output='world hello'",
-    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces",
+    "inputFormat": "A sentence x containing only lowercase alphabetic characters and spaces, you might need to parse the input",
     "outputFormat": "Sentence x reversed (as a string)",
     "constraints": "0 < len(x) < 30",
     "gameDifficulty": "EASY",

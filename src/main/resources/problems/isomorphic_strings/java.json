@@ -1,7 +1,7 @@
 {
     "title": "Isomorphic Strings",
     "description": "Given a string x containing two words separated by a comma (e.g., 'egg,add'), determine if the two words are isomorphic. Two strings are isomorphic if the characters in the first can be replaced to get the second.",
-    "inputFormat": "Two strings separated by a comma",
+    "inputFormat": "Two strings separated by a comma, you might need to parse the input",
     "outputFormat": "Boolean (true or false)",
     "constraints": "Length of each word <= 50000",
     "gameDifficulty": "HARD",

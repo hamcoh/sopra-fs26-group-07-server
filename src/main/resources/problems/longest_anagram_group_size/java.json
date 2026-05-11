@@ -1,7 +1,7 @@
 {
     "title": "Largest Anagram Group Size",
     "description": "Given a string x containing a comma-separated list of words (e.g., 'eat,tea,tan,ate,nat,bat'), return the size of the largest group of anagrams.",
-    "inputFormat": "A string x containing words separated by commas",
+    "inputFormat": "A string x containing words separated by commas, you might need to parse the input",
     "outputFormat": "Integer representing the max group size",
     "constraints": "1 <= x.length <= 10000",
     "gameDifficulty": "HARD",

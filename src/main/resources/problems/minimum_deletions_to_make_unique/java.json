@@ -1,7 +1,7 @@
 {
     "title": "Minimum Deletions for Unique Frequencies",
     "description": "Given a string x, find the minimum number of character deletions required so that no two different characters have the exact same frequency.",
-    "inputFormat": "A string x",
+    "inputFormat": "A string x, you might need to parse the input",
     "outputFormat": "Integer representing the number of deletions",
     "constraints": "1 <= x.length <= 100000",
     "gameDifficulty": "HARD",

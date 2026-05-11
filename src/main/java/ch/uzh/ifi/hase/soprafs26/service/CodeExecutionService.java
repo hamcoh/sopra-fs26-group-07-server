@@ -260,11 +260,15 @@ public class CodeExecutionService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
             }
         } else if (language == GameLanguage.JAVA) {
-            if (!code.contains("public static int solve(String x)")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain: public static int solve(String x)");
+            // More forgiving check: allows spacing changes or variable name changes
+            if (!code.contains("Object solve(String")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the method signature: Object solve(String ...)");
             }
             if (!code.contains("class Solution")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must be wrapped in: class Solution, which is given by default");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must be wrapped in: class Solution");
+            }
+            if (!code.contains("static")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your solve method must be static.");
             }
         }
 

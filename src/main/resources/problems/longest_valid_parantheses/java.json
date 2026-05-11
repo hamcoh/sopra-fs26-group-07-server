@@ -1,7 +1,7 @@
 {
     "title": "Longest Valid Parentheses",
     "description": "Given a string x containing just the characters '(' and ')', return the length of the longest valid (well-formed) parentheses substring.",
-    "inputFormat": "A string x of parentheses",
+    "inputFormat": "A string x of parentheses, you might need to parse the input",
     "outputFormat": "Integer representing the maximum valid length",
     "constraints": "0 <= x.length <= 30000",
     "gameDifficulty": "HARD",

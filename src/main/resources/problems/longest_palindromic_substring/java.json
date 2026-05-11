@@ -1,7 +1,7 @@
 {
     "title": "Longest Palindromic Substring",
     "description": "Given a string x, return the longest palindromic substring in x.",
-    "inputFormat": "A single string x",
+    "inputFormat": "A single string x, you might need to parse the input",
     "outputFormat": "A string representing the longest palindrome",
     "constraints": "1 <= x.length <= 1000",
     "gameDifficulty": "HARD",

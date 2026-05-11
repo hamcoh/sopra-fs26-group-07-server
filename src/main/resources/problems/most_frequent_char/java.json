@@ -1,7 +1,7 @@
 {
     "title": "Most Frequent Character",
     "description": "Given a string x, return the character that appears most frequently. If there is a tie, return the one that appears first in the string. Ignore spaces.",
-    "inputFormat": "A string x",
+    "inputFormat": "A string x, you might need to parse the input",
     "outputFormat": "A string containing the most frequent character",
     "constraints": "1 <= x.length <= 1000",
     "gameDifficulty": "EASY",

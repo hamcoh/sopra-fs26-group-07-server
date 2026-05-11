@@ -1,7 +1,7 @@
 {
     "title": "Remove Adjacent Duplicates",
     "description": "Given a string x, remove consecutive duplicate characters. For example, 'aabbcc' becomes 'abc', and 'mississippi' becomes 'misisipi'.",
-    "inputFormat": "A string x",
+    "inputFormat": "A string x, you might need to parse the input",
     "outputFormat": "A string without adjacent duplicates",
     "constraints": "1 <= x.length <= 1000",
     "gameDifficulty": "EASY",
