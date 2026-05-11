@@ -248,17 +248,30 @@ public class CodeExecutionService {
         }
 
         if (requestBody.getSourceCode() == null || requestBody.getSourceCode().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source code is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code cannot be empty");
         }
 
         String code = requestBody.getSourceCode();
-        if (!code.contains("def solve")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
+        GameLanguage language = problem.getGameLanguage();
+
+        // Language-Specific edgecase checks
+        if (language == GameLanguage.PYTHON) {
+            if (!code.contains("def solve")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain the function definition: def solve");
+            }
+        } else if (language == GameLanguage.JAVA) {
+            if (!code.contains("public static int solve(String x)")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain: public static int solve(String x)");
+            }
+            if (!code.contains("class Solution")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must be wrapped in: class Solution, which is given by default");
+            }
         }
+
+        // Check if any language has a "return" statement
         if (!code.contains("return")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain a return statement.");
         }
-
     }
 
     private Submission createSubmission(long gameSessionId,
