@@ -21,6 +21,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeExecutionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.CodeRunDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameRoundDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchRequestDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeBatchResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeResultDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.JudgeStatusDTO;
@@ -32,6 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -984,5 +986,309 @@ class CodeExecutionServiceTest {
         assertNotNull(gameRoundDTO);
         assertInstanceOf(GameRoundDTO.class, gameRoundDTO);
         assertEquals(p3.getProblemId(), gameRoundDTO.getProblemId());
+    }
+
+    // -------- java wrapper tests for validateRequest and wrapJavaCode ----
+
+    /**
+     * Helper method to quickly set up a minimal game session and problem environment for testing Java-specific code validation and wrapping logic.
+     */
+    private CodeExecutionPostDTO setupJavaTestEnvironment(String sourceCode) {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.JAVA); // Explicitly set to Java
+        
+        // Mock a testcase so sendCodeToJudge doesn't fail early
+        TestCase tc = new TestCase();
+        tc.setInput("testInput");
+        tc.setExpectedOutput("testOutput");
+        problem.setTestCases(List.of(tc));
+
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode(sourceCode);
+        
+        return requestBody;
+    }
+
+    @Test
+    void validateRequest_java_missingMethodSignature_throwsBadRequest() {
+        // Code is missing "Object solve(String"
+        String badCode = "class Solution { public static int solve() { return 1; } }";
+        CodeExecutionPostDTO request = setupJavaTestEnvironment(badCode);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> codeExecutionService.runCode(1L, 1L, request));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Object solve(String"));
+    }
+
+    @Test
+    void validateRequest_java_missingClassSolution_throwsBadRequest() {
+        // Code is missing "class Solution"
+        String badCode = "public static Object solve(String x) { return 1; }";
+        CodeExecutionPostDTO request = setupJavaTestEnvironment(badCode);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> codeExecutionService.runCode(1L, 1L, request));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("class Solution"));
+    }
+
+    @Test
+    void validateRequest_java_missingStatic_throwsBadRequest() {
+        // Code is missing "static"
+        String badCode = "class Solution { public Object solve(String x) { return 1; } }";
+        CodeExecutionPostDTO request = setupJavaTestEnvironment(badCode);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> codeExecutionService.runCode(1L, 1L, request));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("static"));
+    }
+
+    @Test
+    void validateRequest_java_missingReturn_throwsBadRequest() {
+        // Valid Java signature, but missing the universal "return" requirement
+        String badCode = "class Solution { public static Object solve(String x) { System.out.println(x); } }";
+        CodeExecutionPostDTO request = setupJavaTestEnvironment(badCode);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
+            () -> codeExecutionService.runCode(1L, 1L, request));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("return statement"));
+    }
+
+    @Test
+    void wrapJavaCode_handlesArraysAndPreservesSpaces() {
+        // Setup valid Java code
+        String validCode = "class Solution { public static Object solve(String x) { return new int[]{1, 2}; } }";
+        CodeExecutionPostDTO request = setupJavaTestEnvironment(validCode);
+
+        // Mock the downstream JudgeService so we can intercept the payload
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("dummy-token");
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        // Execute the service method
+        codeExecutionService.runCode(1L, 1L, request);
+
+        // Intercept the request that was passed to the JudgeService
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        JudgeBatchRequestDTO capturedRequest = captor.getValue();
+        String sentSourceCode = capturedRequest.getSubmissions().get(0).getSource_code();
+
+        // Verify the Trailing Space / Newline fix is present
+        assertFalse(sentSourceCode.contains("x.trim()"), "Should NOT contain dangerous .trim() method!");
+        assertTrue(sentSourceCode.contains("x.endsWith(\"\\n\")"), "Should contain safe newline removal logic.");
+        assertTrue(sentSourceCode.contains("x.substring(0, x.length() - 1)"), "Should contain substring replacement logic.");
+
+        // Verify the Array Hashcode protection is present
+        assertTrue(sentSourceCode.contains("java.util.Arrays.toString((int[]) result)"), "Should safely print integer arrays.");
+        assertTrue(sentSourceCode.contains("java.util.Arrays.deepToString((Object[]) result)"), "Should safely print Object arrays.");
+        
+        // Verify class execution wrapper is present
+        assertTrue(sentSourceCode.contains("class Main"), "Should be wrapped in execution class Main.");
+    }
+
+    // mimicking the actual java test cases
+
+    @Test
+    void runCode_java_validPalindrome_mapsBooleanTestCasesCorrectly() {
+        //  Mock a Boolean Problem (e.g., valid_palindrome)
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.JAVA);
+        
+        // Mimicking valid_palindrome/java.json test cases
+        TestCase tc1 = new TestCase();
+        tc1.setInput("A man, a plan, a canal: Panama");
+        tc1.setExpectedOutput("true"); // Java expects lowercase 'true'
+
+        TestCase tc2 = new TestCase();
+        tc2.setInput("race a car");
+        tc2.setExpectedOutput("false"); // Java expects lowercase 'false'
+        
+        problem.setTestCases(List.of(tc1, tc2));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode("class Solution { public static Object solve(String x) { return true; } }");
+
+        // 2. Mock JudgeService
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("token-1");
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken, mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        // 3. Execute
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        // 4. Verify Payload Sent to Judge0
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        JudgeBatchRequestDTO batchRequest = captor.getValue();
+        assertEquals(2, batchRequest.getSubmissions().size(), "Should contain 2 test cases.");
+        
+        // Assert exactly what Judge0 will evaluate against
+        assertEquals("A man, a plan, a canal: Panama", batchRequest.getSubmissions().get(0).getStdin());
+        // Verify normalizeOutputString appended the newline required by Judge0
+        assertEquals("true\n", batchRequest.getSubmissions().get(0).getExpected_output()); 
+        assertEquals("false\n", batchRequest.getSubmissions().get(1).getExpected_output());
+    }
+
+    @Test
+    void runCode_java_firstMissingPositive_mapsArrayStringTestCasesCorrectly() {
+        // Mock an Array Parsing Problem (e.g., first_missing_positive)
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.JAVA);
+        
+        // Mimicking first_missing_positive/java.json test cases
+        TestCase tc1 = new TestCase();
+        tc1.setInput("[1, 2, 0]");
+        tc1.setExpectedOutput("3");
+
+        TestCase tc2 = new TestCase();
+        tc2.setInput("[3, 4, -1, 1]");
+        tc2.setExpectedOutput("2");
+        
+        problem.setTestCases(List.of(tc1, tc2));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        // Simulating the user parsing the string
+        requestBody.setSourceCode("class Solution { public static Object solve(String x) { return 2; } }");
+
+        // Mock JudgeService
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("token-1");
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken, mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        // Execute
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        // Verify Payload Sent to Judge0
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        JudgeBatchRequestDTO batchRequest = captor.getValue();
+        
+        // Verify the raw string array representation is passed perfectly to stdin
+        assertEquals("[1, 2, 0]", batchRequest.getSubmissions().get(0).getStdin());
+        assertEquals("3\n", batchRequest.getSubmissions().get(0).getExpected_output());
+        assertEquals("[3, 4, -1, 1]", batchRequest.getSubmissions().get(1).getStdin());
+        assertEquals("2\n", batchRequest.getSubmissions().get(1).getExpected_output());
+    }
+
+    @Test
+    void runCode_java_reverseString_preservesIntentionalSpaces() {
+        // Mock a Space-Sensitive String Problem
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.JAVA);
+        
+        TestCase tc1 = new TestCase();
+        tc1.setInput("  hello  "); // Intentional leading and trailing spaces
+        tc1.setExpectedOutput("  olleh  ");
+        
+        problem.setTestCases(List.of(tc1));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode("class Solution { public static Object solve(String x) { return x; } }");
+
+        // Mock JudgeService
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("token-1");
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        // Execute
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        // Verify Payload Sent to Judge0
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        JudgeBatchRequestDTO batchRequest = captor.getValue();
+        
+        // CRITICAL: Ensure the expected output wasn't aggressively trimmed by normalizeOutputString
+        assertEquals("  hello  ", batchRequest.getSubmissions().get(0).getStdin());
+        assertEquals("  olleh  \n", batchRequest.getSubmissions().get(0).getExpected_output());
     }
 }
