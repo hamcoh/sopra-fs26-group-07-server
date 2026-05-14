@@ -16,7 +16,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.util.PasswordHashUtil;
 
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -199,8 +198,8 @@ public class UserService {
 		if(username == null || username.isBlank()){
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is invalid: username cannot be empty or contain only spaces!");
 		}
-		else if (username.length() > 255) { //own: H2-db stores a string by default as VARCHAR(255), hence, check for safety
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is invalid: username cannot exceed 255 characters!");
+		else if (username.length() < 3 || username.length() > 20) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is invalid: username must be between 3 and 20 characters");
 		}
 	}
 
@@ -208,14 +207,17 @@ public class UserService {
 		if(password == null || password.isBlank()){
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password cannot be empty or contain only spaces!");
 		}
-		else if (password.length() > 255) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password cannot exceed 255 characters!");
+		else if (password.length() < 8 || password.length() > 100) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password must be between 8 and 100 characters");
+		}
+		else if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&+\\-._#]).*$")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is invalid: password must contain uppercase, lowercase, a number and a symbol");
 		}
 	} 
 
 	private void checkIfBioIsValid(String bio) {
-		if(bio != null && bio.length() > 255){
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bio is invalid: bio cannot exceed 255 characters!");
+		if(bio != null && bio.length() > 50){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bio is invalid: bio cannot exceed 50 characters!");
 		}
 	}
 

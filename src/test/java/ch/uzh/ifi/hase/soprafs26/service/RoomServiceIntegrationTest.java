@@ -39,7 +39,7 @@ class RoomServiceIntegrationTest {
         // given
         User host = new User();
         host.setUsername("ClaudeIusMaximus");
-        host.setPassword("test");
+        host.setPassword("testPassword123@");
         User createdHost = userService.createUser(host);
 
         Room roomInput = new Room();
@@ -70,7 +70,7 @@ class RoomServiceIntegrationTest {
         // given 
         User hostInput = new User();
         hostInput.setUsername("ClaudeIus");
-        hostInput.setPassword("test");
+        hostInput.setPassword("testPassword123@");
         User host = userService.createUser(hostInput);
 
         Room roomInput = new Room();
@@ -82,7 +82,7 @@ class RoomServiceIntegrationTest {
         // and a second registered user
         User guestInput = new User();
         guestInput.setUsername("GeminiIus");
-        guestInput.setPassword("test");
+        guestInput.setPassword("testPassword456@");
         User guest = userService.createUser(guestInput);
 
         // when 

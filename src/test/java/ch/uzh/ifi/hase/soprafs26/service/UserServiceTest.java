@@ -41,7 +41,7 @@ class UserServiceTest {
 		testUser = new User();
 		testUser.setId(1L);
 		testUser.setUsername("testUsername");
-		testUser.setPassword("testPassword");
+		testUser.setPassword("testPassword123@");
         testUser.setAvatarId(5);
 
 		// when -> any object is being save in the userRepository -> return the dummy
@@ -83,17 +83,97 @@ class UserServiceTest {
 		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
 	}
 
+	@Test 
+	void createUser_invalidUsername_notLongEnough_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("te");
+		user.setPassword("Test123@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+
+	}
+
+	@Test 
+	void createUser_invalidUsername_tooLong_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("Maximus Decimus Pythonius");
+		user.setPassword("Test123@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+
+	}
+
+	@Test 
+	void createUser_invalidPassword_notLongEnough_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUser");
+		user.setPassword("Test12@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+
+	}
+
+	@Test 
+	void createUser_invalidPassword_noUppercaseSymbol_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUser");
+		user.setPassword("test123@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+	}
+
+	@Test 
+	void createUser_invalidPassword_noLowercaseSymbol_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUser");
+		user.setPassword("TEST123@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+	}
+
+	@Test 
+	void createUser_invalidPassword_noDigit_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUser");
+		user.setPassword("TESTTEST@");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+	}
+
+	@Test 
+	void createUser_invalidPassword_noSpecialSymbol_throwsBadRequest() {
+
+		User user = new User();
+		user.setId(1L);
+		user.setUsername("testUser");
+		user.setPassword("TESTtest1234");
+
+		assertThrows(ResponseStatusException.class, () -> userService.createUser(user));
+	}
+
 	@Test
 	void loginUser_validInputs_success() {
 		// given: stored user has hashed password
 		String salt = PasswordHashUtil.generateSalt();
-		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword", salt));
+		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword123@", salt));
 		testUser.setSalt(salt);
 		testUser.setStatus(UserStatus.OFFLINE);
 
 		User loginAttempt = new User();
 		loginAttempt.setUsername(testUser.getUsername());
-		loginAttempt.setPassword("testPassword");
+		loginAttempt.setPassword("testPassword123@");
 
 		// when
 		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
@@ -108,13 +188,13 @@ class UserServiceTest {
 	void loginUser_userAlreadyLoggedIn_success() {
 		// given: stored user has hashed password
 		String salt = PasswordHashUtil.generateSalt();
-		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword", salt));
+		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword123@", salt));
 		testUser.setSalt(salt);
 		testUser.setStatus(UserStatus.ONLINE);
 
 		User loginAttempt = new User();
 		loginAttempt.setUsername(testUser.getUsername());
-		loginAttempt.setPassword("testPassword");
+		loginAttempt.setPassword("testPassword123@");
 
 		// when
 		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
@@ -129,12 +209,12 @@ class UserServiceTest {
 	void loginUser_passwordMismatch_throwsException() {
 		// given: stored user has hashed password
 		String salt = PasswordHashUtil.generateSalt();
-		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword", salt));
+		testUser.setPassword(PasswordHashUtil.hashPassword("testPassword123@", salt));
 		testUser.setSalt(salt);
 
 		User loginAttempt = new User();
 		loginAttempt.setUsername("testUsername");
-		loginAttempt.setPassword("wrongPassword");
+		loginAttempt.setPassword("wrongPassword123@");
 
 		//when
 		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
@@ -149,7 +229,7 @@ class UserServiceTest {
 		//given: unknown username
 		User loginAttempt = new User();
 		loginAttempt.setUsername("wrongUsername");
-		loginAttempt.setPassword("testPassword");
+		loginAttempt.setPassword("testPassword123@");
 
 		//when
 		Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
@@ -164,7 +244,7 @@ class UserServiceTest {
 		User user = new User();
 		user.setId(1L);
 		user.setUsername("testUsername");
-		user.setPassword("testPassword");
+		user.setPassword("testPassword123@");
 		user.setStatus(UserStatus.ONLINE);
 		
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -185,12 +265,12 @@ class UserServiceTest {
 		// given
 		User user = new User();
 		user.setId(1L);
-		user.setPassword("oldPassword");
+		user.setPassword("oldTestPassword123@");
 		user.setStatus(UserStatus.ONLINE);
 		user.setToken("oldToken");
 
 		User userInput = new User();
-		userInput.setPassword("newPassword");
+		userInput.setPassword("newTestPassword456@");
 		
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 		Mockito.when(userRepository.findByToken("oldToken")).thenReturn(user);
@@ -200,7 +280,7 @@ class UserServiceTest {
 		
 
 		// then
-		assertEquals(PasswordHashUtil.hashPassword("newPassword", user.getSalt()), user.getPassword());
+		assertEquals(PasswordHashUtil.hashPassword("newTestPassword456@", user.getSalt()), user.getPassword());
 		assertEquals(UserStatus.OFFLINE, user.getStatus());
 		assertNotEquals("oldToken", user.getToken());
 
@@ -293,7 +373,7 @@ class UserServiceTest {
 	@Test
 	void changeBio_bioTooLong_throwsException() {
 		// given
-		String tooLongBio = "a".repeat(256);
+		String tooLongBio = "a".repeat(51);
 
 		// then
 		assertThrows(ResponseStatusException.class, () -> userService.changeBio(tooLongBio, 1L));
