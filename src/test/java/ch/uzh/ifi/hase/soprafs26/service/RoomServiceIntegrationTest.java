@@ -45,7 +45,7 @@ class RoomServiceIntegrationTest {
         Room roomInput = new Room();
         roomInput.setGameDifficulty(GameDifficulty.EASY);
         roomInput.setGameLanguage(GameLanguage.PYTHON);
-        roomInput.setGameMode(GameMode.RACE);
+        roomInput.setGameMode(GameMode.SPRINT_ARCADE);
 
         // when
         Room room = roomService.createRoom(roomInput, createdHost.getId(), createdHost.getToken());
@@ -62,7 +62,7 @@ class RoomServiceIntegrationTest {
         assertTrue(roomDB.getPlayerIds().contains(createdHost.getId()));
         assertEquals(GameDifficulty.EASY, roomDB.getGameDifficulty());
         assertEquals(GameLanguage.PYTHON, roomDB.getGameLanguage());
-        assertEquals(GameMode.RACE, roomDB.getGameMode());
+        assertEquals(GameMode.SPRINT_ARCADE, roomDB.getGameMode());
     }
 
     @Test
@@ -76,7 +76,7 @@ class RoomServiceIntegrationTest {
         Room roomInput = new Room();
         roomInput.setGameDifficulty(GameDifficulty.EASY);
         roomInput.setGameLanguage(GameLanguage.PYTHON);
-        roomInput.setGameMode(GameMode.RACE);
+        roomInput.setGameMode(GameMode.SPRINT_ARCADE);
         Room created = roomService.createRoom(roomInput, host.getId(), host.getToken());
 
         // and a second registered user

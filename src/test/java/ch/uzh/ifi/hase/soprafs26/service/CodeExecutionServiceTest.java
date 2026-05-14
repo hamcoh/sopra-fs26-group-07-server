@@ -129,7 +129,7 @@ class CodeExecutionServiceTest {
         testRoom.setPlayerIds(playerIds);
         testRoom.setGameDifficulty(GameDifficulty.EASY);
         testRoom.setGameLanguage(GameLanguage.PYTHON);
-        testRoom.setGameMode(GameMode.RACE);
+        testRoom.setGameMode(GameMode.SPRINT_ARCADE);
         
         p1 = new Problem();
         p1.setProblemId(1L);
@@ -920,6 +920,65 @@ class CodeExecutionServiceTest {
         // Both save calls inside awardPoints must be skipped when the guard exits early
         verify(submissionRepository, never()).save(submission);
         verify(playerSessionRepository, never()).save(playerSession1);
+    }
+
+    //getLatestSubmissionResult: Sprint Arcade awards coins and totalPoints to the user
+    @Test
+    void getLatestSubmissionResult_sprintArcade_awardsCoinsAndTotalPoints() {
+        testGameSession.getProblems().add(p1);
+        playerSession1.setGameSession(testGameSession);
+        playerSession1.setCurrentScore(0);
+        gameHost.setCoins(0);
+        gameHost.setTotalPoints(0L);
+        Long playerSessionId = playerSession1.getPlayerSessionId();
+
+        Submission submission = new Submission();
+        submission.setGameSessionId(testGameSession.getGameSessionId());
+        submission.setProblemId(p1.getProblemId());
+        submission.setPlayerSessionId(playerSessionId);
+        submission.setStatus(SubmissionStatus.FINISHED);
+        submission.setPassedTestCases(3);
+
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession1);
+        when(problemService.getProblemById(p1.getProblemId())).thenReturn(p1);
+        when(submissionRepository.findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
+                testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId, SubmissionType.SUBMIT)).thenReturn(submission);
+
+        codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
+
+        assertEquals(3, gameHost.getCoins()); // 3 test cases passed = 3 coins
+        assertEquals(3L, gameHost.getTotalPoints().longValue());
+        verify(userRepository, times(1)).save(gameHost);
+    }
+
+    //getLatestSubmissionResult: Sprint Classic does NOT award coins or totalPoints
+    @Test
+    void getLatestSubmissionResult_sprintClassic_doesNotAwardCoinsOrTotalPoints() {
+        testRoom.setGameMode(GameMode.SPRINT_CLASSIC);
+        testGameSession.getProblems().add(p1);
+        playerSession1.setGameSession(testGameSession);
+        playerSession1.setCurrentScore(0);
+        gameHost.setCoins(0);
+        gameHost.setTotalPoints(0L);
+        Long playerSessionId = playerSession1.getPlayerSessionId();
+
+        Submission submission = new Submission();
+        submission.setGameSessionId(testGameSession.getGameSessionId());
+        submission.setProblemId(p1.getProblemId());
+        submission.setPlayerSessionId(playerSessionId);
+        submission.setStatus(SubmissionStatus.FINISHED);
+        submission.setPassedTestCases(3);
+
+        when(playerSessionRepository.findByPlayerSessionId(playerSessionId)).thenReturn(playerSession1);
+        when(problemService.getProblemById(p1.getProblemId())).thenReturn(p1);
+        when(submissionRepository.findTopByGameSessionIdAndProblemIdAndPlayerSessionIdAndTypeOrderBySubmissionIdDesc(
+                testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId, SubmissionType.SUBMIT)).thenReturn(submission);
+
+        codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
+
+        assertEquals(0, gameHost.getCoins()); // Coins NOT awarded in Sprint Classic
+        assertEquals(0L, gameHost.getTotalPoints().longValue());
+        verify(userRepository, never()).save(any()); // No user save in Sprint Classic
     }
 
     //getLatestSubmissionResult: last problem should end the game

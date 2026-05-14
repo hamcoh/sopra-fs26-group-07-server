@@ -159,7 +159,7 @@ class GameServiceTest {
         testRoom.setPlayerIds(playerIds);
         testRoom.setGameDifficulty(GameDifficulty.EASY);
         testRoom.setGameLanguage(GameLanguage.PYTHON);
-        testRoom.setGameMode(GameMode.RACE);
+        testRoom.setGameMode(GameMode.SPRINT_ARCADE);
 
         given(gameSessionRepository.save(any(GameSession.class))).willAnswer(i -> i.getArgument(0));
     }
@@ -553,11 +553,28 @@ class GameServiceTest {
 
         gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
 
-        verify(userRepository, times(2)).saveAndFlush(any(User.class));
+        // 2 players × 2 saveAndFlush calls each (stats update + coin reset)
+        verify(userRepository, times(4)).saveAndFlush(any(User.class));
+    }
+
+    //coins are reset to 0 for all players when the game ends
+    @Test
+    void endGameSession_resetsCoinsToZeroForAllPlayers_success() {
+        gameHost.setCoins(30);
+        player2.setCoins(10);
+
+        PlayerSession ps1 = buildPlayerSession(1L, gameHost, 5, 2);
+        PlayerSession ps2 = buildPlayerSession(2L, player2, 3, 1);
+        GameSession gs = buildGameSession(99L, ps1, ps2);
+
+        gameService.endGameSession(gs, GameEndReason.PLAYER_FINISHED);
+
+        assertEquals(0, gameHost.getCoins());
+        assertEquals(0, player2.getCoins());
     }
 
     //gameSessionSampleSolution are included
-    @Test 
+    @Test
     void endGameSession_prepareGameSessionSampleSolutions_success() {
 
         Problem p1 = new Problem();
@@ -968,9 +985,13 @@ class GameServiceTest {
     @Test
     void purchaseSabotage_success_deductsCoinsAndLocksOpponent() {
         // 1. Setup Game Session
+        Room room = new Room();
+        room.setGameMode(GameMode.SPRINT_ARCADE);
+
         GameSession gameSession = new GameSession();
         gameSession.setGameSessionId(1L);
         gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(room);
 
         // 2. Setup Buyer
         User buyer = new User();
@@ -1018,9 +1039,13 @@ class GameServiceTest {
 
     @Test
     void purchaseSabotage_insufficientCoins_throwsBadRequest() {
+        Room room = new Room();
+        room.setGameMode(GameMode.SPRINT_ARCADE);
+
         GameSession gameSession = new GameSession();
         gameSession.setGameSessionId(1L);
         gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(room);
 
         User buyer = new User();
         buyer.setCoins(2); // Not enough coins!
@@ -1053,9 +1078,13 @@ class GameServiceTest {
 
     @Test
     void purchaseSabotage_opponentAlreadyImmune_throwsConflict() {
+        Room room = new Room();
+        room.setGameMode(GameMode.SPRINT_ARCADE);
+
         GameSession gameSession = new GameSession();
         gameSession.setGameSessionId(1L);
         gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(room);
 
         User buyer = new User();
         buyer.setCoins(50); // Has plenty of coins
@@ -1110,6 +1139,44 @@ class GameServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
         assertEquals("Game is not active!", exception.getReason());
+    }
+
+    //shop is blocked in Sprint Classic - purchaseSabotage must throw 403 FORBIDDEN
+    @Test
+    void purchaseSabotage_sprintClassic_throwsForbidden() {
+        Room room = new Room();
+        room.setGameMode(GameMode.SPRINT_CLASSIC);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+        gameSession.setRoom(room);
+
+        User buyer = new User();
+        buyer.setId(10L);
+        buyer.setCoins(20); // Has enough coins, but shop is blocked in Sprint Classic
+
+        PlayerSession buyerSession = new PlayerSession();
+        buyerSession.setPlayerSessionId(100L);
+        buyerSession.setPlayer(buyer);
+        buyerSession.setGameSession(gameSession);
+
+        gameSession.setPlayerSessions(List.of(buyerSession));
+
+        SabotagePostDTO dto = new SabotagePostDTO();
+        dto.setPlayerSessionId(100L);
+        dto.setItem(SabotageType.SQUID_INK_SABOTAGE);
+
+        when(playerSessionRepository.findByPlayerSessionId(100L)).thenReturn(buyerSession);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+            () -> gameService.purchaseSabotage(1L, dto));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+        assertEquals("Shop is not available in this game mode!", exception.getReason());
+        assertEquals(20, buyer.getCoins()); // Coins NOT deducted
+        verify(userRepository, never()).save(any());
+        verify(wsGameService, never()).sendSabotage(any(), any());
     }
 
     // starting a game cancels the room's pending lobby timer

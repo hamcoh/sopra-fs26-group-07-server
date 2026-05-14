@@ -38,7 +38,7 @@ class RoomRepositoryIntegrationTest {
 		room.setPlayerIds(new HashSet<>(Set.of(1L)));
 		room.setGameDifficulty(GameDifficulty.HARD);
 		room.setGameLanguage(GameLanguage.JAVA);
-		room.setGameMode(GameMode.RACE);
+		room.setGameMode(GameMode.SPRINT_ARCADE);
 		room.setMaxSkips(2);
 		room.setTimeLimitSeconds(600);
 		room.setNumOfProblems(10);
@@ -77,7 +77,7 @@ class RoomRepositoryIntegrationTest {
 		room.setPlayerIds(new HashSet<>(Set.of(1L)));
 		room.setGameDifficulty(GameDifficulty.HARD);
 		room.setGameLanguage(GameLanguage.JAVA);
-		room.setGameMode(GameMode.RACE);
+		room.setGameMode(GameMode.SPRINT_ARCADE);
 		room.setMaxSkips(2);
 		room.setTimeLimitSeconds(600);
 		room.setNumOfProblems(10);
@@ -117,7 +117,7 @@ class RoomRepositoryIntegrationTest {
 		room.setPlayerIds(new HashSet<>(Set.of(1L))); //updatable
 		room.setGameDifficulty(GameDifficulty.EASY);
 		room.setGameLanguage(GameLanguage.PYTHON);
-		room.setGameMode(GameMode.SPRINT);
+		room.setGameMode(GameMode.SPRINT_CLASSIC);
 		room.setMaxSkips(2);
 		room.setTimeLimitSeconds(600);
 		room.setNumOfProblems(10);
@@ -134,7 +134,7 @@ class RoomRepositoryIntegrationTest {
 		savedRoom.setHostUserId(5432L);
 		savedRoom.setGameDifficulty(GameDifficulty.HARD);
 		savedRoom.setGameLanguage(GameLanguage.JAVA);
-		savedRoom.setGameMode(GameMode.RACE);
+		savedRoom.setGameMode(GameMode.SPRINT_ARCADE);
 		savedRoom.setMaxSkips(250);
 		savedRoom.setTimeLimitSeconds(24000);
 		savedRoom.setNumOfProblems(15000);
@@ -151,7 +151,7 @@ class RoomRepositoryIntegrationTest {
 		assertEquals(1L, roomToCheck.getHostUserId());
 		assertEquals(GameDifficulty.EASY, roomToCheck.getGameDifficulty());
 		assertEquals(GameLanguage.PYTHON, roomToCheck.getGameLanguage());
-		assertEquals(GameMode.SPRINT, roomToCheck.getGameMode());
+		assertEquals(GameMode.SPRINT_CLASSIC, roomToCheck.getGameMode());
 		assertEquals(2, roomToCheck.getMaxSkips());
 		assertEquals(600, roomToCheck.getTimeLimitSeconds());
 		assertEquals(10, roomToCheck.getNumOfProblems());

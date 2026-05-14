@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.Verdict;
@@ -245,6 +246,13 @@ public class GameService {
             userRepository.saveAndFlush(user);
         }
 
+        // reset coins after the game, coins are only per game!
+        for (PlayerSession ps : playerSessions) {
+            User user = ps.getPlayer();
+            user.setCoins(0);
+            userRepository.saveAndFlush(user);
+        }
+
         GameEndDTO gameEndDTO = new GameEndDTO();
         gameEndDTO.setGameSessionId(gameSession.getGameSessionId());
         gameEndDTO.setGameStatus(gameSession.getGameStatus());
@@ -422,6 +430,11 @@ public class GameService {
         GameSession gameSession = buyerSession.getGameSession();
         if (gameSession.getGameStatus() != GameStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Game is not active!");
+        }
+
+        GameMode gameMode = gameSession.getRoom().getGameMode();
+        if (gameMode != GameMode.SPRINT_ARCADE) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Shop is not available in this game mode!");
         }
 
         // 2) Find the opponent (since it's 1v1, it's the other player in the session)

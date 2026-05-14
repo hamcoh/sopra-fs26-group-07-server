@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameEndReason;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.constant.GameStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.PlayerSessionStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.SubmissionStatus;
@@ -953,11 +954,14 @@ public class CodeExecutionService {
         /*  NEW: Immediately update the User's overall points and coins!
          *  So the user can instantly then use the earned coins.
          */
-        User user = playerSession.getPlayer();
-        user.setCoins(user.getCoins() + achievedPoints);
-        user.setTotalPoints(user.getTotalPoints() + achievedPoints);
-        userRepository.save(user);
-        userRepository.flush();
+        GameMode gameMode = playerSession.getGameSession().getRoom().getGameMode();
+        if (gameMode == GameMode.SPRINT_ARCADE) {
+            User user = playerSession.getPlayer();
+            user.setCoins(user.getCoins() + achievedPoints);
+            user.setTotalPoints(user.getTotalPoints() + achievedPoints);
+            userRepository.save(user);
+            userRepository.flush();
+        }
 
         // Mark points as awarded after all operations succeed to avoid a stale flag on failure
         submission.setPointsAwarded(true);

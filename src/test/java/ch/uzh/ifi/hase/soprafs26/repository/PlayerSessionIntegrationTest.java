@@ -56,7 +56,7 @@ public class PlayerSessionIntegrationTest {
         room.setHostUserId(1L);
         room.setGameDifficulty(GameDifficulty.EASY);
         room.setGameLanguage(GameLanguage.JAVA);
-        room.setGameMode(GameMode.RACE);
+        room.setGameMode(GameMode.SPRINT_ARCADE);
 
         roomRepository.save(room);
         roomRepository.flush();

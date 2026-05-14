@@ -67,7 +67,7 @@ class RoomRestIntegrationTest {
                 .header("userId", host.getId())
                 .header("token", host.getToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.RACE)))
+                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.SPRINT_ARCADE)))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.roomId").exists())
             .andExpect(jsonPath("$.roomJoinCode", matchesPattern("[A-F0-9]{6}")))
@@ -77,7 +77,7 @@ class RoomRestIntegrationTest {
             .andExpect(jsonPath("$.isRoomOpen").value(true))
             .andExpect(jsonPath("$.gameDifficulty").value("EASY"))
             .andExpect(jsonPath("$.gameLanguage").value("PYTHON"))
-            .andExpect(jsonPath("$.gameMode").value("RACE"));
+            .andExpect(jsonPath("$.gameMode").value("SPRINT_ARCADE"));
     }
 
     @Test
@@ -90,7 +90,7 @@ class RoomRestIntegrationTest {
                 .header("userId", host.getId())
                 .header("token", "invalidToken")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.RACE)))
+                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.SPRINT_ARCADE)))
             .andExpect(status().isUnauthorized());
     }
 
@@ -102,7 +102,7 @@ class RoomRestIntegrationTest {
                 .header("userId", host.getId())
                 .header("token", host.getToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.RACE)))
+                .content(roomBody(GameDifficulty.EASY, GameLanguage.PYTHON, GameMode.SPRINT_ARCADE)))
             .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
