@@ -26,7 +26,7 @@ public class GameStatsController {
     }
 
 
-    @GetMapping("problems/stats")
+    @GetMapping("/stats/hardest-problems")
     @ResponseStatus(HttpStatus.OK)
     public List<GameStatsDTO> getMomentaryHardestProblems(
         @RequestHeader(value = "token", required = false) String token,
@@ -35,6 +35,19 @@ public class GameStatsController {
         userService.verifyTokenAndUserId(token, userId);
 
         List<GameStatsDTO> gameStatsDTO = gameStatsService.getHardestProblemsAndPlayerResults(userId);
+
+        return gameStatsDTO;
+    }
+
+    @GetMapping("/stats/popular-problems")
+    @ResponseStatus(HttpStatus.OK)
+    public List<GameStatsDTO> getMomentaryMostPopularProblems(
+        @RequestHeader(value = "token", required = false) String token,
+        @RequestHeader(value = "userId", required = false) Long userId) {
+
+        userService.verifyTokenAndUserId(token, userId);
+
+        List<GameStatsDTO> gameStatsDTO = gameStatsService.getMostPopularProblemsAndPlayerResults(userId);
 
         return gameStatsDTO;
     }

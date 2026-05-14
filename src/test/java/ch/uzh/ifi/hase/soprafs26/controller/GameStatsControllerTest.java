@@ -98,7 +98,7 @@ public class GameStatsControllerTest {
         doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
         Mockito.when(gameStatsService.getHardestProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
         
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);
@@ -136,7 +136,7 @@ public class GameStatsControllerTest {
         doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
         Mockito.when(gameStatsService.getHardestProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
 
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);
@@ -164,7 +164,7 @@ public class GameStatsControllerTest {
         String errorReason = "Statistics unavailable: no problem has been played at least 3 times!";
 		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason)).when(gameStatsService).getHardestProblemsAndPlayerResults(Mockito.any());
 
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);

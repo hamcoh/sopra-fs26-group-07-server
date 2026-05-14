@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
 import jakarta.transaction.Transactional;
@@ -34,7 +35,14 @@ public class GameStatsService {
 
         return hardestProblemsAndPlayerResults;
     }
-    
+
+    public List<GameStatsDTO> getMostPopularProblemsAndPlayerResults(Long userId) {
+
+        List<GameStatsDTO> mostPopularProblems = getMostPopularProblemsList();
+        List<GameStatsDTO> mostPopularProblemsAndPlayerResults = getPlayerStats(userId, mostPopularProblems);
+
+        return mostPopularProblemsAndPlayerResults;
+    }
 
     private List<GameStatsDTO> getHardestProblemsList() {
 
@@ -46,20 +54,22 @@ public class GameStatsService {
 
         log.info("Retrieved problems: {}", hardestProblems.size());
 
-        List<GameStatsDTO> gameStatsDTOList = new ArrayList<>();
+        List<GameStatsDTO> gameStatsDTOList = prepareGameStatsDTOList(hardestProblems);
 
-        for (Object[] hp : hardestProblems) {
+        return gameStatsDTOList;
+    }
 
-            GameStatsDTO gameStatsDTO = new GameStatsDTO();
-            gameStatsDTO.setProblemId(((Number) hp[0]).longValue());
-            gameStatsDTO.setTitle((String) hp[1]);
-            gameStatsDTO.setDescription((String) hp[2]);
-            gameStatsDTO.setSumPassedTestCases(((Number) hp[3]).longValue());
-            gameStatsDTO.setSumTotalTestCases(((Number) hp[4]).longValue());
-            gameStatsDTO.setTotalSubmissionCount(((Number) hp[5]).longValue());
-            gameStatsDTO.setTotalSuccessRate(hp[6] != null ? ((Number) hp[6]).doubleValue() : 0.0);
-            gameStatsDTOList.add(gameStatsDTO);
+    private List<GameStatsDTO> getMostPopularProblemsList() {
+
+        List<Object[]> mostPopularProblems = submissionRepository.findMostPopularProblems();
+
+        if (mostPopularProblems.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Statistics unavailable: no problem has been played yet!");
         }
+
+        log.info("Retrieved problems: {}", mostPopularProblems.size());
+
+        List<GameStatsDTO> gameStatsDTOList = prepareGameStatsDTOList(mostPopularProblems);
 
         return gameStatsDTOList;
     }
@@ -80,6 +90,27 @@ public class GameStatsService {
                 gsDTO.setPlayerSumTotalTestCases(((Number) problemStats[2]).longValue());
                 gsDTO.setPlayerSuccessRate(problemStats[3] != null ? ((Number) problemStats[3]).doubleValue() : 0.0);
             }
+        }
+
+        return gameStatsDTOList;
+    }
+
+    private List<GameStatsDTO> prepareGameStatsDTOList(List<Object[]> objectList) {
+
+        List<GameStatsDTO> gameStatsDTOList = new ArrayList<>();
+
+        for (Object[] obj : objectList) {
+
+            GameStatsDTO gameStatsDTO = new GameStatsDTO();
+            gameStatsDTO.setProblemId(((Number) obj[0]).longValue());
+            gameStatsDTO.setTitle((String) obj[1]);
+            gameStatsDTO.setDescription((String) obj[2]);
+            gameStatsDTO.setGameLanguage(GameLanguage.valueOf(obj[3].toString()));
+            gameStatsDTO.setSumPassedTestCases(((Number) obj[4]).longValue());
+            gameStatsDTO.setSumTotalTestCases(((Number) obj[5]).longValue());
+            gameStatsDTO.setTotalSubmissionCount(((Number) obj[6]).longValue());
+            gameStatsDTO.setTotalSuccessRate(obj[7] != null ? ((Number) obj[7]).doubleValue() : 0.0);
+            gameStatsDTOList.add(gameStatsDTO);
         }
 
         return gameStatsDTOList;

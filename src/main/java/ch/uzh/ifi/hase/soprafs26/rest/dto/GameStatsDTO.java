@@ -1,10 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+
 public class GameStatsDTO {
 
     private Long problemId;
     private String title;
-    private String description; 
+    private String description;
+    private GameLanguage gameLanguage; 
 
     private Long sumPassedTestCases;
     private Long sumTotalTestCases;
@@ -33,6 +36,7 @@ public class GameStatsDTO {
     public void setDescription(String description) {
         this.description = description;
     }
+    
     public Long getSumPassedTestCases() {
         return sumPassedTestCases;
     }
@@ -45,7 +49,12 @@ public class GameStatsDTO {
     public void setSumTotalTestCases(Long sumTotalTestCases) {
         this.sumTotalTestCases = sumTotalTestCases;
     }
-
+    public GameLanguage getGameLanguage() {
+        return gameLanguage;
+    }
+    public void setGameLanguage(GameLanguage gameLanguage) {
+        this.gameLanguage = gameLanguage;
+    }
     public Long getTotalSubmissionCount() {
         return totalSubmissionCount;
     }
