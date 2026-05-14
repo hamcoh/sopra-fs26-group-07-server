@@ -951,9 +951,9 @@ class CodeExecutionServiceTest {
         verify(userRepository, times(1)).save(gameHost);
     }
 
-    //getLatestSubmissionResult: Sprint Classic does NOT award coins or totalPoints
+    //getLatestSubmissionResult: Sprint Classic awards totalPoints but NOT coins
     @Test
-    void getLatestSubmissionResult_sprintClassic_doesNotAwardCoinsOrTotalPoints() {
+    void getLatestSubmissionResult_sprintClassic_awardsPointsButNotCoins() {
         testRoom.setGameMode(GameMode.SPRINT_CLASSIC);
         testGameSession.getProblems().add(p1);
         playerSession1.setGameSession(testGameSession);
@@ -977,8 +977,8 @@ class CodeExecutionServiceTest {
         codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
 
         assertEquals(0, gameHost.getCoins()); // Coins NOT awarded in Sprint Classic
-        assertEquals(0L, gameHost.getTotalPoints().longValue());
-        verify(userRepository, never()).save(any()); // No user save in Sprint Classic
+        assertEquals(3L, gameHost.getTotalPoints().longValue()); // totalPoints ARE awarded in Sprint Classic
+        verify(userRepository, times(1)).save(gameHost); 
     }
 
     //getLatestSubmissionResult: last problem should end the game

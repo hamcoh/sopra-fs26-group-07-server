@@ -955,13 +955,15 @@ public class CodeExecutionService {
          *  So the user can instantly then use the earned coins.
          */
         GameMode gameMode = playerSession.getGameSession().getRoom().getGameMode();
+        
+        User user = playerSession.getPlayer();
         if (gameMode == GameMode.SPRINT_ARCADE) {
-            User user = playerSession.getPlayer();
             user.setCoins(user.getCoins() + achievedPoints);
-            user.setTotalPoints(user.getTotalPoints() + achievedPoints);
-            userRepository.save(user);
-            userRepository.flush();
         }
+        user.setTotalPoints(user.getTotalPoints() + achievedPoints);
+        userRepository.save(user);
+        userRepository.flush();
+        
 
         // Mark points as awarded after all operations succeed to avoid a stale flag on failure
         submission.setPointsAwarded(true);
