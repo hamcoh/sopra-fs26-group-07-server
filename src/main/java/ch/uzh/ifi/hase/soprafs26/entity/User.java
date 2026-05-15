@@ -54,6 +54,9 @@ public class User implements Serializable {
 	private int winCount;
 
 	@Column(nullable = false)
+	private int drawCount;
+
+	@Column(nullable = false)
 	private double winRatePercentage;
 
 	@Column(nullable = false)
@@ -189,5 +192,13 @@ public class User implements Serializable {
 
 	public void setCoins(int coins) {
 		this.coins = coins;
+	}
+
+	public int getDrawCount() {
+		return drawCount;
+	}
+
+	public void setDrawCount(int drawCount) {
+		this.drawCount = drawCount;
 	}
 }

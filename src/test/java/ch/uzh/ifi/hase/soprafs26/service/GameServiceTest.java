@@ -126,6 +126,7 @@ class GameServiceTest {
         gameHost.setId(2L);
         gameHost.setUsername("gameHost");
         gameHost.setWinCount(0);
+        gameHost.setDrawCount(0);
 		gameHost.setWinRatePercentage(0.0);
 		gameHost.setTotalGamesPlayed(0);
 		gameHost.setTotalPoints(0L);
@@ -134,6 +135,7 @@ class GameServiceTest {
         player2.setId(3L);
         player2.setUsername("player2");
         player2.setWinCount(0);
+        player2.setDrawCount(0);
 		player2.setWinRatePercentage(0.0);
 		player2.setTotalGamesPlayed(0);
 		player2.setTotalPoints(0L);
@@ -142,6 +144,7 @@ class GameServiceTest {
         player3.setId(4L);
         player3.setUsername("player3");
         player3.setWinCount(0);
+        player3.setDrawCount(0);
 		player3.setWinRatePercentage(0.0);
 		player3.setTotalGamesPlayed(0);
 		player3.setTotalPoints(0L);
@@ -488,6 +491,8 @@ class GameServiceTest {
         GameEndDTO gameEndDTO = captor.getValue();
         assertNull(gameEndDTO.getWinnerPlayerId());
         assertEquals(GameEndReason.TIME_UP, gameEndDTO.getGameEndReason());
+        assertEquals(1, gameHost.getDrawCount());
+        assertEquals(1, player2.getDrawCount());
     }
 
     @Test

@@ -61,6 +61,7 @@ class UserServiceIntegrationTest {
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 		assertEquals(0, createdUser.getWinCount());
+		assertEquals(0, createdUser.getDrawCount());
 		assertEquals(0.0, createdUser.getWinRatePercentage());
 		assertEquals(0, createdUser.getTotalGamesPlayed());
 		assertEquals(0L, createdUser.getTotalPoints());

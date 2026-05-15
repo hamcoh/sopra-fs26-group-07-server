@@ -33,6 +33,7 @@ class UserRepositoryIntegrationTest {
 		user.setStatus(UserStatus.ONLINE);
 		user.setToken("valid_token");
 		user.setWinCount(0);
+		user.setDrawCount(0);
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
@@ -47,15 +48,16 @@ class UserRepositoryIntegrationTest {
 		// then
 		assertNotNull(found.getId());
 		assertNotNull(found.getCreationDate());
-		assertEquals(found.getUsername(), user.getUsername());
-		assertEquals(found.getToken(), user.getToken());
-		assertEquals(found.getStatus(), user.getStatus());
-		assertEquals(found.getBio(), user.getBio());
-		assertEquals(found.getWinCount(), user.getWinCount());
-		assertEquals(found.getWinRatePercentage(), user.getWinRatePercentage());
-		assertEquals(found.getTotalGamesPlayed(), user.getTotalGamesPlayed());
-		assertEquals(found.getTotalPoints(), user.getTotalPoints());
-		assertEquals(found.getAvatarId(), user.getAvatarId());
+		assertEquals(user.getUsername(), found.getUsername());
+		assertEquals(user.getToken(), found.getToken());
+		assertEquals(user.getStatus(), found.getStatus());
+		assertEquals(user.getBio(), found.getBio());
+		assertEquals(user.getWinCount(), found.getWinCount());
+		assertEquals(user.getDrawCount(), found.getDrawCount());
+		assertEquals(user.getWinRatePercentage(), found.getWinRatePercentage());
+		assertEquals(user.getTotalGamesPlayed(), found.getTotalGamesPlayed());
+		assertEquals(user.getTotalPoints(), found.getTotalPoints());
+		assertEquals(user.getAvatarId(), found.getAvatarId());
 	}
 
 	@Test
@@ -83,15 +85,16 @@ class UserRepositoryIntegrationTest {
 		// then
 		assertNotNull(found.getId());
 		assertNotNull(found.getCreationDate());
-		assertEquals(found.getUsername(), user.getUsername());
-		assertEquals(found.getToken(), user.getToken());
-		assertEquals(found.getStatus(), user.getStatus());
-		assertEquals(found.getBio(), user.getBio());
-		assertEquals(found.getWinCount(), user.getWinCount());
-		assertEquals(found.getWinRatePercentage(), user.getWinRatePercentage());
-		assertEquals(found.getTotalGamesPlayed(), user.getTotalGamesPlayed());
-		assertEquals(found.getTotalPoints(), user.getTotalPoints());
-		assertEquals(found.getAvatarId(), user.getAvatarId());
+		assertEquals(user.getUsername(), found.getUsername());
+		assertEquals(user.getToken(), found.getToken());
+		assertEquals(user.getStatus(), found.getStatus());
+		assertEquals(user.getBio(), found.getBio());
+		assertEquals(user.getWinCount(), found.getWinCount());
+		assertEquals(user.getDrawCount(), found.getDrawCount());
+		assertEquals(user.getWinRatePercentage(), found.getWinRatePercentage());
+		assertEquals(user.getTotalGamesPlayed(), found.getTotalGamesPlayed());
+		assertEquals(user.getTotalPoints(), found.getTotalPoints());
+		assertEquals(user.getAvatarId(), found.getAvatarId());
 	}
 
 	@Test

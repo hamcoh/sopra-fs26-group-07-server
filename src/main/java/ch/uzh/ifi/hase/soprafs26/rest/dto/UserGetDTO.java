@@ -12,6 +12,7 @@ public class UserGetDTO {
 	private String bio;
     private Date creationDate;
     private int winCount;
+	private int drawCount;
     private double winRatePercentage;
     private int totalGamesPlayed;
     private long totalPoints;
@@ -67,6 +68,14 @@ public class UserGetDTO {
 		this.winCount = winCount;
 	}
 
+	public int getDrawCount() {
+		return drawCount;
+	}
+
+	public void setDrawCount(int drawCount) {
+		this.drawCount = drawCount;
+	}
+	
 	public double getWinRatePercentage() {
 		return winRatePercentage;
 	}
