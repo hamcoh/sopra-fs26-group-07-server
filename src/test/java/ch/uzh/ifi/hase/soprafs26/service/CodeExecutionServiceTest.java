@@ -928,8 +928,8 @@ class CodeExecutionServiceTest {
         testGameSession.getProblems().add(p1);
         playerSession1.setGameSession(testGameSession);
         playerSession1.setCurrentScore(0);
-        gameHost.setCoins(0);
-        gameHost.setTotalPoints(0L);
+        gameHost.setCoins(7);
+        gameHost.setTotalPoints(10L);
         Long playerSessionId = playerSession1.getPlayerSessionId();
 
         Submission submission = new Submission();
@@ -946,8 +946,8 @@ class CodeExecutionServiceTest {
 
         codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
 
-        assertEquals(3, gameHost.getCoins()); // 3 test cases passed = 3 coins
-        assertEquals(3L, gameHost.getTotalPoints().longValue());
+        assertEquals(10, gameHost.getCoins()); // existing coins are increased by achieved points
+        assertEquals(13L, gameHost.getTotalPoints().longValue());
         verify(userRepository, times(1)).save(gameHost);
     }
 
@@ -958,8 +958,8 @@ class CodeExecutionServiceTest {
         testGameSession.getProblems().add(p1);
         playerSession1.setGameSession(testGameSession);
         playerSession1.setCurrentScore(0);
-        gameHost.setCoins(0);
-        gameHost.setTotalPoints(0L);
+        gameHost.setCoins(9);
+        gameHost.setTotalPoints(10L);
         Long playerSessionId = playerSession1.getPlayerSessionId();
 
         Submission submission = new Submission();
@@ -976,8 +976,8 @@ class CodeExecutionServiceTest {
 
         codeExecutionService.getLatestSubmissionResult(testGameSession.getGameSessionId(), p1.getProblemId(), playerSessionId);
 
-        assertEquals(0, gameHost.getCoins()); // Coins NOT awarded in Sprint Classic
-        assertEquals(3L, gameHost.getTotalPoints().longValue()); // totalPoints ARE awarded in Sprint Classic
+        assertEquals(9, gameHost.getCoins()); // Coins stay unchanged in Sprint Classic
+        assertEquals(13L, gameHost.getTotalPoints().longValue()); // totalPoints ARE awarded in Sprint Classic
         verify(userRepository, times(1)).save(gameHost); 
     }
 
