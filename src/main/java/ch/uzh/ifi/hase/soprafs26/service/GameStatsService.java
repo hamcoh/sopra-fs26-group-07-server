@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,9 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerWrappedDTO;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -57,6 +61,49 @@ public class GameStatsService {
         List<GameStatsDTO> gameStatsDTOList = prepareGameStatsDTOList(hardestProblems);
 
         return gameStatsDTOList;
+    }
+
+    public PlayerWrappedDTO getGameplaySummary(Long userId) {
+
+        Object[] playerWrappedStats = getPlayerWrappedStats(userId);
+        List<String> playerEnumStats = getPlayerEnumStats(userId);
+
+        PlayerWrappedDTO playerWrappedDTO = new PlayerWrappedDTO();
+        playerWrappedDTO.setUsername((String) playerWrappedStats[0]);
+        playerWrappedDTO.setTotalGamesPlayed(((Number) playerWrappedStats[1]).intValue());
+        playerWrappedDTO.setWinCount(((Number) playerWrappedStats[2]).intValue());
+        playerWrappedDTO.setPlayerSumPassedTestCases(((Number) playerWrappedStats[3]).longValue());
+        playerWrappedDTO.setPlayerSumTotalTestCases(((Number) playerWrappedStats[4]).longValue());
+        playerWrappedDTO.setTotalProblemsSolvedFullyCorrect(((Number) playerWrappedStats[5]).intValue());
+        playerWrappedDTO.setPercentileRank(((Number) playerWrappedStats[6]).doubleValue());
+
+        playerWrappedDTO.setFavGameLanguage(playerEnumStats.get(0) != null ? GameLanguage.valueOf(playerEnumStats.get(0)) : null);
+        playerWrappedDTO.setFavGameDifficulty(playerEnumStats.get(1) != null ? GameDifficulty.valueOf(playerEnumStats.get(1)) : null);
+        playerWrappedDTO.setFavGameMode(playerEnumStats.get(2) != null ? GameMode.valueOf(playerEnumStats.get(2)) : null);
+
+        return playerWrappedDTO;
+    }
+
+    public Object[] getPlayerWrappedStats(Long userId) {
+
+        List<Object[]> playerWrappedStats = submissionRepository.findPlayerWrappedStats(userId);
+
+        if (playerWrappedStats == null || playerWrappedStats.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Statistics unavailable: player has no submissions yet!");
+        }
+
+        return playerWrappedStats.get(0);
+    }
+
+    public List<String> getPlayerEnumStats(Long userId) {
+
+        List<Object[]> playerEnumStats = submissionRepository.findPlayerEnumStats(userId);
+
+        String favouriteGameLanguage = getMostFrequent(playerEnumStats, 0);
+        String favouriteGameDifficulty = getMostFrequent(playerEnumStats, 1);
+        String favouriteGameMode = getMostFrequent(playerEnumStats, 2);
+
+        return Arrays.asList(favouriteGameLanguage, favouriteGameDifficulty, favouriteGameMode);
     }
 
     private List<GameStatsDTO> getMostPopularProblemsList() {
@@ -114,6 +161,18 @@ public class GameStatsService {
         }
 
         return gameStatsDTOList;
+    }
+    /*
+    Helper method to extract the most frequent element within a column
+     */
+    private String getMostFrequent(List<Object[]> rows, int index) {
+        return rows.stream()
+        .map(row -> row[index].toString())
+        .collect(Collectors.groupingBy(v -> v, Collectors.counting()))
+        .entrySet().stream()
+        .max(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .orElse(null);
     }
 } 
 
