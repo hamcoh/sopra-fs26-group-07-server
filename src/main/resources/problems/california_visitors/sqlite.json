@@ -1,0 +1,38 @@
+{
+    "title": "Park Visitors by Region",
+    "description": "You are given three tables: regions, parks in each region, and visit records. Find distinct visitor names who have visited at least one park in the 'California' region, ordered alphabetically.",
+    "inputFormat": "regions(id, name, country)\nparks(id, name, region_id)\nvisits(id, park_id, visitor_name)",
+    "outputFormat": "One visitor name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter by region name. Include ORDER BY visitor_name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT v.visitor_name FROM visits v JOIN parks p ON v.park_id = p.id JOIN regions r ON p.region_id = r.id WHERE r.name = 'California' ORDER BY v.visitor_name;",
+    "hint": "Join visits → parks → regions, filter WHERE region name = 'California', then use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE parks (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE visits (id INTEGER, park_id INTEGER, visitor_name TEXT); INSERT INTO regions VALUES (1,'California','US'),(2,'Texas','US'),(3,'Florida','US'); INSERT INTO parks VALUES (1,'Yosemite',1),(2,'Big Sur',1),(3,'Zion',2),(4,'Everglades',3); INSERT INTO visits VALUES (1,1,'Alice'),(2,1,'Bob'),(3,2,'Alice'),(4,3,'Charlie'),(5,4,'Diana');",
+            "expectedOutput": "Alice\nBob\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE parks (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE visits (id INTEGER, park_id INTEGER, visitor_name TEXT); INSERT INTO regions VALUES (1,'California','US'),(2,'Oregon','US'),(3,'Nevada','US'); INSERT INTO parks VALUES (1,'Muir Woods',1),(2,'Crater Lake',2),(3,'Valley of Fire',3); INSERT INTO visits VALUES (1,1,'Eve'),(2,2,'Frank'),(3,1,'Grace'),(4,3,'Hank'),(5,1,'Frank');",
+            "expectedOutput": "Eve\nFrank\nGrace\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE parks (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE visits (id INTEGER, park_id INTEGER, visitor_name TEXT); INSERT INTO regions VALUES (1,'California','US'),(2,'Arizona','US'); INSERT INTO parks VALUES (1,'Joshua Tree',1),(2,'Grand Canyon',2); INSERT INTO visits VALUES (1,2,'Iris'),(2,2,'Jack');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE parks (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE visits (id INTEGER, park_id INTEGER, visitor_name TEXT); INSERT INTO regions VALUES (1,'California','US'),(2,'Utah','US'); INSERT INTO parks VALUES (1,'Sequoia',1),(2,'Arches',2); INSERT INTO visits VALUES (1,1,'Kate'),(2,1,'Leo'),(3,1,'Mia'),(4,2,'Nan');",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE parks (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE visits (id INTEGER, park_id INTEGER, visitor_name TEXT); INSERT INTO regions VALUES (1,'California','US'),(2,'Washington','US'); INSERT INTO parks VALUES (1,'Point Reyes',1),(2,'Olympic',2); INSERT INTO visits VALUES (1,1,'Owen'),(2,1,'Owen'),(3,2,'Owen');",
+            "expectedOutput": "Owen\n"
+        }
+    ]
+}

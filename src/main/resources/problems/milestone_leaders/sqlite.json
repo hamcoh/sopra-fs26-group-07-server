@@ -1,0 +1,38 @@
+{
+    "title": "Milestone Leaders",
+    "description": "You are given four tables: departments, employees, projects, and milestones. Each milestone belongs to a project and tracks the responsible employee. Find names of employees responsible for more than 2 completed milestones (status = 'done'), ordered alphabetically.",
+    "inputFormat": "departments(id, name, budget)\nemployees(id, name, dept_id)\nprojects(id, title, employee_id, start_year)\nmilestones(id, project_id, name, status)",
+    "outputFormat": "One employee name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Filter WHERE status = 'done'. Use HAVING COUNT(*) > 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT e.name FROM employees e JOIN projects p ON e.id = p.employee_id JOIN milestones m ON p.id = m.project_id WHERE m.status = 'done' GROUP BY e.id, e.name HAVING COUNT(*) > 2 ORDER BY e.name;",
+    "hint": "Join employees → projects → milestones, filter status = 'done', GROUP BY employee, HAVING COUNT(*) > 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, budget INTEGER); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, employee_id INTEGER, start_year INTEGER); CREATE TABLE milestones (id INTEGER, project_id INTEGER, name TEXT, status TEXT); INSERT INTO departments VALUES (1,'R&D',500000),(2,'Product',300000); INSERT INTO employees VALUES (1,'Alice',1),(2,'Bob',1),(3,'Carol',2); INSERT INTO projects VALUES (1,'Proj A',1,2023),(2,'Proj B',2,2024),(3,'Proj C',3,2023); INSERT INTO milestones VALUES (1,1,'Design','done'),(2,1,'Build','done'),(3,1,'Test','done'),(4,2,'Plan','done'),(5,2,'Release','pending'),(6,2,'Review','done'),(7,3,'Init','done');",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, budget INTEGER); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, employee_id INTEGER, start_year INTEGER); CREATE TABLE milestones (id INTEGER, project_id INTEGER, name TEXT, status TEXT); INSERT INTO departments VALUES (1,'Eng',400000),(2,'Ops',200000); INSERT INTO employees VALUES (1,'Dan',1),(2,'Eve',2),(3,'Frank',1),(4,'Grace',2); INSERT INTO projects VALUES (1,'Alpha',1,2023),(2,'Beta',2,2022),(3,'Gamma',3,2024),(4,'Delta',4,2023); INSERT INTO milestones VALUES (1,1,'M1','done'),(2,1,'M2','done'),(3,1,'M3','done'),(4,1,'M4','done'),(5,2,'M1','done'),(6,2,'M2','pending'),(7,2,'M3','pending'),(8,3,'M1','done'),(9,3,'M2','done'),(10,3,'M3','done'),(11,4,'M1','done'),(12,4,'M2','done');",
+            "expectedOutput": "Dan\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, budget INTEGER); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, employee_id INTEGER, start_year INTEGER); CREATE TABLE milestones (id INTEGER, project_id INTEGER, name TEXT, status TEXT); INSERT INTO departments VALUES (1,'Sales',100000); INSERT INTO employees VALUES (1,'Hank',1),(2,'Iris',1); INSERT INTO projects VALUES (1,'CampaignA',1,2024),(2,'CampaignB',2,2024); INSERT INTO milestones VALUES (1,1,'M1','done'),(2,1,'M2','done'),(3,2,'M1','pending'),(4,2,'M2','pending');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, budget INTEGER); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, employee_id INTEGER, start_year INTEGER); CREATE TABLE milestones (id INTEGER, project_id INTEGER, name TEXT, status TEXT); INSERT INTO departments VALUES (1,'IT',600000); INSERT INTO employees VALUES (1,'Jack',1),(2,'Kate',1),(3,'Leo',1); INSERT INTO projects VALUES (1,'SysA',1,2022),(2,'SysB',2,2023),(3,'SysC',3,2024); INSERT INTO milestones VALUES (1,1,'M1','done'),(2,1,'M2','done'),(3,1,'M3','done'),(4,2,'M1','done'),(5,2,'M2','done'),(6,2,'M3','done'),(7,3,'M1','done'),(8,3,'M2','done'),(9,3,'M3','done');",
+            "expectedOutput": "Jack\nKate\nLeo\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, budget INTEGER); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, employee_id INTEGER, start_year INTEGER); CREATE TABLE milestones (id INTEGER, project_id INTEGER, name TEXT, status TEXT); INSERT INTO departments VALUES (1,'Finance',250000); INSERT INTO employees VALUES (1,'Mia',1),(2,'Nan',1); INSERT INTO projects VALUES (1,'Budget2024',1,2024),(2,'Audit',2,2024); INSERT INTO milestones VALUES (1,1,'M1','done'),(2,1,'M2','done'),(3,1,'M3','done'),(4,2,'M1','done'),(5,2,'M2','done'),(6,2,'M3','done');",
+            "expectedOutput": "Mia\nNan\n"
+        }
+    ]
+}

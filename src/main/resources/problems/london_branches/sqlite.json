@@ -1,0 +1,38 @@
+{
+    "title": "London Branches",
+    "description": "You are given three tables: companies, cities, and branches linking companies to cities. Find distinct names of companies that have at least one branch in 'London', ordered alphabetically.",
+    "inputFormat": "companies(id, name, industry)\ncities(id, name, country)\nbranches(id, company_id, city_id, floor_count)",
+    "outputFormat": "One company name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter WHERE city name = 'London'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT co.name FROM companies co JOIN branches b ON co.id = b.company_id JOIN cities c ON b.city_id = c.id WHERE c.name = 'London' ORDER BY co.name;",
+    "hint": "Join companies → branches → cities, filter by city name = 'London', use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE cities (id INTEGER, name TEXT, country TEXT); CREATE TABLE branches (id INTEGER, company_id INTEGER, city_id INTEGER, floor_count INTEGER); INSERT INTO companies VALUES (1,'TechCorp','IT'),(2,'FinBank','Finance'),(3,'RetailCo','Retail'); INSERT INTO cities VALUES (1,'London','UK'),(2,'Paris','France'),(3,'Berlin','Germany'); INSERT INTO branches VALUES (1,1,1,5),(2,1,2,3),(3,2,3,2),(4,3,1,1);",
+            "expectedOutput": "RetailCo\nTechCorp\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE cities (id INTEGER, name TEXT, country TEXT); CREATE TABLE branches (id INTEGER, company_id INTEGER, city_id INTEGER, floor_count INTEGER); INSERT INTO companies VALUES (1,'Startup A','IT'),(2,'Global B','Finance'),(3,'Local C','Retail'); INSERT INTO cities VALUES (1,'London','UK'),(2,'Manchester','UK'),(3,'Edinburgh','UK'); INSERT INTO branches VALUES (1,1,2,2),(2,2,1,10),(3,2,3,5),(4,3,2,1);",
+            "expectedOutput": "Global B\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE cities (id INTEGER, name TEXT, country TEXT); CREATE TABLE branches (id INTEGER, company_id INTEGER, city_id INTEGER, floor_count INTEGER); INSERT INTO companies VALUES (1,'Euro Corp','Trade'),(2,'Asia Inc','Tech'); INSERT INTO cities VALUES (1,'London','UK'),(2,'Paris','France'),(3,'Tokyo','Japan'); INSERT INTO branches VALUES (1,1,2,3),(2,2,3,5);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE cities (id INTEGER, name TEXT, country TEXT); CREATE TABLE branches (id INTEGER, company_id INTEGER, city_id INTEGER, floor_count INTEGER); INSERT INTO companies VALUES (1,'Alpha Co','IT'),(2,'Beta Inc','Finance'),(3,'Gamma Ltd','Retail'); INSERT INTO cities VALUES (1,'London','UK'),(2,'Birmingham','UK'); INSERT INTO branches VALUES (1,1,1,2),(2,2,1,4),(3,3,1,1);",
+            "expectedOutput": "Alpha Co\nBeta Inc\nGamma Ltd\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE cities (id INTEGER, name TEXT, country TEXT); CREATE TABLE branches (id INTEGER, company_id INTEGER, city_id INTEGER, floor_count INTEGER); INSERT INTO companies VALUES (1,'MegaCorp','Pharma'); INSERT INTO cities VALUES (1,'London','UK'),(2,'London','CA'); INSERT INTO branches VALUES (1,1,1,8);",
+            "expectedOutput": "MegaCorp\n"
+        }
+    ]
+}

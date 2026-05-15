@@ -1,0 +1,38 @@
+{
+    "title": "Winning Team Members",
+    "description": "You are given three tables: players belonging to teams, and matches between teams recording the winner. Return the usernames of all players whose team has won at least one match. Order alphabetically.",
+    "inputFormat": "players(id, username, team_id)\nteams(id, name, coach)\nmatches(id, home_team_id, away_team_id, winner_team_id)",
+    "outputFormat": "One username per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use JOIN and DISTINCT. Include ORDER BY username. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT p.username FROM players p JOIN matches m ON p.team_id = m.winner_team_id ORDER BY p.username;",
+    "hint": "Join players with matches on p.team_id = m.winner_team_id. Every player on a winning team qualifies.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE teams (id INTEGER, name TEXT, coach TEXT); CREATE TABLE players (id INTEGER, username TEXT, team_id INTEGER); CREATE TABLE matches (id INTEGER, home_team_id INTEGER, away_team_id INTEGER, winner_team_id INTEGER); INSERT INTO teams VALUES (1,'Red Dragons','Smith'),(2,'Blue Wolves','Jones'),(3,'Green Eagles','Park'); INSERT INTO players VALUES (1,'Alice',1),(2,'Bob',1),(3,'Charlie',2),(4,'Diana',3),(5,'Eve',2); INSERT INTO matches VALUES (1,1,2,1),(2,2,3,2),(3,1,3,1);",
+            "expectedOutput": "Alice\nBob\nCharlie\nEve\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE teams (id INTEGER, name TEXT, coach TEXT); CREATE TABLE players (id INTEGER, username TEXT, team_id INTEGER); CREATE TABLE matches (id INTEGER, home_team_id INTEGER, away_team_id INTEGER, winner_team_id INTEGER); INSERT INTO teams VALUES (1,'Storm','Lee'),(2,'Thunder','Kim'),(3,'Lightning','Cho'); INSERT INTO players VALUES (1,'Frank',1),(2,'Grace',2),(3,'Hank',3),(4,'Iris',1),(5,'Jack',3); INSERT INTO matches VALUES (1,1,3,3),(2,2,3,3),(3,1,2,1);",
+            "expectedOutput": "Frank\nHank\nIris\nJack\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE teams (id INTEGER, name TEXT, coach TEXT); CREATE TABLE players (id INTEGER, username TEXT, team_id INTEGER); CREATE TABLE matches (id INTEGER, home_team_id INTEGER, away_team_id INTEGER, winner_team_id INTEGER); INSERT INTO teams VALUES (1,'Titans','Brown'),(2,'Giants','White'); INSERT INTO players VALUES (1,'Kate',1),(2,'Leo',2),(3,'Mia',1); INSERT INTO matches VALUES (1,1,2,2),(2,1,2,2);",
+            "expectedOutput": "Leo\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE teams (id INTEGER, name TEXT, coach TEXT); CREATE TABLE players (id INTEGER, username TEXT, team_id INTEGER); CREATE TABLE matches (id INTEGER, home_team_id INTEGER, away_team_id INTEGER, winner_team_id INTEGER); INSERT INTO teams VALUES (1,'Aces','Davis'),(2,'Kings','Moore'); INSERT INTO players VALUES (1,'Noah',1),(2,'Olivia',2),(3,'Peter',1),(4,'Quinn',2); INSERT INTO matches VALUES (1,1,2,1),(2,1,2,2);",
+            "expectedOutput": "Noah\nOlivia\nPeter\nQuinn\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE teams (id INTEGER, name TEXT, coach TEXT); CREATE TABLE players (id INTEGER, username TEXT, team_id INTEGER); CREATE TABLE matches (id INTEGER, home_team_id INTEGER, away_team_id INTEGER, winner_team_id INTEGER); INSERT INTO teams VALUES (1,'Warriors','Taylor'),(2,'Knights','Anderson'); INSERT INTO players VALUES (1,'Rex',1),(2,'Sara',2); INSERT INTO matches VALUES (1,1,2,1),(2,2,1,1),(3,1,2,1);",
+            "expectedOutput": "Rex\n"
+        }
+    ]
+}

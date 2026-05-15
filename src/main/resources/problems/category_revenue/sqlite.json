@@ -1,0 +1,38 @@
+{
+    "title": "High-Revenue Product Categories",
+    "description": "You are given four tables: categories, products, orders, and order_items. Find names of product categories whose completed orders generated more than 5000 in total revenue (quantity * price), ordered alphabetically.",
+    "inputFormat": "categories(id, name)\nproducts(id, name, category_id, price)\norders(id, customer, status)\norder_items(id, order_id, product_id, quantity)",
+    "outputFormat": "One category name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Filter WHERE status = 'completed'. Use HAVING SUM(quantity * price) > 5000. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT c.name FROM categories c JOIN products p ON c.id = p.category_id JOIN order_items oi ON p.id = oi.product_id JOIN orders o ON oi.order_id = o.id WHERE o.status = 'completed' GROUP BY c.id, c.name HAVING SUM(oi.quantity * p.price) > 5000 ORDER BY c.name;",
+    "hint": "Join categories → products → order_items → orders, filter completed orders, GROUP BY category, HAVING SUM(oi.quantity * p.price) > 5000.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Electronics'),(2,'Clothing'),(3,'Books'); INSERT INTO products VALUES (1,'Laptop',1,800),(2,'Phone',1,400),(3,'Jacket',2,150),(4,'Novel',3,20); INSERT INTO orders VALUES (1,'Alice','completed'),(2,'Bob','pending'),(3,'Carol','completed'); INSERT INTO order_items VALUES (1,1,1,5),(2,1,2,3),(3,2,3,10),(4,3,1,2),(5,3,3,5);",
+            "expectedOutput": "Electronics\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Sports'),(2,'Home'),(3,'Garden'); INSERT INTO products VALUES (1,'Bike',1,500),(2,'Sofa',2,1200),(3,'Mower',3,800),(4,'Weights',1,300); INSERT INTO orders VALUES (1,'Dan','completed'),(2,'Eve','completed'),(3,'Frank','cancelled'); INSERT INTO order_items VALUES (1,1,1,4),(2,1,4,3),(3,2,2,5),(4,2,3,2),(5,3,1,10);",
+            "expectedOutput": "Home\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Toys'),(2,'Stationery'); INSERT INTO products VALUES (1,'LEGO',1,50),(2,'Pen',2,5); INSERT INTO orders VALUES (1,'Grace','pending'),(2,'Hank','cancelled'); INSERT INTO order_items VALUES (1,1,1,100),(2,2,2,1000);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Furniture'),(2,'Appliances'),(3,'Lighting'); INSERT INTO products VALUES (1,'Table',1,600),(2,'Dishwasher',2,900),(3,'Floor Lamp',3,200); INSERT INTO orders VALUES (1,'Iris','completed'),(2,'Jack','completed'),(3,'Kate','completed'); INSERT INTO order_items VALUES (1,1,1,10),(2,2,2,8),(3,3,3,30);",
+            "expectedOutput": "Appliances\nFurniture\nLighting\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Food'),(2,'Beverages'); INSERT INTO products VALUES (1,'Rice',1,2),(2,'Juice',2,3); INSERT INTO orders VALUES (1,'Leo','completed'); INSERT INTO order_items VALUES (1,1,1,1000),(2,1,2,500);",
+            "expectedOutput": "Beverages\nFood\n"
+        }
+    ]
+}

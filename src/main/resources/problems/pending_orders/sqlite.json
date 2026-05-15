@@ -1,0 +1,38 @@
+{
+    "title": "Troubled Premium Accounts",
+    "description": "You are given three tables: user accounts (with tier), their subscriptions, and support tickets. Return usernames of 'gold' tier accounts that have an active subscription (active = 1) AND at least one unresolved support ticket (resolved = 0). Order alphabetically.",
+    "inputFormat": "accounts(id, username, tier, last_login_year)\nsubscriptions(id, account_id, plan, active)\nsupport_tickets(id, account_id, category, resolved)",
+    "outputFormat": "One username per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use JOIN on both subscriptions and support_tickets with WHERE conditions. Use DISTINCT. Include ORDER BY username. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT a.username FROM accounts a JOIN subscriptions s ON a.id = s.account_id JOIN support_tickets t ON a.id = t.account_id WHERE a.tier = 'gold' AND s.active = 1 AND t.resolved = 0 ORDER BY a.username;",
+    "hint": "Join accounts with both subscriptions and support_tickets, filter by tier, active, and resolved, then use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE accounts (id INTEGER, username TEXT, tier TEXT, last_login_year INTEGER); CREATE TABLE subscriptions (id INTEGER, account_id INTEGER, plan TEXT, active INTEGER); CREATE TABLE support_tickets (id INTEGER, account_id INTEGER, category TEXT, resolved INTEGER); INSERT INTO accounts VALUES (1,'Alice','gold',2023),(2,'Bob','silver',2024),(3,'Charlie','gold',2022),(4,'Diana','gold',2024); INSERT INTO subscriptions VALUES (1,1,'pro',1),(2,2,'basic',1),(3,3,'pro',0),(4,4,'pro',1); INSERT INTO support_tickets VALUES (1,1,'billing',0),(2,1,'tech',1),(3,3,'account',0),(4,4,'billing',1);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE accounts (id INTEGER, username TEXT, tier TEXT, last_login_year INTEGER); CREATE TABLE subscriptions (id INTEGER, account_id INTEGER, plan TEXT, active INTEGER); CREATE TABLE support_tickets (id INTEGER, account_id INTEGER, category TEXT, resolved INTEGER); INSERT INTO accounts VALUES (1,'Eve','gold',2024),(2,'Frank','gold',2023),(3,'Grace','bronze',2024),(4,'Hank','gold',2024); INSERT INTO subscriptions VALUES (1,1,'pro',1),(2,2,'pro',1),(3,3,'basic',1),(4,4,'enterprise',1); INSERT INTO support_tickets VALUES (1,1,'payment',0),(2,2,'access',1),(3,3,'billing',0),(4,4,'tech',0),(5,4,'account',0);",
+            "expectedOutput": "Eve\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE accounts (id INTEGER, username TEXT, tier TEXT, last_login_year INTEGER); CREATE TABLE subscriptions (id INTEGER, account_id INTEGER, plan TEXT, active INTEGER); CREATE TABLE support_tickets (id INTEGER, account_id INTEGER, category TEXT, resolved INTEGER); INSERT INTO accounts VALUES (1,'Iris','gold',2024),(2,'Jack','silver',2024); INSERT INTO subscriptions VALUES (1,1,'pro',1),(2,2,'pro',1); INSERT INTO support_tickets VALUES (1,1,'billing',1),(2,2,'access',0);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE accounts (id INTEGER, username TEXT, tier TEXT, last_login_year INTEGER); CREATE TABLE subscriptions (id INTEGER, account_id INTEGER, plan TEXT, active INTEGER); CREATE TABLE support_tickets (id INTEGER, account_id INTEGER, category TEXT, resolved INTEGER); INSERT INTO accounts VALUES (1,'Kate','gold',2023),(2,'Leo','gold',2024),(3,'Mia','gold',2023); INSERT INTO subscriptions VALUES (1,1,'pro',1),(2,2,'enterprise',1),(3,3,'pro',1); INSERT INTO support_tickets VALUES (1,1,'bug',0),(2,2,'billing',0),(3,3,'access',0);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE accounts (id INTEGER, username TEXT, tier TEXT, last_login_year INTEGER); CREATE TABLE subscriptions (id INTEGER, account_id INTEGER, plan TEXT, active INTEGER); CREATE TABLE support_tickets (id INTEGER, account_id INTEGER, category TEXT, resolved INTEGER); INSERT INTO accounts VALUES (1,'Noah','gold',2024),(2,'Olivia','gold',2024); INSERT INTO subscriptions VALUES (1,1,'pro',1),(2,2,'pro',0); INSERT INTO support_tickets VALUES (1,1,'tech',0),(2,2,'billing',0);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

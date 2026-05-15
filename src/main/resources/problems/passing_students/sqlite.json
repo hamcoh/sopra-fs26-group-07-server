@@ -1,0 +1,38 @@
+{
+    "title": "Passing Students",
+    "description": "You are given three tables: departments, students, and grades. Find names of students who passed (score >= 60) in at least 2 courses, ordered alphabetically.",
+    "inputFormat": "departments(id, name)\nstudents(id, name, dept_id)\ngrades(id, student_id, course, score)",
+    "outputFormat": "One student name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Filter WHERE score >= 60. Use HAVING COUNT(*) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT s.name FROM students s JOIN grades g ON s.id = g.student_id WHERE g.score >= 60 GROUP BY s.id, s.name HAVING COUNT(*) >= 2 ORDER BY s.name;",
+    "hint": "Join students with grades, filter score >= 60, GROUP BY student, HAVING COUNT(*) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'CS'),(2,'Math'); INSERT INTO students VALUES (1,'Alice',1),(2,'Bob',1),(3,'Carol',2); INSERT INTO grades VALUES (1,1,'Algo',75),(2,1,'DB',80),(3,2,'Algo',55),(4,2,'DB',65),(5,3,'Calc',90),(6,3,'Stats',45);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'Physics'),(2,'Biology'); INSERT INTO students VALUES (1,'Dan',1),(2,'Eve',1),(3,'Frank',2),(4,'Grace',2); INSERT INTO grades VALUES (1,1,'Mech',70),(2,1,'Thermo',65),(3,2,'Optics',90),(4,2,'EM',50),(5,3,'Cell',60),(6,3,'Genetics',72),(7,4,'Cell',45),(8,4,'Ecology',55);",
+            "expectedOutput": "Dan\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'History'); INSERT INTO students VALUES (1,'Hank',1),(2,'Iris',1); INSERT INTO grades VALUES (1,1,'Medieval',50),(2,1,'Modern',55),(3,2,'Ancient',45),(4,2,'World',58);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'Chemistry'); INSERT INTO students VALUES (1,'Jack',1),(2,'Kate',1),(3,'Leo',1); INSERT INTO grades VALUES (1,1,'Organic',80),(2,1,'Inorganic',75),(3,2,'Physical',60),(4,2,'Analytical',70),(5,3,'Biochem',90),(6,3,'Polymer',85);",
+            "expectedOutput": "Jack\nKate\nLeo\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'Art'); INSERT INTO students VALUES (1,'Mia',1),(2,'Nan',1); INSERT INTO grades VALUES (1,1,'Drawing',60),(2,1,'Painting',59),(3,2,'Sculpture',61),(4,2,'Design',62);",
+            "expectedOutput": "Mia\nNan\n"
+        }
+    ]
+}

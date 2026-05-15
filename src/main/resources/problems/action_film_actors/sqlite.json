@@ -1,0 +1,38 @@
+{
+    "title": "Action Film Actors",
+    "description": "You are given three tables: actors, films with genres, and a film_cast table. Find distinct names of actors who appeared in at least one 'Action' film, ordered alphabetically.",
+    "inputFormat": "actors(id, name, nationality)\nfilms(id, title, genre, year)\nfilm_cast(id, film_id, actor_id, role)",
+    "outputFormat": "One actor name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter WHERE genre = 'Action'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT a.name FROM actors a JOIN film_cast fc ON a.id = fc.actor_id JOIN films f ON fc.film_id = f.id WHERE f.genre = 'Action' ORDER BY a.name;",
+    "hint": "Join actors → film_cast → films, filter by genre = 'Action', use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE actors (id INTEGER, name TEXT, nationality TEXT); CREATE TABLE films (id INTEGER, title TEXT, genre TEXT, year INTEGER); CREATE TABLE film_cast (id INTEGER, film_id INTEGER, actor_id INTEGER, role TEXT); INSERT INTO actors VALUES (1,'Alice','US'),(2,'Bob','UK'),(3,'Charlie','AU'); INSERT INTO films VALUES (1,'Speed Rush','Action',2020),(2,'The Play','Drama',2019),(3,'High Impact','Action',2021); INSERT INTO film_cast VALUES (1,1,1,'Lead'),(2,1,2,'Support'),(3,2,3,'Lead'),(4,3,1,'Lead');",
+            "expectedOutput": "Alice\nBob\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE actors (id INTEGER, name TEXT, nationality TEXT); CREATE TABLE films (id INTEGER, title TEXT, genre TEXT, year INTEGER); CREATE TABLE film_cast (id INTEGER, film_id INTEGER, actor_id INTEGER, role TEXT); INSERT INTO actors VALUES (1,'Diana','CA'),(2,'Eve','FR'),(3,'Frank','DE'),(4,'Grace','JP'); INSERT INTO films VALUES (1,'Fast Pursuit','Action',2022),(2,'Romance','Drama',2021),(3,'Storm','Action',2023); INSERT INTO film_cast VALUES (1,1,1,'Lead'),(2,1,3,'Support'),(3,2,2,'Lead'),(4,3,4,'Lead'),(5,3,1,'Support');",
+            "expectedOutput": "Diana\nFrank\nGrace\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE actors (id INTEGER, name TEXT, nationality TEXT); CREATE TABLE films (id INTEGER, title TEXT, genre TEXT, year INTEGER); CREATE TABLE film_cast (id INTEGER, film_id INTEGER, actor_id INTEGER, role TEXT); INSERT INTO actors VALUES (1,'Henry','US'),(2,'Iris','UK'); INSERT INTO films VALUES (1,'Romance','Drama',2020),(2,'Comedy Show','Comedy',2021); INSERT INTO film_cast VALUES (1,1,1,'Lead'),(2,2,2,'Lead');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE actors (id INTEGER, name TEXT, nationality TEXT); CREATE TABLE films (id INTEGER, title TEXT, genre TEXT, year INTEGER); CREATE TABLE film_cast (id INTEGER, film_id INTEGER, actor_id INTEGER, role TEXT); INSERT INTO actors VALUES (1,'Jake','AU'),(2,'Kate','NZ'),(3,'Leo','CA'); INSERT INTO films VALUES (1,'Blast','Action',2023),(2,'Laughs','Comedy',2022); INSERT INTO film_cast VALUES (1,1,1,'Lead'),(2,1,2,'Support'),(3,2,3,'Lead');",
+            "expectedOutput": "Jake\nKate\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE actors (id INTEGER, name TEXT, nationality TEXT); CREATE TABLE films (id INTEGER, title TEXT, genre TEXT, year INTEGER); CREATE TABLE film_cast (id INTEGER, film_id INTEGER, actor_id INTEGER, role TEXT); INSERT INTO actors VALUES (1,'Mike','US'),(2,'Nina','DE'); INSERT INTO films VALUES (1,'Thunder','Action',2021),(2,'Lightning','Action',2022),(3,'Calm','Drama',2023); INSERT INTO film_cast VALUES (1,1,1,'Lead'),(2,2,1,'Lead'),(3,2,2,'Support'),(4,3,2,'Lead');",
+            "expectedOutput": "Mike\nNina\n"
+        }
+    ]
+}

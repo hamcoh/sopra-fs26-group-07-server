@@ -1,0 +1,38 @@
+{
+    "title": "Technical Experts",
+    "description": "You are given four tables: departments, employees within them, skills with categories, and employee-skill assignments with proficiency scores (1-5). Return names of employees who have at least 2 skills in the 'Technical' category with proficiency >= 4. Order alphabetically.",
+    "inputFormat": "departments(id, dept_name)\nemployees(id, name, dept_id)\nskills(id, skill_name, category)\nemployee_skills(id, employee_id, skill_id, proficiency)",
+    "outputFormat": "One employee name per line, ordered alphabetically.",
+    "constraints": "Filter by category = 'Technical' AND proficiency >= 4. Use GROUP BY + HAVING COUNT(*) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT e.name FROM employees e JOIN employee_skills es ON e.id = es.employee_id JOIN skills s ON es.skill_id = s.id WHERE s.category = 'Technical' AND es.proficiency >= 4 GROUP BY e.id, e.name HAVING COUNT(*) >= 2 ORDER BY e.name;",
+    "hint": "Join employees → employee_skills → skills, filter by category and proficiency, then GROUP BY employee with HAVING COUNT(*) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, dept_name TEXT); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE skills (id INTEGER, skill_name TEXT, category TEXT); CREATE TABLE employee_skills (id INTEGER, employee_id INTEGER, skill_id INTEGER, proficiency INTEGER); INSERT INTO departments VALUES (1,'Engineering'),(2,'Marketing'); INSERT INTO employees VALUES (1,'Alice',1),(2,'Bob',1),(3,'Charlie',2),(4,'Diana',1); INSERT INTO skills VALUES (1,'Python','Technical'),(2,'SQL','Technical'),(3,'Photoshop','Design'),(4,'Java','Technical'); INSERT INTO employee_skills VALUES (1,1,1,5),(2,1,2,4),(3,2,1,3),(4,2,4,4),(5,3,3,5),(6,3,1,4),(7,4,1,5),(8,4,4,3);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, dept_name TEXT); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE skills (id INTEGER, skill_name TEXT, category TEXT); CREATE TABLE employee_skills (id INTEGER, employee_id INTEGER, skill_id INTEGER, proficiency INTEGER); INSERT INTO departments VALUES (1,'IT'),(2,'HR'); INSERT INTO employees VALUES (1,'Eve',1),(2,'Frank',1),(3,'Grace',2),(4,'Hank',1); INSERT INTO skills VALUES (1,'C++','Technical'),(2,'Networking','Technical'),(3,'Excel','Office'),(4,'Docker','Technical'),(5,'Kubernetes','Technical'); INSERT INTO employee_skills VALUES (1,1,1,4),(2,1,2,5),(3,1,4,4),(4,2,1,4),(5,2,3,5),(6,3,3,4),(7,4,4,4),(8,4,5,4),(9,4,2,4);",
+            "expectedOutput": "Eve\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, dept_name TEXT); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE skills (id INTEGER, skill_name TEXT, category TEXT); CREATE TABLE employee_skills (id INTEGER, employee_id INTEGER, skill_id INTEGER, proficiency INTEGER); INSERT INTO departments VALUES (1,'Design'); INSERT INTO employees VALUES (1,'Iris',1),(2,'Jack',1); INSERT INTO skills VALUES (1,'Figma','Design'),(2,'Sketch','Design'),(3,'CSS','Technical'); INSERT INTO employee_skills VALUES (1,1,1,5),(2,1,2,4),(3,2,3,5),(4,2,1,3);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, dept_name TEXT); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE skills (id INTEGER, skill_name TEXT, category TEXT); CREATE TABLE employee_skills (id INTEGER, employee_id INTEGER, skill_id INTEGER, proficiency INTEGER); INSERT INTO departments VALUES (1,'Backend'); INSERT INTO employees VALUES (1,'Kate',1),(2,'Leo',1),(3,'Mia',1); INSERT INTO skills VALUES (1,'Go','Technical'),(2,'Rust','Technical'),(3,'Postgres','Technical'),(4,'Redis','Technical'); INSERT INTO employee_skills VALUES (1,1,1,4),(2,1,2,5),(3,2,2,4),(4,2,3,4),(5,3,3,5),(6,3,4,4);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, dept_name TEXT); CREATE TABLE employees (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE skills (id INTEGER, skill_name TEXT, category TEXT); CREATE TABLE employee_skills (id INTEGER, employee_id INTEGER, skill_id INTEGER, proficiency INTEGER); INSERT INTO departments VALUES (1,'Data'); INSERT INTO employees VALUES (1,'Noah',1),(2,'Olivia',1); INSERT INTO skills VALUES (1,'Spark','Technical'),(2,'Hadoop','Technical'),(3,'Excel','Office'); INSERT INTO employee_skills VALUES (1,1,1,4),(2,1,2,4),(3,2,1,5),(4,2,3,5);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+{
+    "title": "Multi-Language Developers",
+    "description": "You are given three tables: companies, developers, and dev_languages recording which programming languages each developer knows. Find names of developers who know at least 3 programming languages, ordered alphabetically.",
+    "inputFormat": "companies(id, name, industry)\ndevelopers(id, name, company_id)\ndev_languages(id, developer_id, language)",
+    "outputFormat": "One developer name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Use HAVING COUNT(*) >= 3. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT d.name FROM developers d JOIN dev_languages dl ON d.id = dl.developer_id GROUP BY d.id, d.name HAVING COUNT(*) >= 3 ORDER BY d.name;",
+    "hint": "Join developers with dev_languages, GROUP BY developer, filter with HAVING COUNT(*) >= 3.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE developers (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE dev_languages (id INTEGER, developer_id INTEGER, language TEXT); INSERT INTO companies VALUES (1,'TechCo','IT'),(2,'SoftInc','Software'); INSERT INTO developers VALUES (1,'Alice',1),(2,'Bob',1),(3,'Carol',2); INSERT INTO dev_languages VALUES (1,1,'Python'),(2,1,'Java'),(3,1,'Go'),(4,2,'Python'),(5,2,'Ruby'),(6,3,'Python'),(7,3,'Java'),(8,3,'Rust'),(9,3,'C++');",
+            "expectedOutput": "Alice\nCarol\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE developers (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE dev_languages (id INTEGER, developer_id INTEGER, language TEXT); INSERT INTO companies VALUES (1,'CodeCorp','IT'); INSERT INTO developers VALUES (1,'Dan',1),(2,'Eve',1),(3,'Frank',1),(4,'Grace',1); INSERT INTO dev_languages VALUES (1,1,'Python'),(2,1,'Java'),(3,1,'Kotlin'),(4,2,'Go'),(5,2,'Rust'),(6,3,'Python'),(7,3,'Ruby'),(8,3,'Scala'),(9,3,'Clojure'),(10,4,'JS');",
+            "expectedOutput": "Dan\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE developers (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE dev_languages (id INTEGER, developer_id INTEGER, language TEXT); INSERT INTO companies VALUES (1,'ShopDev','E-Commerce'); INSERT INTO developers VALUES (1,'Hank',1),(2,'Iris',1); INSERT INTO dev_languages VALUES (1,1,'PHP'),(2,1,'SQL'),(3,2,'CSS');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE developers (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE dev_languages (id INTEGER, developer_id INTEGER, language TEXT); INSERT INTO companies VALUES (1,'FullStack','Web'); INSERT INTO developers VALUES (1,'Jack',1),(2,'Kate',1),(3,'Leo',1); INSERT INTO dev_languages VALUES (1,1,'JS'),(2,1,'TS'),(3,1,'React'),(4,2,'Python'),(5,2,'Django'),(6,2,'SQL'),(7,3,'Java'),(8,3,'Spring'),(9,3,'Kotlin');",
+            "expectedOutput": "Jack\nKate\nLeo\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE developers (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE dev_languages (id INTEGER, developer_id INTEGER, language TEXT); INSERT INTO companies VALUES (1,'DevHouse','IT'); INSERT INTO developers VALUES (1,'Mia',1),(2,'Nan',1); INSERT INTO dev_languages VALUES (1,1,'Python'),(2,1,'R'),(3,1,'Julia'),(4,2,'Python'),(5,2,'R');",
+            "expectedOutput": "Mia\n"
+        }
+    ]
+}

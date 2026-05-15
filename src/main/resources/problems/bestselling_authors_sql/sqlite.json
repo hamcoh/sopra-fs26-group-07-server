@@ -1,0 +1,38 @@
+{
+    "title": "Bestselling Authors",
+    "description": "You are given four tables: authors, books, stores, and sales records. Find names of authors whose books have sold more than 1000 copies in total across all stores, ordered alphabetically.",
+    "inputFormat": "authors(id, name, genre)\nbooks(id, title, author_id)\nstores(id, name, city)\nsales(id, book_id, store_id, quantity)",
+    "outputFormat": "One author name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Use HAVING SUM(quantity) > 1000. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT a.name FROM authors a JOIN books b ON a.id = b.author_id JOIN sales s ON b.id = s.book_id GROUP BY a.id, a.name HAVING SUM(s.quantity) > 1000 ORDER BY a.name;",
+    "hint": "Join authors → books → sales (skip stores unless needed), GROUP BY author, HAVING SUM(quantity) > 1000.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE authors (id INTEGER, name TEXT, genre TEXT); CREATE TABLE books (id INTEGER, title TEXT, author_id INTEGER); CREATE TABLE stores (id INTEGER, name TEXT, city TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, store_id INTEGER, quantity INTEGER); INSERT INTO authors VALUES (1,'Alice','Sci-Fi'),(2,'Bob','Mystery'),(3,'Carol','Fantasy'); INSERT INTO books VALUES (1,'Book One',1),(2,'Book Two',1),(3,'Book Three',2),(4,'Book Four',3); INSERT INTO stores VALUES (1,'StoreA','NY'),(2,'StoreB','LA'); INSERT INTO sales VALUES (1,1,1,600),(2,1,2,500),(3,2,1,200),(4,3,1,300),(5,4,1,400),(6,4,2,700);",
+            "expectedOutput": "Alice\nCarol\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE authors (id INTEGER, name TEXT, genre TEXT); CREATE TABLE books (id INTEGER, title TEXT, author_id INTEGER); CREATE TABLE stores (id INTEGER, name TEXT, city TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, store_id INTEGER, quantity INTEGER); INSERT INTO authors VALUES (1,'Dan','Romance'),(2,'Eve','Thriller'),(3,'Frank','Non-Fiction'); INSERT INTO books VALUES (1,'Dan A',1),(2,'Dan B',1),(3,'Eve A',2),(4,'Frank A',3); INSERT INTO stores VALUES (1,'ShopX','Boston'),(2,'ShopY','Chicago'); INSERT INTO sales VALUES (1,1,1,400),(2,1,2,400),(3,2,1,300),(4,3,1,500),(5,3,2,600),(6,4,1,100);",
+            "expectedOutput": "Dan\nEve\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE authors (id INTEGER, name TEXT, genre TEXT); CREATE TABLE books (id INTEGER, title TEXT, author_id INTEGER); CREATE TABLE stores (id INTEGER, name TEXT, city TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, store_id INTEGER, quantity INTEGER); INSERT INTO authors VALUES (1,'Grace','Horror'),(2,'Hank','Comedy'); INSERT INTO books VALUES (1,'Scary Tales',1),(2,'Laughs',2); INSERT INTO stores VALUES (1,'BookShop','Denver'); INSERT INTO sales VALUES (1,1,1,500),(2,2,1,400);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE authors (id INTEGER, name TEXT, genre TEXT); CREATE TABLE books (id INTEGER, title TEXT, author_id INTEGER); CREATE TABLE stores (id INTEGER, name TEXT, city TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, store_id INTEGER, quantity INTEGER); INSERT INTO authors VALUES (1,'Iris','Drama'),(2,'Jack','Poetry'),(3,'Kate','SciFi'); INSERT INTO books VALUES (1,'Iris Book',1),(2,'Jack Book',2),(3,'Kate Book',3); INSERT INTO stores VALUES (1,'Store1','NYC'),(2,'Store2','LA'); INSERT INTO sales VALUES (1,1,1,800),(2,1,2,500),(3,2,1,600),(4,2,2,600),(5,3,1,700),(6,3,2,400);",
+            "expectedOutput": "Iris\nJack\nKate\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE authors (id INTEGER, name TEXT, genre TEXT); CREATE TABLE books (id INTEGER, title TEXT, author_id INTEGER); CREATE TABLE stores (id INTEGER, name TEXT, city TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, store_id INTEGER, quantity INTEGER); INSERT INTO authors VALUES (1,'Leo','Adventure'),(2,'Mia','Romance'); INSERT INTO books VALUES (1,'Leo Vol 1',1),(2,'Mia Vol 1',2); INSERT INTO stores VALUES (1,'MainStore','Houston'); INSERT INTO sales VALUES (1,1,1,1000),(2,2,1,1001);",
+            "expectedOutput": "Mia\n"
+        }
+    ]
+}

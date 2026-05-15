@@ -1,0 +1,38 @@
+{
+    "title": "Serial Project Leads",
+    "description": "You are given four tables: companies, employees, projects, and project team assignments with roles. Find names of employees who serve as 'lead' on at least 2 projects, ordered alphabetically.",
+    "inputFormat": "companies(id, name, industry)\nemployees(id, name, company_id)\nprojects(id, title, budget)\nproject_teams(id, project_id, employee_id, role)",
+    "outputFormat": "One employee name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Filter WHERE role = 'lead'. Use HAVING COUNT(*) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT e.name FROM employees e JOIN project_teams pt ON e.id = pt.employee_id WHERE pt.role = 'lead' GROUP BY e.id, e.name HAVING COUNT(*) >= 2 ORDER BY e.name;",
+    "hint": "Join employees with project_teams, filter role = 'lead', GROUP BY employee, HAVING COUNT(*) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE employees (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, budget INTEGER); CREATE TABLE project_teams (id INTEGER, project_id INTEGER, employee_id INTEGER, role TEXT); INSERT INTO companies VALUES (1,'TechCorp','IT'),(2,'BuildCo','Construction'); INSERT INTO employees VALUES (1,'Alice',1),(2,'Bob',1),(3,'Carol',2); INSERT INTO projects VALUES (1,'Proj1',100000),(2,'Proj2',200000),(3,'Proj3',150000); INSERT INTO project_teams VALUES (1,1,1,'lead'),(2,2,1,'lead'),(3,3,2,'lead'),(4,1,2,'dev'),(5,3,3,'dev');",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE employees (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, budget INTEGER); CREATE TABLE project_teams (id INTEGER, project_id INTEGER, employee_id INTEGER, role TEXT); INSERT INTO companies VALUES (1,'DataInc','Analytics'),(2,'BuildSoft','Software'); INSERT INTO employees VALUES (1,'Dan',1),(2,'Eve',1),(3,'Frank',2),(4,'Grace',2); INSERT INTO projects VALUES (1,'Alpha',50000),(2,'Beta',75000),(3,'Gamma',100000),(4,'Delta',200000); INSERT INTO project_teams VALUES (1,1,1,'lead'),(2,2,1,'lead'),(3,3,1,'dev'),(4,4,2,'lead'),(5,1,3,'lead'),(6,3,3,'lead'),(7,2,4,'dev');",
+            "expectedOutput": "Dan\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE employees (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, budget INTEGER); CREATE TABLE project_teams (id INTEGER, project_id INTEGER, employee_id INTEGER, role TEXT); INSERT INTO companies VALUES (1,'Micro','IT'); INSERT INTO employees VALUES (1,'Hank',1),(2,'Iris',1); INSERT INTO projects VALUES (1,'X',50000),(2,'Y',60000); INSERT INTO project_teams VALUES (1,1,1,'dev'),(2,2,1,'dev'),(3,1,2,'lead');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE employees (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, budget INTEGER); CREATE TABLE project_teams (id INTEGER, project_id INTEGER, employee_id INTEGER, role TEXT); INSERT INTO companies VALUES (1,'MegaSoft','Software'); INSERT INTO employees VALUES (1,'Jack',1),(2,'Kate',1),(3,'Leo',1); INSERT INTO projects VALUES (1,'Omega',300000),(2,'Sigma',250000),(3,'Tau',200000); INSERT INTO project_teams VALUES (1,1,1,'lead'),(2,2,1,'lead'),(3,3,2,'lead'),(4,1,2,'lead'),(5,2,3,'lead'),(6,3,3,'lead');",
+            "expectedOutput": "Jack\nKate\nLeo\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE companies (id INTEGER, name TEXT, industry TEXT); CREATE TABLE employees (id INTEGER, name TEXT, company_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, budget INTEGER); CREATE TABLE project_teams (id INTEGER, project_id INTEGER, employee_id INTEGER, role TEXT); INSERT INTO companies VALUES (1,'StartCo','Startup'); INSERT INTO employees VALUES (1,'Mia',1),(2,'Nan',1); INSERT INTO projects VALUES (1,'V1',80000),(2,'V2',90000),(3,'V3',70000); INSERT INTO project_teams VALUES (1,1,1,'lead'),(2,2,1,'lead'),(3,3,1,'lead'),(4,1,2,'dev'),(5,2,2,'dev');",
+            "expectedOutput": "Mia\n"
+        }
+    ]
+}
