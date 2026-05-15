@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameStatsService;
@@ -60,6 +62,7 @@ public class GameStatsControllerTest {
         gameStatsDTO1.setProblemId(1L);
         gameStatsDTO1.setTitle("testProblem1");
         gameStatsDTO1.setDescription("testDescription1");
+        gameStatsDTO1.setGameLanguage(GameLanguage.PYTHON);
         gameStatsDTO1.setSumPassedTestCases(9L);
         gameStatsDTO1.setSumTotalTestCases(18L);
         gameStatsDTO1.setTotalSubmissionCount(2L);
@@ -72,6 +75,7 @@ public class GameStatsControllerTest {
         gameStatsDTO2.setProblemId(2L);
         gameStatsDTO2.setTitle("testProblem2");
         gameStatsDTO2.setDescription("testDescription2");
+        gameStatsDTO2.setGameLanguage(GameLanguage.PYTHON);
         gameStatsDTO2.setSumPassedTestCases(9L);
         gameStatsDTO2.setSumTotalTestCases(18L);
         gameStatsDTO2.setTotalSubmissionCount(2L);
@@ -84,6 +88,7 @@ public class GameStatsControllerTest {
         gameStatsDTO3.setProblemId(3L);
         gameStatsDTO3.setTitle("testProblem3");
         gameStatsDTO3.setDescription("testDescription3");
+        gameStatsDTO3.setGameLanguage(GameLanguage.PYTHON);
         gameStatsDTO3.setSumPassedTestCases(1L);
         gameStatsDTO3.setSumTotalTestCases(180L);
         gameStatsDTO3.setTotalSubmissionCount(30L);
@@ -98,7 +103,7 @@ public class GameStatsControllerTest {
         doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
         Mockito.when(gameStatsService.getHardestProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
         
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);
@@ -107,6 +112,7 @@ public class GameStatsControllerTest {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpect(jsonPath("$[0].description", is(gameStatsDTO1.getDescription())))
+                        .andExpect(jsonPath("$[0].gameLanguage", is(gameStatsDTO1.getGameLanguage().toString())))
                         .andExpect(jsonPath("$[0].playerSuccessRate").exists())
                         .andExpect(jsonPath("$[0].playerSumPassedTestCases", is(gameStatsDTO1.getPlayerSumPassedTestCases().intValue())))
                         .andExpect(jsonPath("$[0].playerSumTotalTestCases", is(gameStatsDTO1.getPlayerSumTotalTestCases().intValue())))
@@ -117,6 +123,7 @@ public class GameStatsControllerTest {
                         .andExpect(jsonPath("$[0].totalSubmissionCount", is(gameStatsDTO1.getTotalSubmissionCount().intValue())))
                         .andExpect(jsonPath("$[0].totalSuccessRate").exists())
                         .andExpect(jsonPath("$[1].description", is(gameStatsDTO2.getDescription())))
+                        .andExpect(jsonPath("$[1].gameLanguage", is(gameStatsDTO2.getGameLanguage().toString())))
                         .andExpect(jsonPath("$[1].playerSuccessRate").exists())
                         .andExpect(jsonPath("$[1].playerSumPassedTestCases", is(gameStatsDTO2.getPlayerSumPassedTestCases().intValue())))
                         .andExpect(jsonPath("$[1].playerSumTotalTestCases", is(gameStatsDTO2.getPlayerSumTotalTestCases().intValue())))
@@ -136,7 +143,7 @@ public class GameStatsControllerTest {
         doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
         Mockito.when(gameStatsService.getHardestProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
 
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);
@@ -145,6 +152,7 @@ public class GameStatsControllerTest {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(1)))
                         .andExpect(jsonPath("$[0].description", is(gameStatsDTO3.getDescription())))
+                        .andExpect(jsonPath("$[0].gameLanguage", is(gameStatsDTO3.getGameLanguage().toString())))
                         .andExpect(jsonPath("$[0].playerSuccessRate", is(nullValue())))
                         .andExpect(jsonPath("$[0].playerSumPassedTestCases", is(nullValue())))
                         .andExpect(jsonPath("$[0].playerSumTotalTestCases", is(nullValue())))
@@ -164,7 +172,94 @@ public class GameStatsControllerTest {
         String errorReason = "Statistics unavailable: no problem has been played at least 3 times!";
 		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason)).when(gameStatsService).getHardestProblemsAndPlayerResults(Mockito.any());
 
-        MockHttpServletRequestBuilder getRequest = get("/problems/stats")
+        MockHttpServletRequestBuilder getRequest = get("/stats/hardest-problems")
+                                                    .header("token", testUser.getToken())
+                                                    .header("userId", testUser.getId())
+                                                    .contentType(MediaType.APPLICATION_JSON);
+        
+        mockMvc.perform(getRequest)
+				        .andExpect(status().isNotFound())
+				        .andExpect(jsonPath("$.detail", is(errorReason)));
+                    }
+
+    @Test
+    void getMomentaryMostPopularProblems_validRequest_twoProblems_success() throws Exception {
+                
+        List<GameStatsDTO> gameStatsDTOs = List.of(gameStatsDTO1, gameStatsDTO2);
+
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        Mockito.when(gameStatsService.getMostPopularProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
+        
+        MockHttpServletRequestBuilder getRequest = get("/stats/popular-problems")
+                                                    .header("token", testUser.getToken())
+                                                    .header("userId", testUser.getId())
+                                                    .contentType(MediaType.APPLICATION_JSON);
+        
+        mockMvc.perform(getRequest)
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].description", is(gameStatsDTO1.getDescription())))
+                        .andExpect(jsonPath("$[0].gameLanguage", is(gameStatsDTO1.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$[0].playerSuccessRate").exists())
+                        .andExpect(jsonPath("$[0].playerSumPassedTestCases", is(gameStatsDTO1.getPlayerSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].playerSumTotalTestCases", is(gameStatsDTO1.getPlayerSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].problemId", is(gameStatsDTO1.getProblemId().intValue())))
+                        .andExpect(jsonPath("$[0].sumPassedTestCases", is(gameStatsDTO1.getSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].sumTotalTestCases", is(gameStatsDTO1.getSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].title", is(gameStatsDTO1.getTitle())))
+                        .andExpect(jsonPath("$[0].totalSubmissionCount", is(gameStatsDTO1.getTotalSubmissionCount().intValue())))
+                        .andExpect(jsonPath("$[0].totalSuccessRate").exists())
+                        .andExpect(jsonPath("$[1].description", is(gameStatsDTO2.getDescription())))
+                        .andExpect(jsonPath("$[1].gameLanguage", is(gameStatsDTO2.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$[1].playerSuccessRate").exists())
+                        .andExpect(jsonPath("$[1].playerSumPassedTestCases", is(gameStatsDTO2.getPlayerSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$[1].playerSumTotalTestCases", is(gameStatsDTO2.getPlayerSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$[1].problemId", is(gameStatsDTO2.getProblemId().intValue())))
+                        .andExpect(jsonPath("$[1].sumPassedTestCases", is(gameStatsDTO2.getSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$[1].sumTotalTestCases", is(gameStatsDTO2.getSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$[1].title", is(gameStatsDTO2.getTitle())))
+                        .andExpect(jsonPath("$[1].totalSubmissionCount", is(gameStatsDTO2.getTotalSubmissionCount().intValue())))
+                        .andExpect(jsonPath("$[1].totalSuccessRate").exists());
+                    }
+    
+    @Test
+    void getMomentaryMostPopularProblems_playerDidNotPlay_statsAreNull_success() throws Exception {
+        
+        List<GameStatsDTO> gameStatsDTOs = List.of(gameStatsDTO3);
+
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        Mockito.when(gameStatsService.getMostPopularProblemsAndPlayerResults(Mockito.any())).thenReturn(gameStatsDTOs);
+
+        MockHttpServletRequestBuilder getRequest = get("/stats/popular-problems")
+                                                    .header("token", testUser.getToken())
+                                                    .header("userId", testUser.getId())
+                                                    .contentType(MediaType.APPLICATION_JSON);
+        
+        mockMvc.perform(getRequest)
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].description", is(gameStatsDTO3.getDescription())))
+                        .andExpect(jsonPath("$[0].gameLanguage", is(gameStatsDTO3.getGameLanguage().toString())))
+                        .andExpect(jsonPath("$[0].playerSuccessRate", is(nullValue())))
+                        .andExpect(jsonPath("$[0].playerSumPassedTestCases", is(nullValue())))
+                        .andExpect(jsonPath("$[0].playerSumTotalTestCases", is(nullValue())))
+                        .andExpect(jsonPath("$[0].problemId", is(gameStatsDTO3.getProblemId().intValue())))
+                        .andExpect(jsonPath("$[0].sumPassedTestCases", is(gameStatsDTO3.getSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].sumTotalTestCases", is(gameStatsDTO3.getSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$[0].title", is(gameStatsDTO3.getTitle())))
+                        .andExpect(jsonPath("$[0].totalSubmissionCount", is(gameStatsDTO3.getTotalSubmissionCount().intValue())))
+                        .andExpect(jsonPath("$[0].totalSuccessRate").exists());
+                    }
+    
+    @Test
+    void getMomentaryMostPopularProblems_noProblemsToRetrieve_throwsNotFound() throws Exception {
+
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        
+        String errorReason = "Statistics unavailable: no problem has been played yet!";
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason)).when(gameStatsService).getMostPopularProblemsAndPlayerResults(Mockito.any());
+
+        MockHttpServletRequestBuilder getRequest = get("/stats/popular-problems")
                                                     .header("token", testUser.getToken())
                                                     .header("userId", testUser.getId())
                                                     .contentType(MediaType.APPLICATION_JSON);

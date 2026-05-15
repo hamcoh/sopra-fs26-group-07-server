@@ -52,6 +52,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
                 s.problem_id,
                 p.title,
                 p.description,
+                p.game_language,
                 SUM(s.passed_test_cases),
                 SUM(s.total_test_cases),
                 COUNT(s.submission_id),
@@ -65,6 +66,24 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             LIMIT 5;
             """, nativeQuery = true)
     List<Object[]> findTopHardestProblems();
+
+    @Query(value = """
+            SELECT 
+                s.problem_id,
+                p.title,
+                p.description,
+                p.game_language,
+                SUM(s.passed_test_cases),
+                SUM(s.total_test_cases),
+                COUNT(s.submission_id),
+                (SUM(s.passed_test_cases) * 1.0 / SUM(s.total_test_cases)) * 100 AS success_rate
+            FROM submissions s
+            JOIN problems p ON s.problem_id = p.problem_id
+            GROUP BY s.problem_id, p.title, p.description
+            ORDER BY COUNT(s.submission_id) DESC
+            LIMIT 5;
+            """, nativeQuery = true)
+    List<Object[]> findMostPopularProblems();
     
     /*
     Query retrieves the player (via param userId) stats for the currently hardest problems
