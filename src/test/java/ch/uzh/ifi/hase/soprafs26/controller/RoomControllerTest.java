@@ -75,7 +75,7 @@ class RoomControllerTest {
         room.setPlayerIds(new HashSet<>(Set.of(1L)));
         room.setGameDifficulty(GameDifficulty.EASY);
         room.setGameLanguage(GameLanguage.PYTHON);
-        room.setGameMode(GameMode.RACE);
+        room.setGameMode(GameMode.SPRINT_ARCADE);
         room.setMaxSkips(3);
         room.setTimeLimitSeconds(60);
         room.setNumOfProblems(10); 
@@ -83,7 +83,7 @@ class RoomControllerTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
         roomPostDTO.setNumOfProblems(10);
@@ -127,12 +127,12 @@ class RoomControllerTest {
         room.setPlayerIds(new HashSet<>(Set.of(1L)));
         room.setGameDifficulty(GameDifficulty.EASY);
         room.setGameLanguage(GameLanguage.PYTHON);
-        room.setGameMode(GameMode.RACE);
+        room.setGameMode(GameMode.SPRINT_ARCADE);
 
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
         
         Mockito.when(roomService.createRoom(Mockito.any(), Mockito.anyLong(), Mockito.anyString())).thenReturn(room);
         
@@ -166,7 +166,7 @@ class RoomControllerTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.HARD);
         roomPostDTO.setGameLanguage(GameLanguage.JAVA);
-        roomPostDTO.setGameMode(GameMode.SPRINT);
+        roomPostDTO.setGameMode(GameMode.SPRINT_CLASSIC);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
         roomPostDTO.setNumOfProblems(10);
@@ -193,7 +193,7 @@ class RoomControllerTest {
         {
                 "gameDifficulty": "INVALID",
                 "gameLanguage": "PYTHON",
-                "gameMode": "SPRINT"
+                "gameMode": "SPRINT_CLASSIC"
         }
         """;
 
@@ -228,7 +228,7 @@ class RoomControllerTest {
         room.setPlayerIds(new HashSet<>(Set.of(1L, 5L)));
         room.setGameDifficulty(GameDifficulty.EASY);
         room.setGameLanguage(GameLanguage.PYTHON);
-        room.setGameMode(GameMode.RACE);
+        room.setGameMode(GameMode.SPRINT_ARCADE);
 
         User joiningUser = new User();
         joiningUser.setId(5L);
@@ -360,7 +360,7 @@ class RoomControllerTest {
                 room.setPlayerIds(new HashSet<>(Set.of(1L)));
                 room.setGameDifficulty(GameDifficulty.EASY);
                 room.setGameLanguage(GameLanguage.PYTHON);
-                room.setGameMode(GameMode.RACE);
+                room.setGameMode(GameMode.SPRINT_ARCADE);
                 room.setMaxSkips(3);
                 room.setTimeLimitSeconds(120);
                 room.setNumOfProblems(5);
@@ -439,7 +439,7 @@ class RoomControllerTest {
                 room1.setRoomOpen(true);
                 room1.setGameDifficulty(GameDifficulty.EASY);
                 room1.setGameLanguage(GameLanguage.PYTHON);
-                room1.setGameMode(GameMode.RACE);
+                room1.setGameMode(GameMode.SPRINT_ARCADE);
                 room1.setMaxSkips(3);
                 room1.setTimeLimitSeconds(120);
                 room1.setNumOfProblems(5);
@@ -453,7 +453,7 @@ class RoomControllerTest {
                 room2.setRoomOpen(true);
                 room2.setGameDifficulty(GameDifficulty.EASY);
                 room2.setGameLanguage(GameLanguage.PYTHON);
-                room2.setGameMode(GameMode.RACE);
+                room2.setGameMode(GameMode.SPRINT_ARCADE);
                 room2.setMaxSkips(3);
                 room2.setTimeLimitSeconds(180);
                 room2.setNumOfProblems(8);

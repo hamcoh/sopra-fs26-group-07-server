@@ -119,7 +119,7 @@ class DTOMapperTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.JAVA);
-        roomPostDTO.setGameMode(GameMode.SPRINT);
+        roomPostDTO.setGameMode(GameMode.SPRINT_CLASSIC);
         roomPostDTO.setMaxSkips(2);
         roomPostDTO.setTimeLimitSeconds(600);
         roomPostDTO.setNumOfProblems(3);
@@ -128,7 +128,7 @@ class DTOMapperTest {
 
         assertEquals("EASY", room.getGameDifficulty().toString());
         assertEquals("JAVA", room.getGameLanguage().toString());
-        assertEquals("SPRINT", room.getGameMode().toString());
+        assertEquals("SPRINT_CLASSIC", room.getGameMode().toString());
         assertEquals(2, room.getMaxSkips());
         assertEquals(600, room.getTimeLimitSeconds());
         assertEquals(3, room.getNumOfProblems());
@@ -146,7 +146,7 @@ class DTOMapperTest {
         room.setPlayerIds(Set.of(10L));
         room.setGameDifficulty(GameDifficulty.EASY);
         room.setGameLanguage(GameLanguage.JAVA);
-        room.setGameMode(GameMode.RACE);
+        room.setGameMode(GameMode.SPRINT_ARCADE);
         room.setMaxSkips(2);
         room.setTimeLimitSeconds(600);
         room.setNumOfProblems(3);
@@ -160,7 +160,7 @@ class DTOMapperTest {
         assertTrue(roomGetDTO.getIsRoomOpen());
         assertEquals("EASY", roomGetDTO.getGameDifficulty().toString());
 		assertEquals("JAVA", roomGetDTO.getGameLanguage().toString());
-		assertEquals("RACE", roomGetDTO.getGameMode().toString());
+		assertEquals("SPRINT_ARCADE", roomGetDTO.getGameMode().toString());
 		assertEquals(2, roomGetDTO.getMaxSkips());
 		assertEquals(600, roomGetDTO.getTimeLimitSeconds());
 		assertEquals(3, roomGetDTO.getNumOfProblems());
@@ -178,7 +178,7 @@ class DTOMapperTest {
         room.setPlayerIds(Set.of(10L));
         room.setGameDifficulty(GameDifficulty.HARD);
         room.setGameLanguage(GameLanguage.JAVA);
-        room.setGameMode(GameMode.SPRINT);
+        room.setGameMode(GameMode.SPRINT_CLASSIC);
         room.setMaxSkips(2);
         room.setTimeLimitSeconds(600);
         room.setNumOfProblems(3);
@@ -194,7 +194,7 @@ class DTOMapperTest {
         assertEquals(Set.of(10L), roomDTO.getPlayerIds());
         assertEquals("HARD", roomDTO.getGameDifficulty().toString());
 		assertEquals("JAVA", roomDTO.getGameLanguage().toString());
-		assertEquals("SPRINT", roomDTO.getGameMode().toString());
+		assertEquals("SPRINT_CLASSIC", roomDTO.getGameMode().toString());
 		assertEquals(2, roomDTO.getMaxSkips());
 		assertEquals(600, roomDTO.getTimeLimitSeconds());
 		assertEquals(3, roomDTO.getNumOfProblems());

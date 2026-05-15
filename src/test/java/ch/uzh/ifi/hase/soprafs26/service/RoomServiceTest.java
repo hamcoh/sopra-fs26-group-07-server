@@ -107,7 +107,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
         roomPostDTO.setMaxSkips(3);
         roomPostDTO.setTimeLimitSeconds(60);
         roomPostDTO.setNumOfProblems(null); //CHANGE THIS
@@ -487,7 +487,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
 
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
         Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
@@ -513,7 +513,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
 
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
         Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
@@ -553,7 +553,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
 
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
         Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
@@ -591,7 +591,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
 
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
         Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
@@ -628,7 +628,7 @@ class RoomServiceTest {
         RoomPostDTO roomPostDTO = new RoomPostDTO();
         roomPostDTO.setGameDifficulty(GameDifficulty.EASY);
         roomPostDTO.setGameLanguage(GameLanguage.PYTHON);
-        roomPostDTO.setGameMode(GameMode.RACE);
+        roomPostDTO.setGameMode(GameMode.SPRINT_ARCADE);
 
         Mockito.when(userService.getUserbyId(host.getId())).thenReturn(host);
         Mockito.when(roomRepository.save(Mockito.any(Room.class))).thenAnswer(invocation -> {
