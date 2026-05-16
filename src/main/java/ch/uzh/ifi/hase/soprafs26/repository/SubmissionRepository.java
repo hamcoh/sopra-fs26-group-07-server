@@ -9,7 +9,6 @@ import ch.uzh.ifi.hase.soprafs26.constant.SubmissionType;
 import ch.uzh.ifi.hase.soprafs26.entity.Submission;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository("submissionRepository")
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
@@ -61,6 +60,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             FROM submissions s
             JOIN problems p ON s.problem_id = p.problem_id
             WHERE s.type = 'SUBMIT'
+            AND s.status = 'FINISHED'
             GROUP BY s.problem_id, p.title, p.description
             HAVING COUNT(s.submission_id) > 2
             ORDER BY (1.0 - (SUM(s.passed_test_cases) * 1.0 / SUM(s.total_test_cases)))
@@ -85,6 +85,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             FROM submissions s
             JOIN problems p ON s.problem_id = p.problem_id
             WHERE s.type = 'SUBMIT'
+            AND s.status = 'FINISHED'
             GROUP BY s.problem_id, p.title, p.description
             ORDER BY COUNT(s.submission_id) DESC
             LIMIT 5;
@@ -106,6 +107,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             WHERE ps.player_id = :userId
             AND s.problem_id IN :problemIds
             AND s.type = 'SUBMIT'
+            AND s.status = 'FINISHED'
             GROUP BY s.problem_id
             """, nativeQuery = true)
     List<Object[]> findPlayerStatsForProblems(@Param("userId") Long userId, @Param("problemIds") List<Long> problemIds);
@@ -133,10 +135,15 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             JOIN users u ON u.id = ps.player_id
             WHERE u.id = :userId
             AND s.type = 'SUBMIT'
+            AND s.status = 'FINISHED'
             GROUP BY u.id, u.username, u.total_games_played, u.win_count, u.total_points
             """, nativeQuery = true)
     List<Object[]> findPlayerWrappedStats(@Param("userId") Long userId);
 
+    /*
+    Query retrieves for all submission of a player the three enums, i.e., GameLanguage, GameDifficulty and GameMode.
+    In the service, for each of those, the most frequent is computed.
+     */
     @Query(value = """
             SELECT p.game_language, p.game_difficulty, r.game_mode
             FROM submissions s
@@ -146,6 +153,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             JOIN rooms r ON r.room_id = gs.room_id
             WHERE ps.player_id = :userId
             AND s.type = 'SUBMIT'
+            AND s.status = 'FINISHED'
             """, nativeQuery = true)
     List<Object[]> findPlayerEnumStats(@Param("userId") Long userId);
 
