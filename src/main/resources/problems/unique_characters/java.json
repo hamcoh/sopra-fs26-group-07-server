@@ -6,7 +6,7 @@
     "constraints": "0 <= len(x) < 30",
     "gameDifficulty": "EASY",
     "gameLanguage": "JAVA",
-    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static boolean solve(String x) {\n        HashSet<Character> seen = new HashSet<>();\n        for (char c : x.toCharArray()) {\n            if (!seen.add(c)) return false;\n        }\n        return true;\n    }\n}",
+    "sampleSolution": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.HashSet;\n\nclass Solution {\n    public static Object solve(String x) {\n        HashSet<Character> seen = new HashSet<>();\n        for (char c : x.toCharArray()) {\n            if (!seen.add(c)) return false;\n        }\n        return true;\n    }\n}",
     "hint": "Use a HashSet to keep track of characters you have already seen.",
     "testCases": [
         { "input": "lamp", "expectedOutput": "true" },
