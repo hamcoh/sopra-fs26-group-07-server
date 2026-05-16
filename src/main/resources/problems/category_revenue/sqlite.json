@@ -32,7 +32,7 @@
         {
             "input": "",
             "setupSql": "CREATE TABLE categories (id INTEGER, name TEXT); CREATE TABLE products (id INTEGER, name TEXT, category_id INTEGER, price INTEGER); CREATE TABLE orders (id INTEGER, customer TEXT, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); INSERT INTO categories VALUES (1,'Food'),(2,'Beverages'); INSERT INTO products VALUES (1,'Rice',1,2),(2,'Juice',2,3); INSERT INTO orders VALUES (1,'Leo','completed'); INSERT INTO order_items VALUES (1,1,1,1000),(2,1,2,500);",
-            "expectedOutput": "Beverages\nFood\n"
+            "expectedOutput": ""
         }
     ]
 }

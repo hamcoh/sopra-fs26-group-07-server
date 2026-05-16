@@ -32,7 +32,7 @@
         {
             "input": "",
             "setupSql": "CREATE TABLE students (id INTEGER, name TEXT, major TEXT); CREATE TABLE courses (id INTEGER, title TEXT, credits INTEGER); CREATE TABLE enrollments (id INTEGER, student_id INTEGER, course_id INTEGER, semester TEXT); CREATE TABLE completions (id INTEGER, student_id INTEGER, course_id INTEGER, grade TEXT); INSERT INTO students VALUES (1,'Leo','Music'),(2,'Mia','Dance'); INSERT INTO courses VALUES (1,'Theory',2),(2,'Harmony',2),(3,'Rhythm',2),(4,'Movement',2),(5,'Technique',2); INSERT INTO enrollments VALUES (1,1,1,'S25'),(2,1,2,'S25'),(3,1,3,'S25'),(4,2,3,'S25'),(5,2,4,'S25'),(6,2,5,'S25'); INSERT INTO completions VALUES (1,1,1,'A'),(2,1,2,'B'),(3,2,3,'A'),(4,2,4,'A');",
-            "expectedOutput": "Leo\n"
+            "expectedOutput": ""
         }
     ]
 }

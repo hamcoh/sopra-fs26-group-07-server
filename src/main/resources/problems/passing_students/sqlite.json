@@ -32,7 +32,7 @@
         {
             "input": "",
             "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT); CREATE TABLE students (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grades (id INTEGER, student_id INTEGER, course TEXT, score INTEGER); INSERT INTO departments VALUES (1,'Art'); INSERT INTO students VALUES (1,'Mia',1),(2,'Nan',1); INSERT INTO grades VALUES (1,1,'Drawing',60),(2,1,'Painting',59),(3,2,'Sculpture',61),(4,2,'Design',62);",
-            "expectedOutput": "Mia\nNan\n"
+            "expectedOutput": "Nan\n"
         }
     ]
 }
