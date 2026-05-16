@@ -64,6 +64,7 @@ class UserControllerTest {
 		user.setStatus(UserStatus.OFFLINE);
 		user.setBio("testBio");
 		user.setWinCount(0);
+		user.setDrawCount(0);
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
@@ -91,6 +92,7 @@ class UserControllerTest {
 				.andExpect(jsonPath("$[0].creationDate").isNotEmpty())
 				.andExpect(jsonPath("$[0].bio", is(user.getBio())))
 				.andExpect(jsonPath("$[0].winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$[0].drawCount", is(user.getDrawCount())))
 				.andExpect(jsonPath("$[0].winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$[0].totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$[0].totalPoints", is(user.getTotalPoints().intValue())))
@@ -127,6 +129,7 @@ class UserControllerTest {
 		user.setStatus(UserStatus.ONLINE);
 		user.setBio("testBio");
 		user.setWinCount(0);
+		user.setDrawCount(0);
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
@@ -153,6 +156,7 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.creationDate").isNotEmpty())
 				.andExpect(jsonPath("$.bio", is(user.getBio())))
 				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.drawCount", is(user.getDrawCount())))
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
@@ -217,6 +221,7 @@ class UserControllerTest {
 		user.setToken("1");
 		user.setStatus(UserStatus.ONLINE);
 		user.setWinCount(0);
+		user.setDrawCount(0);
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
@@ -247,6 +252,7 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.bio", is(user.getBio())))
 				.andExpect(jsonPath("$.token", is(user.getToken())))
 				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.drawCount", is(user.getDrawCount())))
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))
@@ -305,6 +311,7 @@ class UserControllerTest {
 		user.setToken("validToken");
 		user.setStatus(UserStatus.OFFLINE);
 		user.setWinCount(10);
+		user.setDrawCount(5);
 		user.setWinRatePercentage(50.0);
 		user.setTotalGamesPlayed(20);
 		user.setTotalPoints(450L);
@@ -334,6 +341,7 @@ class UserControllerTest {
 				.andExpect(jsonPath("$.bio", is(user.getBio())))
 				.andExpect(jsonPath("$.token", is(user.getToken())))
 				.andExpect(jsonPath("$.winCount", is(user.getWinCount())))
+				.andExpect(jsonPath("$.drawCount", is(user.getDrawCount())))
 				.andExpect(jsonPath("$.winRatePercentage", is(user.getWinRatePercentage())))
 				.andExpect(jsonPath("$.totalGamesPlayed", is(user.getTotalGamesPlayed())))
 				.andExpect(jsonPath("$.totalPoints", is(user.getTotalPoints().intValue())))

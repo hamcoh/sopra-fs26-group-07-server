@@ -13,6 +13,7 @@ public class UserDTO {
     private UserStatus status;
     private Date creationDate;
     private int winCount;
+    private int drawCount;
     private double winRatePercentage;
     private int totalGamesPlayed;
     private long totalPoints;
@@ -59,6 +60,12 @@ public class UserDTO {
     }
     public void setWinCount(int winCount) {
         this.winCount = winCount;
+    }
+    public int getDrawCount() {
+        return drawCount;
+    }
+    public void setDrawCount(int drawCount) {
+        this.drawCount = drawCount;
     }
     public double getWinRatePercentage() {
         return winRatePercentage;

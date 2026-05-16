@@ -223,6 +223,7 @@ public class UserService {
 
 	private void initialiseGameStats(User user){
 		user.setWinCount(0);
+		user.setDrawCount(0);
 		user.setWinRatePercentage(0.0);
 		user.setTotalGamesPlayed(0);
 		user.setTotalPoints(0L);
