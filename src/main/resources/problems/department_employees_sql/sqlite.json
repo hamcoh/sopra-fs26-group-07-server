@@ -1,0 +1,38 @@
+{
+    "title": "Local Suppliers",
+    "description": "You are given three tables: suppliers (with their country), products they supply, and shipment records. Return names of suppliers from 'Germany' whose products have been shipped to 'Berlin'. Order alphabetically. Do not include duplicates.",
+    "inputFormat": "suppliers(id, name, country)\nproducts(id, name, supplier_id, category)\nshipments(id, product_id, destination, quantity)",
+    "outputFormat": "One supplier name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and DISTINCT. Filter by country = 'Germany' AND destination = 'Berlin'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT s.name FROM suppliers s JOIN products p ON s.id = p.supplier_id JOIN shipments sh ON p.id = sh.product_id WHERE s.country = 'Germany' AND sh.destination = 'Berlin' ORDER BY s.name;",
+    "hint": "Join suppliers → products → shipments in sequence, filter by country and destination.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE suppliers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, supplier_id INTEGER, category TEXT); CREATE TABLE shipments (id INTEGER, product_id INTEGER, destination TEXT, quantity INTEGER); INSERT INTO suppliers VALUES (1,'Schulz GmbH','Germany'),(2,'Mueller AG','Germany'),(3,'Smith Inc','UK'); INSERT INTO products VALUES (1,'Bearings',1,'Parts'),(2,'Gears',1,'Parts'),(3,'Bolts',2,'Parts'),(4,'Nuts',3,'Parts'); INSERT INTO shipments VALUES (1,1,'Berlin',100),(2,2,'Munich',200),(3,3,'Hamburg',50),(4,4,'Berlin',150);",
+            "expectedOutput": "Schulz GmbH\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE suppliers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, supplier_id INTEGER, category TEXT); CREATE TABLE shipments (id INTEGER, product_id INTEGER, destination TEXT, quantity INTEGER); INSERT INTO suppliers VALUES (1,'Bauer KG','Germany'),(2,'Fischer GmbH','Germany'),(3,'Dubois SA','France'); INSERT INTO products VALUES (1,'Cables',1,'Electronics'),(2,'Switches',1,'Electronics'),(3,'Relays',2,'Electronics'),(4,'Fuses',3,'Electronics'); INSERT INTO shipments VALUES (1,1,'Berlin',200),(2,2,'Berlin',100),(3,3,'Dresden',80),(4,4,'Berlin',60);",
+            "expectedOutput": "Bauer KG\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE suppliers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, supplier_id INTEGER, category TEXT); CREATE TABLE shipments (id INTEGER, product_id INTEGER, destination TEXT, quantity INTEGER); INSERT INTO suppliers VALUES (1,'Weber AG','Germany'),(2,'Dupont SA','France'),(3,'Jones Ltd','UK'); INSERT INTO products VALUES (1,'Valves',1,'Parts'),(2,'Pipes',2,'Parts'),(3,'Pumps',3,'Parts'); INSERT INTO shipments VALUES (1,1,'Munich',100),(2,2,'Berlin',200),(3,3,'Berlin',50);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE suppliers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, supplier_id INTEGER, category TEXT); CREATE TABLE shipments (id INTEGER, product_id INTEGER, destination TEXT, quantity INTEGER); INSERT INTO suppliers VALUES (1,'Alpha GmbH','Germany'),(2,'Beta GmbH','Germany'),(3,'Gamma GmbH','Germany'); INSERT INTO products VALUES (1,'Part A',1,'Auto'),(2,'Part B',2,'Auto'),(3,'Part C',3,'Auto'); INSERT INTO shipments VALUES (1,1,'Berlin',50),(2,2,'Berlin',80),(3,3,'Berlin',60);",
+            "expectedOutput": "Alpha GmbH\nBeta GmbH\nGamma GmbH\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE suppliers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, supplier_id INTEGER, category TEXT); CREATE TABLE shipments (id INTEGER, product_id INTEGER, destination TEXT, quantity INTEGER); INSERT INTO suppliers VALUES (1,'Ritter KG','Germany'),(2,'Martin SA','France'); INSERT INTO products VALUES (1,'Spring',1,'Parts'),(2,'Screw',1,'Parts'),(3,'Bolt',2,'Parts'); INSERT INTO shipments VALUES (1,1,'Berlin',100),(2,2,'Hamburg',50),(3,3,'Berlin',200);",
+            "expectedOutput": "Ritter KG\n"
+        }
+    ]
+}

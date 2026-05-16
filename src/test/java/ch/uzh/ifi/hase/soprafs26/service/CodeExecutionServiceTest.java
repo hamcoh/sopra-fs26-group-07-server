@@ -1308,11 +1308,11 @@ class CodeExecutionServiceTest {
         Problem problem = new Problem();
         problem.setProblemId(1L);
         problem.setGameLanguage(GameLanguage.JAVA);
-        
+
         TestCase tc1 = new TestCase();
         tc1.setInput("  hello  "); // Intentional leading and trailing spaces
         tc1.setExpectedOutput("  olleh  ");
-        
+
         problem.setTestCases(List.of(tc1));
         gameSession.setProblems(List.of(problem));
 
@@ -1345,9 +1345,357 @@ class CodeExecutionServiceTest {
         verify(judgeService, times(1)).submitBatch(captor.capture());
 
         JudgeBatchRequestDTO batchRequest = captor.getValue();
-        
+
         // CRITICAL: Ensure the expected output wasn't aggressively trimmed by normalizeOutputString
         assertEquals("  hello  ", batchRequest.getSubmissions().get(0).getStdin());
-        assertEquals("  olleh  \n", batchRequest.getSubmissions().get(0).getExpected_output()); 
+        assertEquals("  olleh  \n", batchRequest.getSubmissions().get(0).getExpected_output());
+    }
+
+    // ─── SQLite tests ────────────────────────────────────────────────────────
+
+    @Test
+    void runCode_sqlite_emptyQuery_throwsBadRequest() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("   ");
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> codeExecutionService.runCode(gameSessionId, problemId, request)
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+        verify(judgeService, never()).submitBatch(any());
+        verify(submissionRepository, never()).save(any());
+    }
+
+    @Test
+    void runCode_sqlite_queryNotStartingWithSelect_throwsBadRequest() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("INSERT INTO players VALUES (1,'Alice',100);");
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> codeExecutionService.runCode(gameSessionId, problemId, request)
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+        verify(judgeService, never()).submitBatch(any());
+    }
+
+    @Test
+    void runCode_sqlite_forbiddenKeywordDrop_throwsBadRequest() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("SELECT * FROM players; DROP TABLE players;");
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> codeExecutionService.runCode(gameSessionId, problemId, request)
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+        verify(judgeService, never()).submitBatch(any());
+    }
+
+    @Test
+    void runCode_sqlite_forbiddenKeywordDelete_throwsBadRequest() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("SELECT * FROM players; DELETE FROM players;");
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> codeExecutionService.runCode(gameSessionId, problemId, request)
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+        verify(judgeService, never()).submitBatch(any());
+    }
+
+    @Test
+    void runCode_sqlite_validSelectQuery_doesNotRequireReturnKeyword() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        TestCase tc = new TestCase();
+        tc.setInput("");
+        tc.setExpectedOutput("Alice\nBob\n");
+        tc.setSetupSql("CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1,'Alice',150),(2,'Bob',200);");
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+        p1.setTestCases(List.of(tc));
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("SELECT name FROM players ORDER BY name;");
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok-sql-1");
+
+        JudgeStatusDTO acceptedStatus = new JudgeStatusDTO();
+        acceptedStatus.setId(3);
+        acceptedStatus.setDescription("Accepted");
+
+        JudgeResultDTO judgeResult = new JudgeResultDTO();
+        judgeResult.setToken("tok-sql-1");
+        judgeResult.setStatus(acceptedStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(judgeResult));
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.FINISHED, result.getSubmissionStatus());
+        assertEquals(Verdict.CORRECT_ANSWER, result.getVerdict());
+    }
+
+    @Test
+    void runCode_sqlite_setupSqlPrependedToUserQuery() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.SQLITE);
+
+        String setupSql = "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1,'Alice',150);";
+        String userQuery = "SELECT name FROM players ORDER BY name;";
+
+        TestCase tc = new TestCase();
+        tc.setInput("");
+        tc.setExpectedOutput("Alice\n");
+        tc.setSetupSql(setupSql);
+
+        problem.setTestCases(List.of(tc));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode(userQuery);
+
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("tok-sql-2");
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        String sentSourceCode = captor.getValue().getSubmissions().get(0).getSource_code();
+        assertTrue(sentSourceCode.contains(setupSql.trim()));
+        assertTrue(sentSourceCode.contains(userQuery.trim()));
+        assertTrue(sentSourceCode.indexOf(setupSql.trim()) < sentSourceCode.indexOf(userQuery.trim()));
+    }
+
+    @Test
+    void runCode_sqlite_usesLanguageId82() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.SQLITE);
+
+        TestCase tc = new TestCase();
+        tc.setInput("");
+        tc.setExpectedOutput("Alice\n");
+        tc.setSetupSql("CREATE TABLE players (id INTEGER, name TEXT); INSERT INTO players VALUES (1,'Alice');");
+
+        problem.setTestCases(List.of(tc));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode("SELECT name FROM players;");
+
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("tok-sql-3");
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        assertEquals(82, captor.getValue().getSubmissions().get(0).getLanguage_id());
+    }
+
+    @Test
+    void runCode_sqlite_stdinIsNull() {
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(1L);
+        gameSession.setGameStatus(GameStatus.ACTIVE);
+
+        Problem problem = new Problem();
+        problem.setProblemId(1L);
+        problem.setGameLanguage(GameLanguage.SQLITE);
+
+        TestCase tc = new TestCase();
+        tc.setInput("");
+        tc.setExpectedOutput("1\n");
+        tc.setSetupSql("CREATE TABLE t (v INTEGER); INSERT INTO t VALUES (1);");
+
+        problem.setTestCases(List.of(tc));
+        gameSession.setProblems(List.of(problem));
+
+        PlayerSession playerSession = new PlayerSession();
+        playerSession.setPlayerSessionId(10L);
+        playerSession.setGameSession(gameSession);
+        gameSession.setPlayerSessions(List.of(playerSession));
+
+        CodeExecutionPostDTO requestBody = new CodeExecutionPostDTO();
+        requestBody.setPlayerSessionId(10L);
+        requestBody.setSourceCode("SELECT v FROM t;");
+
+        JudgeTokenDTO mockToken = new JudgeTokenDTO();
+        mockToken.setJudgeToken("tok-sql-4");
+        when(gameSessionRepository.findByGameSessionId(1L)).thenReturn(gameSession);
+        when(problemService.getProblemById(1L)).thenReturn(problem);
+        when(judgeService.submitBatch(any(JudgeBatchRequestDTO.class))).thenReturn(List.of(mockToken));
+
+        JudgeBatchResultDTO mockResult = new JudgeBatchResultDTO();
+        mockResult.setSubmissions(new ArrayList<>());
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(mockResult);
+
+        codeExecutionService.runCode(1L, 1L, requestBody);
+
+        ArgumentCaptor<JudgeBatchRequestDTO> captor = ArgumentCaptor.forClass(JudgeBatchRequestDTO.class);
+        verify(judgeService, times(1)).submitBatch(captor.capture());
+
+        assertNull(captor.getValue().getSubmissions().get(0).getStdin());
+    }
+
+    @Test
+    void runCode_sqlite_wrongAnswer_returnsFinishedAndWrongAnswerVerdict() {
+        Long gameSessionId = testGameSession.getGameSessionId();
+        Long problemId = p1.getProblemId();
+
+        testGameSession.getPlayerSessions().add(playerSession1);
+        testGameSession.getProblems().add(p1);
+
+        TestCase tc = new TestCase();
+        tc.setInput("");
+        tc.setExpectedOutput("Alice\n");
+        tc.setSetupSql("CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1,'Alice',150),(2,'Bob',50);");
+
+        p1.setGameLanguage(GameLanguage.SQLITE);
+        p1.setGameDifficulty(GameDifficulty.EASY);
+        p1.setTestCases(List.of(tc));
+
+        CodeExecutionPostDTO request = new CodeExecutionPostDTO();
+        request.setPlayerSessionId(playerSession1.getPlayerSessionId());
+        request.setSourceCode("SELECT name FROM players ORDER BY name;");
+
+        JudgeTokenDTO token = new JudgeTokenDTO();
+        token.setJudgeToken("tok-sql-5");
+
+        JudgeStatusDTO wrongAnswerStatus = new JudgeStatusDTO();
+        wrongAnswerStatus.setId(4);
+        wrongAnswerStatus.setDescription("Wrong Answer");
+
+        JudgeResultDTO judgeResult = new JudgeResultDTO();
+        judgeResult.setToken("tok-sql-5");
+        judgeResult.setStatus(wrongAnswerStatus);
+
+        JudgeBatchResultDTO batchResult = new JudgeBatchResultDTO();
+        batchResult.setSubmissions(List.of(judgeResult));
+
+        when(gameSessionRepository.findByGameSessionId(gameSessionId)).thenReturn(testGameSession);
+        when(problemService.getProblemById(problemId)).thenReturn(p1);
+        when(judgeService.submitBatch(any())).thenReturn(List.of(token));
+        when(judgeService.getBatchSubmissionResults(anyList())).thenReturn(batchResult);
+        when(submissionRepository.save(any(Submission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CodeRunDTO result = codeExecutionService.runCode(gameSessionId, problemId, request);
+
+        assertEquals(SubmissionStatus.FINISHED, result.getSubmissionStatus());
+        assertEquals(Verdict.WRONG_ANSWER, result.getVerdict());
+        assertEquals(0, result.getPassedTestCases());
+        assertEquals(1, result.getTotalTestCases());
     }
 }

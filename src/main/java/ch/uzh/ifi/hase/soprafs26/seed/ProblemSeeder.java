@@ -88,8 +88,11 @@ public class ProblemSeeder implements CommandLineRunner {
                     Map<String, Object> testCaseMap = (Map<String, Object>) rawTestCase;
 
                     TestCase testCase = new TestCase();
-                    testCase.setInput(String.valueOf(testCaseMap.get("input")));
+                    testCase.setInput(testCaseMap.containsKey("input") ? String.valueOf(testCaseMap.get("input")) : "");
                     testCase.setExpectedOutput(String.valueOf(testCaseMap.get("expectedOutput")));
+                    if (testCaseMap.containsKey("setupSql")) {
+                        testCase.setSetupSql(String.valueOf(testCaseMap.get("setupSql")));
+                    }
                     testCases.add(testCase);
                 }
 

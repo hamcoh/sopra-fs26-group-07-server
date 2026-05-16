@@ -1,0 +1,38 @@
+{
+    "title": "Tech Club Members",
+    "description": "You are given three tables: clubs with categories, students, and memberships. Find distinct names of students who are members of at least one 'Tech' category club, ordered alphabetically.",
+    "inputFormat": "clubs(id, name, category)\nstudents(id, name, year)\nmemberships(id, student_id, club_id, joined_year)",
+    "outputFormat": "One student name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter WHERE category = 'Tech'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT s.name FROM students s JOIN memberships m ON s.id = m.student_id JOIN clubs c ON m.club_id = c.id WHERE c.category = 'Tech' ORDER BY s.name;",
+    "hint": "Join students → memberships → clubs, filter by category = 'Tech', use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE clubs (id INTEGER, name TEXT, category TEXT); CREATE TABLE students (id INTEGER, name TEXT, year INTEGER); CREATE TABLE memberships (id INTEGER, student_id INTEGER, club_id INTEGER, joined_year INTEGER); INSERT INTO clubs VALUES (1,'Coding Club','Tech'),(2,'Chess Club','Games'),(3,'Robotics','Tech'); INSERT INTO students VALUES (1,'Alice',2),(2,'Bob',1),(3,'Charlie',3),(4,'Diana',2); INSERT INTO memberships VALUES (1,1,1,2022),(2,2,2,2021),(3,3,1,2023),(4,3,3,2022),(5,4,2,2022);",
+            "expectedOutput": "Alice\nCharlie\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE clubs (id INTEGER, name TEXT, category TEXT); CREATE TABLE students (id INTEGER, name TEXT, year INTEGER); CREATE TABLE memberships (id INTEGER, student_id INTEGER, club_id INTEGER, joined_year INTEGER); INSERT INTO clubs VALUES (1,'AI Club','Tech'),(2,'Drama','Arts'),(3,'Cybersecurity','Tech'),(4,'Photography','Arts'); INSERT INTO students VALUES (1,'Eve',1),(2,'Frank',2),(3,'Grace',3),(4,'Hank',1); INSERT INTO memberships VALUES (1,1,2,2023),(2,2,1,2022),(3,2,3,2023),(4,3,4,2023),(5,4,1,2022);",
+            "expectedOutput": "Frank\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE clubs (id INTEGER, name TEXT, category TEXT); CREATE TABLE students (id INTEGER, name TEXT, year INTEGER); CREATE TABLE memberships (id INTEGER, student_id INTEGER, club_id INTEGER, joined_year INTEGER); INSERT INTO clubs VALUES (1,'Art Club','Arts'),(2,'Sports Club','Sports'); INSERT INTO students VALUES (1,'Iris',2),(2,'Jack',3); INSERT INTO memberships VALUES (1,1,1,2023),(2,2,2,2022);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE clubs (id INTEGER, name TEXT, category TEXT); CREATE TABLE students (id INTEGER, name TEXT, year INTEGER); CREATE TABLE memberships (id INTEGER, student_id INTEGER, club_id INTEGER, joined_year INTEGER); INSERT INTO clubs VALUES (1,'Dev Club','Tech'),(2,'Data Club','Tech'),(3,'Debate','Social'); INSERT INTO students VALUES (1,'Kate',1),(2,'Leo',2),(3,'Mia',3); INSERT INTO memberships VALUES (1,1,1,2022),(2,2,2,2023),(3,3,1,2022),(4,3,2,2023);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE clubs (id INTEGER, name TEXT, category TEXT); CREATE TABLE students (id INTEGER, name TEXT, year INTEGER); CREATE TABLE memberships (id INTEGER, student_id INTEGER, club_id INTEGER, joined_year INTEGER); INSERT INTO clubs VALUES (1,'Hack Club','Tech'),(2,'Math Club','Academic'),(3,'ML Club','Tech'); INSERT INTO students VALUES (1,'Noah',2),(2,'Olivia',1); INSERT INTO memberships VALUES (1,1,1,2023),(2,1,3,2022),(3,2,2,2022);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

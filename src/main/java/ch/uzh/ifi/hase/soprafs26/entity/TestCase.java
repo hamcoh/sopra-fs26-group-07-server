@@ -20,6 +20,9 @@ public class TestCase implements Serializable {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String expectedOutput;
 
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String setupSql;
+
     /**
      * Owning side in the relationship to Problem
      * since one Problem will have many testCases
@@ -62,5 +65,13 @@ public class TestCase implements Serializable {
     public void setExpectedOutput(String expectedOutput) {
         this.expectedOutput = expectedOutput;
     }
-    
+
+    public String getSetupSql() {
+        return setupSql;
+    }
+
+    public void setSetupSql(String setupSql) {
+        this.setupSql = setupSql;
+    }
+
 }

@@ -1,0 +1,38 @@
+{
+    "title": "Multi-Sport Athletes",
+    "description": "You are given three tables: sports, athletes, and registrations. Find names of athletes who are registered for more than 1 sport, ordered alphabetically.",
+    "inputFormat": "sports(id, name, type)\nathletes(id, name, country)\nregistrations(id, athlete_id, sport_id, year)",
+    "outputFormat": "One athlete name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Use HAVING COUNT(DISTINCT sport_id) > 1. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT a.name FROM athletes a JOIN registrations r ON a.id = r.athlete_id GROUP BY a.id, a.name HAVING COUNT(DISTINCT r.sport_id) > 1 ORDER BY a.name;",
+    "hint": "Join athletes with registrations, GROUP BY athlete, and filter with HAVING COUNT(DISTINCT sport_id) > 1.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sports (id INTEGER, name TEXT, type TEXT); CREATE TABLE athletes (id INTEGER, name TEXT, country TEXT); CREATE TABLE registrations (id INTEGER, athlete_id INTEGER, sport_id INTEGER, year INTEGER); INSERT INTO sports VALUES (1,'Swimming','Aquatic'),(2,'Running','Track'),(3,'Cycling','Road'); INSERT INTO athletes VALUES (1,'Alice','US'),(2,'Bob','UK'),(3,'Charlie','AU'); INSERT INTO registrations VALUES (1,1,1,2023),(2,1,2,2023),(3,2,1,2022),(4,3,2,2023),(5,3,3,2022);",
+            "expectedOutput": "Alice\nCharlie\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sports (id INTEGER, name TEXT, type TEXT); CREATE TABLE athletes (id INTEGER, name TEXT, country TEXT); CREATE TABLE registrations (id INTEGER, athlete_id INTEGER, sport_id INTEGER, year INTEGER); INSERT INTO sports VALUES (1,'Tennis','Racket'),(2,'Golf','Club'),(3,'Volleyball','Team'),(4,'Basketball','Team'); INSERT INTO athletes VALUES (1,'Diana','CA'),(2,'Eve','FR'),(3,'Frank','DE'),(4,'Grace','JP'); INSERT INTO registrations VALUES (1,1,1,2023),(2,1,2,2022),(3,2,3,2023),(4,3,1,2022),(5,3,4,2023),(6,4,3,2022);",
+            "expectedOutput": "Diana\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sports (id INTEGER, name TEXT, type TEXT); CREATE TABLE athletes (id INTEGER, name TEXT, country TEXT); CREATE TABLE registrations (id INTEGER, athlete_id INTEGER, sport_id INTEGER, year INTEGER); INSERT INTO sports VALUES (1,'Boxing','Combat'),(2,'Judo','Combat'),(3,'Karate','Combat'); INSERT INTO athletes VALUES (1,'Hank','RU'),(2,'Iris','BR'),(3,'Jack','MX'); INSERT INTO registrations VALUES (1,1,1,2023),(2,2,2,2023),(3,3,3,2023);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sports (id INTEGER, name TEXT, type TEXT); CREATE TABLE athletes (id INTEGER, name TEXT, country TEXT); CREATE TABLE registrations (id INTEGER, athlete_id INTEGER, sport_id INTEGER, year INTEGER); INSERT INTO sports VALUES (1,'Soccer','Team'),(2,'Baseball','Team'),(3,'Hockey','Team'); INSERT INTO athletes VALUES (1,'Kate','US'),(2,'Leo','CA'),(3,'Mia','AU'); INSERT INTO registrations VALUES (1,1,1,2022),(2,1,2,2022),(3,2,1,2023),(4,2,3,2023),(5,3,2,2022),(6,3,3,2023);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sports (id INTEGER, name TEXT, type TEXT); CREATE TABLE athletes (id INTEGER, name TEXT, country TEXT); CREATE TABLE registrations (id INTEGER, athlete_id INTEGER, sport_id INTEGER, year INTEGER); INSERT INTO sports VALUES (1,'Archery','Precision'),(2,'Shooting','Precision'); INSERT INTO athletes VALUES (1,'Noah','DE'),(2,'Olivia','SE'); INSERT INTO registrations VALUES (1,1,1,2023),(2,1,2,2023),(3,2,1,2023);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

@@ -61,7 +61,7 @@ public class CodeExecutionService {
      * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay
      * of RESULT_CHECK_DELAY_MS milliseconds in between.
      */
-    private static final int MAX_RESULT_CHECKS = 3;
+    private static final int MAX_RESULT_CHECKS = 10;
     private static final long RESULT_CHECK_DELAY_MS = 1000;
 
     // Points awarded per passed test case on a correct submission
@@ -117,6 +117,7 @@ public class CodeExecutionService {
                 .toList();
 
         JudgeBatchResultDTO batchResult = pollJudgeResults(judgeTokens);
+        correctEmptyExpectedOutputVerdicts(problem.getTestCases(), batchResult);
         // This method updates the submission with the results from Judge0 and sets the appropriate status and verdict
         applyJudgeBatchResultToSubmission(submission, batchResult);
 
@@ -188,6 +189,7 @@ public class CodeExecutionService {
                 .toList();
 
         JudgeBatchResultDTO batchResult = pollJudgeResults(judgeTokens);
+        correctEmptyExpectedOutputVerdicts(problem.getTestCases(), batchResult);
         // This method updates the submission with the results from Judge0 and sets the appropriate status and verdict
         applyJudgeBatchResultToSubmission(submission, batchResult);
 
@@ -271,10 +273,12 @@ public class CodeExecutionService {
             if (!code.contains("static")) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your solve method must be static.");
             }
+        } else if (language == GameLanguage.SQLITE) {
+            validateSqlQuery(code);
         }
 
-        // Check if any language has a "return" statement
-        if (!code.contains("return")) {
+        // SQL queries have no return statement
+        if (language != GameLanguage.SQLITE && !code.contains("return")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your code must contain a return statement.");
         }
     }
@@ -319,16 +323,24 @@ public class CodeExecutionService {
         }
 
         Integer languageId = mapLanguageToJudgeCode(problem.getGameLanguage());
-        String wrappedSourceCode = wrapUserCode(userSourceCode, problem.getGameLanguage());
+        boolean isSql = problem.getGameLanguage() == GameLanguage.SQLITE;
+        String wrappedSourceCode = isSql ? null : wrapUserCode(userSourceCode, problem.getGameLanguage());
 
         List<JudgeRequestDTO> submissions = new ArrayList<>();
 
         for (TestCase testCase : testCases) {
             JudgeRequestDTO request = new JudgeRequestDTO();
-            request.setSource_code(wrappedSourceCode);
             request.setLanguage_id(languageId);
-            request.setStdin(testCase.getInput());
             request.setExpected_output(normalizeOutputString(testCase.getExpectedOutput()));
+
+            if (isSql) {
+                request.setSource_code(buildSqlScript(testCase.getSetupSql(), userSourceCode));
+                request.setStdin(null);
+            } else {
+                request.setSource_code(wrappedSourceCode);
+                request.setStdin(testCase.getInput());
+            }
+
             submissions.add(request);
         }
 
@@ -355,6 +367,8 @@ public class CodeExecutionService {
                 return 71;
             case JAVA:
                 return 62;
+            case SQLITE:
+                return 82;
             default:
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
@@ -369,6 +383,8 @@ public class CodeExecutionService {
                 return wrapPythonCode(userCode);
             case JAVA:
                 return wrapJavaCode(userCode);
+            case SQLITE:
+                return userCode.trim(); // no need for wrapper, its prepared per testcase
             default:
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
@@ -441,8 +457,41 @@ public class CodeExecutionService {
                 + "}\n";
     }
 
+    private String buildSqlScript(String setupSql, String userQuery) {
+        if (setupSql == null || setupSql.isBlank()) {
+            return userQuery.trim();
+        }
+        return setupSql.trim() + "\n\n" + userQuery.trim();
+    }
+
+    private static final List<String> FORBIDDEN_SQL_KEYWORDS = List.of(
+        "DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "CREATE", "GRANT",
+        "REPLACE", "PRAGMA", "ATTACH", "DETACH", "VACUUM"
+    );
+
+    private void validateSqlQuery(String query) {
+        if (query == null || query.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SQL query cannot be empty.");
+        }
+
+        String upper = query.trim().toUpperCase();
+
+        if (!upper.startsWith("SELECT")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only SELECT queries are allowed.");
+        }
+
+        for (String keyword : FORBIDDEN_SQL_KEYWORDS) {
+            if (java.util.regex.Pattern.compile("\\b" + keyword + "\\b").matcher(upper).find()) {
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Forbidden SQL keyword detected. Only SELECT queries are allowed."
+                );
+            }
+        }
+    }
+
     private String normalizeOutputString(String expectedOutput) {
-        if (expectedOutput == null) {
+        if (expectedOutput == null || expectedOutput.isEmpty()) {
             return "";
         }
         return expectedOutput.endsWith("\n") ? expectedOutput : expectedOutput + "\n";
@@ -734,6 +783,25 @@ public class CodeExecutionService {
         }
     }
 
+    private void correctEmptyExpectedOutputVerdicts(List<TestCase> testCases, JudgeBatchResultDTO batchResult) {
+        if (testCases == null || batchResult == null || batchResult.getSubmissions() == null) {
+            return;
+        }
+        List<JudgeResultDTO> results = batchResult.getSubmissions();
+        for (int i = 0; i < Math.min(testCases.size(), results.size()); i++) {
+            String expected = testCases.get(i).getExpectedOutput();
+            if (expected != null && !expected.isEmpty()) {
+                continue;
+            }
+            JudgeResultDTO result = results.get(i);
+            String actual = result.getStdout();
+            boolean actualEmpty = actual == null || actual.isBlank();
+            if (actualEmpty && result.getStatus() != null && result.getStatus().getId() == 4) {
+                result.getStatus().setId(3);
+            }
+        }
+    }
+
     private int countPassedTestCases(JudgeBatchResultDTO batchResult) {
         if (batchResult == null || batchResult.getSubmissions() == null || batchResult.getSubmissions().isEmpty()) {
             return 0;
@@ -905,7 +973,7 @@ public class CodeExecutionService {
 
     private String normalizeOutput(String output) {
         if (output == null) {
-            return null;
+            return "";
         }
         return output.trim().replace("\r\n", "\n");
     }

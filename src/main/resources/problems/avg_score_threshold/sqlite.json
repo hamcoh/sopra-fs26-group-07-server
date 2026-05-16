@@ -1,0 +1,38 @@
+{
+    "title": "High-Value Sales Reps",
+    "description": "You are given four tables: regions, sales representatives, their clients, and deals closed with clients. Return names of reps who have closed deals with a total value above 100000 AND represent at least 2 distinct clients. Order alphabetically.",
+    "inputFormat": "regions(id, name, country)\nreps(id, name, region_id)\nclients(id, name, industry, rep_id)\ndeals(id, client_id, value, status)",
+    "outputFormat": "One rep name per line, ordered alphabetically.",
+    "constraints": "Only include deals with status = 'closed'. Use JOIN, GROUP BY, and HAVING SUM(value) > 100000 AND COUNT(DISTINCT client_id) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT r.name FROM reps r JOIN clients c ON r.id = c.rep_id JOIN deals d ON c.id = d.client_id WHERE d.status = 'closed' GROUP BY r.id, r.name HAVING SUM(d.value) > 100000 AND COUNT(DISTINCT c.id) >= 2 ORDER BY r.name;",
+    "hint": "Join reps → clients → deals, filter by status = 'closed', then GROUP BY rep with HAVING two conditions: SUM and COUNT DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE reps (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE clients (id INTEGER, name TEXT, industry TEXT, rep_id INTEGER); CREATE TABLE deals (id INTEGER, client_id INTEGER, value INTEGER, status TEXT); INSERT INTO regions VALUES (1,'Northeast','US'),(2,'West','US'); INSERT INTO reps VALUES (1,'Alice',1),(2,'Bob',2),(3,'Charlie',1); INSERT INTO clients VALUES (1,'Acme Corp','Tech',1),(2,'GlobalInc','Finance',1),(3,'StartupXYZ','Tech',2),(4,'MegaCorp','Retail',3); INSERT INTO deals VALUES (1,1,60000,'closed'),(2,2,80000,'closed'),(3,3,40000,'pending'),(4,4,120000,'closed');",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE reps (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE clients (id INTEGER, name TEXT, industry TEXT, rep_id INTEGER); CREATE TABLE deals (id INTEGER, client_id INTEGER, value INTEGER, status TEXT); INSERT INTO regions VALUES (1,'South','US'),(2,'Midwest','US'); INSERT INTO reps VALUES (1,'Diana',1),(2,'Eve',2),(3,'Frank',1); INSERT INTO clients VALUES (1,'Alpha LLC','Tech',1),(2,'Beta Ltd','Health',2),(3,'Gamma Inc','Finance',2),(4,'Delta Co','Retail',3),(5,'Epsilon AG','Tech',3); INSERT INTO deals VALUES (1,1,90000,'closed'),(2,2,70000,'closed'),(3,3,50000,'closed'),(4,4,80000,'closed'),(5,5,30000,'closed');",
+            "expectedOutput": "Eve\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE reps (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE clients (id INTEGER, name TEXT, industry TEXT, rep_id INTEGER); CREATE TABLE deals (id INTEGER, client_id INTEGER, value INTEGER, status TEXT); INSERT INTO regions VALUES (1,'East','US'); INSERT INTO reps VALUES (1,'Grace',1),(2,'Hank',1); INSERT INTO clients VALUES (1,'BigCo','Tech',1),(2,'SmallCo','Retail',1),(3,'MidCo','Finance',2); INSERT INTO deals VALUES (1,1,50000,'pending'),(2,2,80000,'pending'),(3,3,120000,'closed');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE reps (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE clients (id INTEGER, name TEXT, industry TEXT, rep_id INTEGER); CREATE TABLE deals (id INTEGER, client_id INTEGER, value INTEGER, status TEXT); INSERT INTO regions VALUES (1,'North','US'),(2,'South','US'),(3,'West','US'); INSERT INTO reps VALUES (1,'Iris',1),(2,'Jack',2),(3,'Kate',3); INSERT INTO clients VALUES (1,'X Corp','Tech',1),(2,'Y Inc','Finance',1),(3,'Z Ltd','Health',2),(4,'W Co','Retail',2),(5,'V AG','Tech',3),(6,'U LLC','Finance',3); INSERT INTO deals VALUES (1,1,60000,'closed'),(2,2,55000,'closed'),(3,3,80000,'closed'),(4,4,45000,'closed'),(5,5,70000,'closed'),(6,6,50000,'closed');",
+            "expectedOutput": "Iris\nJack\nKate\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE regions (id INTEGER, name TEXT, country TEXT); CREATE TABLE reps (id INTEGER, name TEXT, region_id INTEGER); CREATE TABLE clients (id INTEGER, name TEXT, industry TEXT, rep_id INTEGER); CREATE TABLE deals (id INTEGER, client_id INTEGER, value INTEGER, status TEXT); INSERT INTO regions VALUES (1,'Central','US'); INSERT INTO reps VALUES (1,'Leo',1); INSERT INTO clients VALUES (1,'Mono Corp','Tech',1); INSERT INTO deals VALUES (1,1,200000,'closed');",
+            "expectedOutput": ""
+        }
+    ]
+}

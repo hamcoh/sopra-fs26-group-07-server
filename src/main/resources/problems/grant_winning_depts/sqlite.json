@@ -1,0 +1,38 @@
+{
+    "title": "Well-Funded Departments",
+    "description": "You are given four tables: universities, departments, professors, and research grants. Find names of departments whose professors have received more than 300000 in total grant funding, ordered alphabetically.",
+    "inputFormat": "universities(id, name, country)\ndepartments(id, name, university_id)\nprofessors(id, name, dept_id)\ngrants(id, professor_id, title, amount)",
+    "outputFormat": "One department name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Use HAVING SUM(amount) > 300000. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT d.name FROM departments d JOIN professors p ON d.id = p.dept_id JOIN grants g ON p.id = g.professor_id GROUP BY d.id, d.name HAVING SUM(g.amount) > 300000 ORDER BY d.name;",
+    "hint": "Join departments → professors → grants, GROUP BY department, HAVING SUM(amount) > 300000.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE universities (id INTEGER, name TEXT, country TEXT); CREATE TABLE departments (id INTEGER, name TEXT, university_id INTEGER); CREATE TABLE professors (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grants (id INTEGER, professor_id INTEGER, title TEXT, amount INTEGER); INSERT INTO universities VALUES (1,'MIT','US'),(2,'Oxford','UK'); INSERT INTO departments VALUES (1,'CS',1),(2,'Physics',1),(3,'Math',2); INSERT INTO professors VALUES (1,'Prof A',1),(2,'Prof B',1),(3,'Prof C',2),(4,'Prof D',3); INSERT INTO grants VALUES (1,1,'Grant X',200000),(2,1,'Grant Y',150000),(3,2,'Grant Z',100000),(4,3,'Grant W',80000),(5,4,'Grant V',400000);",
+            "expectedOutput": "CS\nMath\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE universities (id INTEGER, name TEXT, country TEXT); CREATE TABLE departments (id INTEGER, name TEXT, university_id INTEGER); CREATE TABLE professors (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grants (id INTEGER, professor_id INTEGER, title TEXT, amount INTEGER); INSERT INTO universities VALUES (1,'Stanford','US'),(2,'Cambridge','UK'); INSERT INTO departments VALUES (1,'Biology',1),(2,'Chemistry',1),(3,'Engineering',2); INSERT INTO professors VALUES (1,'Dr Smith',1),(2,'Dr Jones',2),(3,'Dr Lee',2),(4,'Dr Kim',3); INSERT INTO grants VALUES (1,1,'NSF',250000),(2,2,'NIH',180000),(3,3,'ERC',200000),(4,4,'Royal',500000);",
+            "expectedOutput": "Chemistry\nEngineering\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE universities (id INTEGER, name TEXT, country TEXT); CREATE TABLE departments (id INTEGER, name TEXT, university_id INTEGER); CREATE TABLE professors (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grants (id INTEGER, professor_id INTEGER, title TEXT, amount INTEGER); INSERT INTO universities VALUES (1,'State U','US'); INSERT INTO departments VALUES (1,'Art',1),(2,'Music',1); INSERT INTO professors VALUES (1,'Prof Art',1),(2,'Prof Music',2); INSERT INTO grants VALUES (1,1,'Fund A',100000),(2,2,'Fund B',50000);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE universities (id INTEGER, name TEXT, country TEXT); CREATE TABLE departments (id INTEGER, name TEXT, university_id INTEGER); CREATE TABLE professors (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grants (id INTEGER, professor_id INTEGER, title TEXT, amount INTEGER); INSERT INTO universities VALUES (1,'Tech U','DE'); INSERT INTO departments VALUES (1,'Electrical',1),(2,'Mechanical',1),(3,'Civil',1); INSERT INTO professors VALUES (1,'Dr A',1),(2,'Dr B',2),(3,'Dr C',3); INSERT INTO grants VALUES (1,1,'DFG1',200000),(2,1,'DFG2',150000),(3,2,'DFG3',180000),(4,2,'DFG4',130000),(5,3,'DFG5',400000);",
+            "expectedOutput": "Civil\nElectrical\nMechanical\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE universities (id INTEGER, name TEXT, country TEXT); CREATE TABLE departments (id INTEGER, name TEXT, university_id INTEGER); CREATE TABLE professors (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE grants (id INTEGER, professor_id INTEGER, title TEXT, amount INTEGER); INSERT INTO universities VALUES (1,'Research U','US'); INSERT INTO departments VALUES (1,'Physics',1),(2,'Chemistry',1); INSERT INTO professors VALUES (1,'Prof X',1),(2,'Prof Y',2); INSERT INTO grants VALUES (1,1,'G1',300000),(2,2,'G2',300001);",
+            "expectedOutput": "Chemistry\n"
+        }
+    ]
+}

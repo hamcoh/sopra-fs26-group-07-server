@@ -242,6 +242,9 @@ public class GameService {
             if (!tie && winner != null && winner.getPlayer().getId().equals(user.getId())) {
                 user.setWinCount(user.getWinCount() + 1);
             }
+            else if (tie) {
+                user.setDrawCount(user.getDrawCount() + 1);
+            }
             user.setWinRatePercentage((double) user.getWinCount() / user.getTotalGamesPlayed() * 100);
             userRepository.saveAndFlush(user);
         }

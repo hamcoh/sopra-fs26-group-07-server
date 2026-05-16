@@ -1,0 +1,38 @@
+{
+    "title": "Electronics Big Spenders",
+    "description": "You are given four tables: customers, orders, line items within each order, and products. Return names of customers who have spent more than 500 in total on 'Electronics' products across all completed orders. Spending is calculated as quantity multiplied by price per product. Order alphabetically.",
+    "inputFormat": "customers(id, name, city)\norders(id, customer_id, status)\norder_items(id, order_id, product_id, quantity)\nproducts(id, name, category, price)",
+    "outputFormat": "One customer name per line, ordered alphabetically.",
+    "constraints": "Only include completed orders. Use four-table JOIN, GROUP BY, and HAVING SUM(quantity * price) > 500. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT c.name FROM customers c JOIN orders o ON c.id = o.customer_id JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE o.status = 'completed' AND p.category = 'Electronics' GROUP BY c.id, c.name HAVING SUM(oi.quantity * p.price) > 500 ORDER BY c.name;",
+    "hint": "Join all four tables, filter by status = 'completed' AND category = 'Electronics', then GROUP BY customer with HAVING SUM(quantity * price) > 500.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT, price INTEGER); INSERT INTO customers VALUES (1,'Alice','NYC'),(2,'Bob','LA'),(3,'Charlie','Chicago'); INSERT INTO products VALUES (1,'Laptop','Electronics',800),(2,'Mouse','Electronics',50),(3,'Desk','Furniture',300),(4,'Phone','Electronics',600); INSERT INTO orders VALUES (1,1,'completed'),(2,2,'completed'),(3,3,'completed'),(4,1,'pending'); INSERT INTO order_items VALUES (1,1,1,1),(2,2,2,3),(3,3,3,1),(4,4,4,2);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT, price INTEGER); INSERT INTO customers VALUES (1,'Diana','Boston'),(2,'Eve','Miami'),(3,'Frank','Seattle'); INSERT INTO products VALUES (1,'Tablet','Electronics',400),(2,'Keyboard','Electronics',100),(3,'Chair','Furniture',250),(4,'Monitor','Electronics',350); INSERT INTO orders VALUES (1,1,'completed'),(2,2,'completed'),(3,3,'completed'),(4,2,'completed'); INSERT INTO order_items VALUES (1,1,1,2),(2,2,2,3),(3,3,3,2),(4,4,4,2);",
+            "expectedOutput": "Diana\nEve\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT, price INTEGER); INSERT INTO customers VALUES (1,'Grace','Dallas'),(2,'Hank','Phoenix'); INSERT INTO products VALUES (1,'Cable','Electronics',10),(2,'Couch','Furniture',500); INSERT INTO orders VALUES (1,1,'completed'),(2,2,'completed'); INSERT INTO order_items VALUES (1,1,1,3),(2,2,2,1);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT, price INTEGER); INSERT INTO customers VALUES (1,'Iris','Portland'),(2,'Jack','Denver'),(3,'Kate','Austin'); INSERT INTO products VALUES (1,'TV','Electronics',600),(2,'Speaker','Electronics',200),(3,'Lamp','Furniture',80); INSERT INTO orders VALUES (1,1,'completed'),(2,2,'completed'),(3,3,'completed'); INSERT INTO order_items VALUES (1,1,1,1),(2,2,2,4),(3,3,3,5);",
+            "expectedOutput": "Iris\nJack\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, status TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT, price INTEGER); INSERT INTO customers VALUES (1,'Leo','Nashville'),(2,'Mia','Memphis'); INSERT INTO products VALUES (1,'Headphones','Electronics',250),(2,'Charger','Electronics',50); INSERT INTO orders VALUES (1,1,'completed'),(2,1,'completed'),(3,2,'pending'); INSERT INTO order_items VALUES (1,1,1,1),(2,2,2,4),(3,3,1,5);",
+            "expectedOutput": ""
+        }
+    ]
+}

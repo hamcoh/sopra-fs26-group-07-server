@@ -1,0 +1,38 @@
+{
+    "title": "International Bestsellers",
+    "description": "You are given four tables: publishers, books, translations, and sales. Find titles of books that have been translated into at least 2 languages AND have total sales across all languages exceeding 500 copies, ordered alphabetically.",
+    "inputFormat": "publishers(id, name, country)\nbooks(id, title, publisher_id, original_language)\ntranslations(id, book_id, language, translator)\nsales(id, book_id, language, copies)",
+    "outputFormat": "One book title per line, ordered alphabetically.",
+    "constraints": "Use correlated subqueries. Count translations >= 2 AND SUM of sales copies > 500 per book. Include ORDER BY title. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT b.title FROM books b WHERE (SELECT COUNT(*) FROM translations t WHERE t.book_id = b.id) >= 2 AND (SELECT SUM(copies) FROM sales s WHERE s.book_id = b.id) > 500 ORDER BY b.title;",
+    "hint": "Use two correlated subqueries: COUNT of translations >= 2 AND SUM(copies) > 500 for each book.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE publishers (id INTEGER, name TEXT, country TEXT); CREATE TABLE books (id INTEGER, title TEXT, publisher_id INTEGER, original_language TEXT); CREATE TABLE translations (id INTEGER, book_id INTEGER, language TEXT, translator TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, language TEXT, copies INTEGER); INSERT INTO publishers VALUES (1,'Big Pub','US'),(2,'Small Pub','UK'); INSERT INTO books VALUES (1,'The Journey',1,'English'),(2,'Dark Stars',2,'French'),(3,'Ocean Blue',1,'English'); INSERT INTO translations VALUES (1,1,'French','TA'),(2,1,'Spanish','TB'),(3,2,'English','TC'),(4,3,'German','TD'); INSERT INTO sales VALUES (1,1,300,'fr'),(2,1,250,'es'),(3,2,600,'en'),(4,3,100,'de');",
+            "expectedOutput": "The Journey\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE publishers (id INTEGER, name TEXT, country TEXT); CREATE TABLE books (id INTEGER, title TEXT, publisher_id INTEGER, original_language TEXT); CREATE TABLE translations (id INTEGER, book_id INTEGER, language TEXT, translator TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, language TEXT, copies INTEGER); INSERT INTO publishers VALUES (1,'Global Press','US'),(2,'Euro Books','DE'); INSERT INTO books VALUES (1,'Rising Sun',1,'English'),(2,'Mountain Call',2,'German'),(3,'Sea Winds',1,'English'); INSERT INTO translations VALUES (1,1,'German','TA'),(2,1,'Japanese','TB'),(3,2,'French','TC'),(4,2,'English','TD'),(5,3,'French','TE'),(6,3,'Spanish','TF'); INSERT INTO sales VALUES (1,1,300,'de'),(2,1,350,'jp'),(3,2,400,'fr'),(4,3,200,'fr'),(5,3,250,'es'),(6,3,100,'it');",
+            "expectedOutput": "Rising Sun\nSea Winds\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE publishers (id INTEGER, name TEXT, country TEXT); CREATE TABLE books (id INTEGER, title TEXT, publisher_id INTEGER, original_language TEXT); CREATE TABLE translations (id INTEGER, book_id INTEGER, language TEXT, translator TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, language TEXT, copies INTEGER); INSERT INTO publishers VALUES (1,'Niche Pub','SE'); INSERT INTO books VALUES (1,'Local Tale',1,'Swedish'),(2,'Short Story',1,'Swedish'); INSERT INTO translations VALUES (1,1,'Norwegian','T1'); INSERT INTO sales VALUES (1,1,300,'no'),(2,2,1000,'en');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE publishers (id INTEGER, name TEXT, country TEXT); CREATE TABLE books (id INTEGER, title TEXT, publisher_id INTEGER, original_language TEXT); CREATE TABLE translations (id INTEGER, book_id INTEGER, language TEXT, translator TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, language TEXT, copies INTEGER); INSERT INTO publishers VALUES (1,'WorldPub','US'); INSERT INTO books VALUES (1,'Adventure',1,'English'),(2,'Mystery',1,'English'),(3,'Romance',1,'English'); INSERT INTO translations VALUES (1,1,'French','T1'),(2,1,'Spanish','T2'),(3,2,'German','T3'),(4,2,'Japanese','T4'),(5,3,'Italian','T5'),(6,3,'Portuguese','T6'); INSERT INTO sales VALUES (1,1,300,'fr'),(2,1,250,'es'),(3,2,400,'de'),(4,2,200,'jp'),(5,3,600,'it'),(6,3,100,'pt');",
+            "expectedOutput": "Adventure\nMystery\nRomance\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE publishers (id INTEGER, name TEXT, country TEXT); CREATE TABLE books (id INTEGER, title TEXT, publisher_id INTEGER, original_language TEXT); CREATE TABLE translations (id INTEGER, book_id INTEGER, language TEXT, translator TEXT); CREATE TABLE sales (id INTEGER, book_id INTEGER, language TEXT, copies INTEGER); INSERT INTO publishers VALUES (1,'EuroPub','FR'); INSERT INTO books VALUES (1,'Horizon',1,'French'),(2,'Mirage',1,'French'); INSERT INTO translations VALUES (1,1,'English','T1'),(2,1,'German','T2'),(3,2,'English','T3'),(4,2,'Spanish','T4'); INSERT INTO sales VALUES (1,1,100,'en'),(2,1,200,'de'),(3,2,501,'en'),(4,2,10,'es');",
+            "expectedOutput": "Mirage\n"
+        }
+    ]
+}

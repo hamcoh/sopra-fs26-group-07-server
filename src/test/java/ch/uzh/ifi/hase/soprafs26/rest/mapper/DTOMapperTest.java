@@ -53,8 +53,9 @@ class DTOMapperTest {
 		user.setStatus(UserStatus.OFFLINE);
 		user.setBio("borbone is goated");
 		user.setWinCount(10);
+		user.setDrawCount(3);
 		user.setWinRatePercentage(100.0);
-		user.setTotalGamesPlayed(10);
+		user.setTotalGamesPlayed(15);
 		user.setTotalPoints(1000L);
 		user.setRank(1);
 		user.setAvatarId(6);
@@ -71,6 +72,7 @@ class DTOMapperTest {
 		assertEquals(user.getStatus(), userGetDTO.getStatus());
 		assertEquals(user.getBio(), userGetDTO.getBio());
 		assertEquals(user.getWinCount(), userGetDTO.getWinCount());
+		assertEquals(user.getDrawCount(), userGetDTO.getDrawCount());
 		assertEquals(user.getWinRatePercentage(), userGetDTO.getWinRatePercentage());
 		assertEquals(user.getTotalGamesPlayed(), userGetDTO.getTotalGamesPlayed());
 		assertEquals(user.getTotalPoints(), userGetDTO.getTotalPoints());
