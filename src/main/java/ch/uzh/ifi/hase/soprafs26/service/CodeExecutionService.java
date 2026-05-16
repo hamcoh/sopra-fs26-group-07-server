@@ -61,7 +61,7 @@ public class CodeExecutionService {
      * We will check the Judge0 results up to MAX_RESULT_CHECKS times with a delay
      * of RESULT_CHECK_DELAY_MS milliseconds in between.
      */
-    private static final int MAX_RESULT_CHECKS = 3;
+    private static final int MAX_RESULT_CHECKS = 10;
     private static final long RESULT_CHECK_DELAY_MS = 1000;
 
     // Points awarded per passed test case on a correct submission
