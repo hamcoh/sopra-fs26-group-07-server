@@ -1,0 +1,38 @@
+{
+    "title": "Award-Winning Active Players",
+    "description": "You are given three tables: players, match results, and awards. Return usernames of players who are 'active', have won at least one match (result = 'win'), AND have received at least one award. Order alphabetically.",
+    "inputFormat": "players(id, username, status)\nmatches(id, player_id, result)\nawards(id, player_id, award_type)",
+    "outputFormat": "One username per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use JOIN on both matches and awards. Include DISTINCT and ORDER BY username. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT p.username FROM players p JOIN matches m ON p.id = m.player_id JOIN awards a ON p.id = a.player_id WHERE p.status = 'active' AND m.result = 'win' ORDER BY p.username;",
+    "hint": "Join players with both matches and awards, filter on status = 'active' AND result = 'win', then use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, username TEXT, status TEXT); CREATE TABLE matches (id INTEGER, player_id INTEGER, result TEXT); CREATE TABLE awards (id INTEGER, player_id INTEGER, award_type TEXT); INSERT INTO players VALUES (1,'Alice','active'),(2,'Bob','inactive'),(3,'Charlie','active'),(4,'Diana','active'); INSERT INTO matches VALUES (1,1,'win'),(2,1,'loss'),(3,2,'win'),(4,3,'win'),(5,4,'loss'); INSERT INTO awards VALUES (1,1,'MVP'),(2,3,'Rookie'),(3,2,'Veteran');",
+            "expectedOutput": "Alice\nCharlie\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, username TEXT, status TEXT); CREATE TABLE matches (id INTEGER, player_id INTEGER, result TEXT); CREATE TABLE awards (id INTEGER, player_id INTEGER, award_type TEXT); INSERT INTO players VALUES (1,'Eve','active'),(2,'Frank','active'),(3,'Grace','inactive'),(4,'Hank','active'); INSERT INTO matches VALUES (1,1,'win'),(2,2,'win'),(3,2,'win'),(4,3,'win'),(5,4,'win'); INSERT INTO awards VALUES (1,2,'MVP'),(2,4,'Best New'),(3,4,'Champion');",
+            "expectedOutput": "Frank\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, username TEXT, status TEXT); CREATE TABLE matches (id INTEGER, player_id INTEGER, result TEXT); CREATE TABLE awards (id INTEGER, player_id INTEGER, award_type TEXT); INSERT INTO players VALUES (1,'Ivan','active'),(2,'Judy','active'),(3,'Karl','inactive'); INSERT INTO matches VALUES (1,1,'win'),(2,2,'loss'),(3,3,'win'); INSERT INTO awards VALUES (1,1,'MVP'),(2,3,'Champion');",
+            "expectedOutput": "Ivan\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, username TEXT, status TEXT); CREATE TABLE matches (id INTEGER, player_id INTEGER, result TEXT); CREATE TABLE awards (id INTEGER, player_id INTEGER, award_type TEXT); INSERT INTO players VALUES (1,'Liam','active'),(2,'Maya','active'),(3,'Noah','active'); INSERT INTO matches VALUES (1,1,'win'),(2,2,'win'),(3,3,'win'); INSERT INTO awards VALUES (1,1,'MVP'),(2,2,'Best'),(3,3,'Champion');",
+            "expectedOutput": "Liam\nMaya\nNoah\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, username TEXT, status TEXT); CREATE TABLE matches (id INTEGER, player_id INTEGER, result TEXT); CREATE TABLE awards (id INTEGER, player_id INTEGER, award_type TEXT); INSERT INTO players VALUES (1,'Owen','active'),(2,'Pam','inactive'),(3,'Quinn','active'); INSERT INTO matches VALUES (1,1,'loss'),(2,3,'loss'); INSERT INTO awards VALUES (1,1,'MVP');",
+            "expectedOutput": ""
+        }
+    ]
+}

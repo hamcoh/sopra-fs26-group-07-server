@@ -1,0 +1,38 @@
+{
+    "title": "Highly Rated Products",
+    "description": "You are given three tables: sellers, products they sell, and customer reviews with ratings (1-5). Find names of products with an average rating of at least 4, ordered alphabetically.",
+    "inputFormat": "sellers(id, name, country)\nproducts(id, name, seller_id, category)\nreviews(id, product_id, reviewer, rating)",
+    "outputFormat": "One product name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Use HAVING AVG(rating) >= 4. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT p.name FROM products p JOIN reviews r ON p.id = r.product_id GROUP BY p.id, p.name HAVING AVG(r.rating) >= 4 ORDER BY p.name;",
+    "hint": "Join products with reviews, GROUP BY product, and filter with HAVING AVG(r.rating) >= 4.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sellers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, seller_id INTEGER, category TEXT); CREATE TABLE reviews (id INTEGER, product_id INTEGER, reviewer TEXT, rating INTEGER); INSERT INTO sellers VALUES (1,'SellerA','US'),(2,'SellerB','UK'); INSERT INTO products VALUES (1,'Widget',1,'Gadget'),(2,'Gadget',1,'Gadget'),(3,'Doohickey',2,'Gadget'); INSERT INTO reviews VALUES (1,1,'user1',5),(2,1,'user2',4),(3,2,'user1',3),(4,2,'user2',2),(5,3,'user1',4),(6,3,'user2',5);",
+            "expectedOutput": "Doohickey\nWidget\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sellers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, seller_id INTEGER, category TEXT); CREATE TABLE reviews (id INTEGER, product_id INTEGER, reviewer TEXT, rating INTEGER); INSERT INTO sellers VALUES (1,'Alpha','DE'),(2,'Beta','FR'); INSERT INTO products VALUES (1,'Alpha One',1,'Electronics'),(2,'Beta Prime',2,'Fashion'),(3,'Gamma X',1,'Electronics'); INSERT INTO reviews VALUES (1,1,'rev1',4),(2,1,'rev2',4),(3,1,'rev3',5),(4,2,'rev1',2),(5,2,'rev2',3),(6,3,'rev1',3),(7,3,'rev2',2);",
+            "expectedOutput": "Alpha One\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sellers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, seller_id INTEGER, category TEXT); CREATE TABLE reviews (id INTEGER, product_id INTEGER, reviewer TEXT, rating INTEGER); INSERT INTO sellers VALUES (1,'SellerX','JP'); INSERT INTO products VALUES (1,'Bad Item',1,'Misc'),(2,'Terrible Thing',1,'Misc'); INSERT INTO reviews VALUES (1,1,'r1',1),(2,1,'r2',2),(3,2,'r1',1),(4,2,'r2',3);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sellers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, seller_id INTEGER, category TEXT); CREATE TABLE reviews (id INTEGER, product_id INTEGER, reviewer TEXT, rating INTEGER); INSERT INTO sellers VALUES (1,'TopSeller','KR'); INSERT INTO products VALUES (1,'Premium A',1,'Beauty'),(2,'Premium B',1,'Beauty'),(3,'Premium C',1,'Beauty'); INSERT INTO reviews VALUES (1,1,'r1',4),(2,1,'r2',5),(3,2,'r1',4),(4,2,'r2',4),(5,3,'r1',5),(6,3,'r2',4);",
+            "expectedOutput": "Premium A\nPremium B\nPremium C\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE sellers (id INTEGER, name TEXT, country TEXT); CREATE TABLE products (id INTEGER, name TEXT, seller_id INTEGER, category TEXT); CREATE TABLE reviews (id INTEGER, product_id INTEGER, reviewer TEXT, rating INTEGER); INSERT INTO sellers VALUES (1,'MidSeller','AU'); INSERT INTO products VALUES (1,'Exact Four',1,'Tools'),(2,'Below Four',1,'Tools'); INSERT INTO reviews VALUES (1,1,'r1',4),(2,1,'r2',4),(3,2,'r1',3),(4,2,'r2',4);",
+            "expectedOutput": "Exact Four\n"
+        }
+    ]
+}

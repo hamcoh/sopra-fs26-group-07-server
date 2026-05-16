@@ -1,0 +1,38 @@
+{
+    "title": "Berlin Train Lines",
+    "description": "You are given three tables: train lines, stations, and stops linking trains to stations. Find distinct names of train lines that stop at a station located in 'Berlin', ordered alphabetically.",
+    "inputFormat": "trains(id, name, operator)\nstations(id, name, city)\nstops(id, train_id, station_id, stop_order)",
+    "outputFormat": "One train name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter WHERE city = 'Berlin'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT t.name FROM trains t JOIN stops s ON t.id = s.train_id JOIN stations st ON s.station_id = st.id WHERE st.city = 'Berlin' ORDER BY t.name;",
+    "hint": "Join trains → stops → stations, filter by city = 'Berlin', use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE trains (id INTEGER, name TEXT, operator TEXT); CREATE TABLE stations (id INTEGER, name TEXT, city TEXT); CREATE TABLE stops (id INTEGER, train_id INTEGER, station_id INTEGER, stop_order INTEGER); INSERT INTO trains VALUES (1,'ICE 101','DB'),(2,'IC 202','DB'),(3,'RE 303','DB'); INSERT INTO stations VALUES (1,'Berlin Hbf','Berlin'),(2,'Hamburg Hbf','Hamburg'),(3,'Berlin Ostbf','Berlin'); INSERT INTO stops VALUES (1,1,1,1),(2,1,2,2),(3,2,2,1),(4,3,3,1),(5,3,1,2);",
+            "expectedOutput": "ICE 101\nRE 303\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE trains (id INTEGER, name TEXT, operator TEXT); CREATE TABLE stations (id INTEGER, name TEXT, city TEXT); CREATE TABLE stops (id INTEGER, train_id INTEGER, station_id INTEGER, stop_order INTEGER); INSERT INTO trains VALUES (1,'S1','BVG'),(2,'S2','BVG'),(3,'S3','BVG'),(4,'S4','BVG'); INSERT INTO stations VALUES (1,'Alexanderplatz','Berlin'),(2,'Munich Hbf','Munich'),(3,'Potsdam Hbf','Potsdam'); INSERT INTO stops VALUES (1,1,1,1),(2,2,2,1),(3,3,2,1),(4,4,1,1),(5,4,3,2);",
+            "expectedOutput": "S1\nS4\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE trains (id INTEGER, name TEXT, operator TEXT); CREATE TABLE stations (id INTEGER, name TEXT, city TEXT); CREATE TABLE stops (id INTEGER, train_id INTEGER, station_id INTEGER, stop_order INTEGER); INSERT INTO trains VALUES (1,'EC 10','DB'),(2,'IC 20','DB'); INSERT INTO stations VALUES (1,'Frankfurt Hbf','Frankfurt'),(2,'Cologne Hbf','Cologne'); INSERT INTO stops VALUES (1,1,1,1),(2,2,2,1);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE trains (id INTEGER, name TEXT, operator TEXT); CREATE TABLE stations (id INTEGER, name TEXT, city TEXT); CREATE TABLE stops (id INTEGER, train_id INTEGER, station_id INTEGER, stop_order INTEGER); INSERT INTO trains VALUES (1,'RB 1','DB'),(2,'RB 2','DB'),(3,'RB 3','DB'); INSERT INTO stations VALUES (1,'Berlin Hbf','Berlin'),(2,'Berlin Sued','Berlin'),(3,'Munich Hbf','Munich'); INSERT INTO stops VALUES (1,1,1,1),(2,2,1,1),(3,2,2,2),(4,3,3,1);",
+            "expectedOutput": "RB 1\nRB 2\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE trains (id INTEGER, name TEXT, operator TEXT); CREATE TABLE stations (id INTEGER, name TEXT, city TEXT); CREATE TABLE stops (id INTEGER, train_id INTEGER, station_id INTEGER, stop_order INTEGER); INSERT INTO trains VALUES (1,'ICE 500','DB'); INSERT INTO stations VALUES (1,'Berlin Hbf','Berlin'),(2,'Hamburg Hbf','Hamburg'); INSERT INTO stops VALUES (1,1,1,1),(2,1,2,2);",
+            "expectedOutput": "ICE 500\n"
+        }
+    ]
+}

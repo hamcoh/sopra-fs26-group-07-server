@@ -1,0 +1,38 @@
+{
+    "title": "Filter Players by Score",
+    "description": "You are given a table called 'players' containing game results. Write a SELECT query that returns the name of every player whose score is greater than 100, ordered alphabetically by name.",
+    "inputFormat": "players(id, name, score)",
+    "outputFormat": "One player name per line, ordered alphabetically.",
+    "constraints": "Your query must include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT name FROM players WHERE score > 100 ORDER BY name;",
+    "hint": "Use WHERE to filter rows and ORDER BY to ensure consistent ordering.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1, 'Alice', 80), (2, 'Bob', 150), (3, 'Charlie', 200);",
+            "expectedOutput": "Bob\nCharlie\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1, 'Dave', 50), (2, 'Eve', 300), (3, 'Frank', 120), (4, 'Grace', 90);",
+            "expectedOutput": "Eve\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1, 'Hank', 50), (2, 'Iris', 99), (3, 'Jack', 100);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1, 'Kate', 500), (2, 'Leo', 200), (3, 'Mia', 350), (4, 'Noah', 150);",
+            "expectedOutput": "Kate\nLeo\nMia\nNoah\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE players (id INTEGER, name TEXT, score INTEGER); INSERT INTO players VALUES (1, 'Owen', 101), (2, 'Pam', 100), (3, 'Quinn', 99), (4, 'Rex', 500);",
+            "expectedOutput": "Owen\nRex\n"
+        }
+    ]
+}

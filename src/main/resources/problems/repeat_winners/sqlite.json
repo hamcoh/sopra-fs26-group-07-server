@@ -1,0 +1,38 @@
+{
+    "title": "Versatile Readers",
+    "description": "You are given three tables: library members, books with genres, and borrow records. Return names of 'premium' members who have borrowed books from at least 2 different genres. Order alphabetically.",
+    "inputFormat": "members(id, name, membership_type)\nbooks(id, title, genre)\nborrows(id, member_id, book_id, returned)",
+    "outputFormat": "One member name per line, ordered alphabetically.",
+    "constraints": "Use JOIN, GROUP BY, and HAVING COUNT(DISTINCT genre) >= 2. Filter for premium membership. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT m.name FROM members m JOIN borrows b ON m.id = b.member_id JOIN books bk ON b.book_id = bk.id WHERE m.membership_type = 'premium' GROUP BY m.id, m.name HAVING COUNT(DISTINCT bk.genre) >= 2 ORDER BY m.name;",
+    "hint": "Join all three tables, filter by membership_type, then use GROUP BY + HAVING COUNT(DISTINCT bk.genre) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE members (id INTEGER, name TEXT, membership_type TEXT); CREATE TABLE books (id INTEGER, title TEXT, genre TEXT); CREATE TABLE borrows (id INTEGER, member_id INTEGER, book_id INTEGER, returned INTEGER); INSERT INTO members VALUES (1,'Alice','premium'),(2,'Bob','standard'),(3,'Charlie','premium'),(4,'Diana','premium'); INSERT INTO books VALUES (1,'Dune','SciFi'),(2,'Foundation','SciFi'),(3,'1984','Dystopia'),(4,'Neuromancer','SciFi'),(5,'Brave New World','Dystopia'); INSERT INTO borrows VALUES (1,1,1,1),(2,1,3,1),(3,2,1,0),(4,2,3,0),(5,3,1,1),(6,3,2,0),(7,4,3,1),(8,4,5,1);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE members (id INTEGER, name TEXT, membership_type TEXT); CREATE TABLE books (id INTEGER, title TEXT, genre TEXT); CREATE TABLE borrows (id INTEGER, member_id INTEGER, book_id INTEGER, returned INTEGER); INSERT INTO members VALUES (1,'Eve','premium'),(2,'Frank','premium'),(3,'Grace','standard'),(4,'Hank','premium'); INSERT INTO books VALUES (1,'The Hobbit','Fantasy'),(2,'Harry Potter','Fantasy'),(3,'The Martian','SciFi'),(4,'Sherlock Holmes','Mystery'),(5,'Cosmos','Science'); INSERT INTO borrows VALUES (1,1,1,1),(2,1,3,1),(3,1,4,0),(4,2,1,1),(5,2,2,0),(6,3,3,1),(7,3,4,1),(8,4,3,1),(9,4,5,1);",
+            "expectedOutput": "Eve\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE members (id INTEGER, name TEXT, membership_type TEXT); CREATE TABLE books (id INTEGER, title TEXT, genre TEXT); CREATE TABLE borrows (id INTEGER, member_id INTEGER, book_id INTEGER, returned INTEGER); INSERT INTO members VALUES (1,'Iris','premium'),(2,'Jack','standard'); INSERT INTO books VALUES (1,'Novel A','Fiction'),(2,'Novel B','Fiction'); INSERT INTO borrows VALUES (1,1,1,1),(2,1,2,0),(3,2,1,1);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE members (id INTEGER, name TEXT, membership_type TEXT); CREATE TABLE books (id INTEGER, title TEXT, genre TEXT); CREATE TABLE borrows (id INTEGER, member_id INTEGER, book_id INTEGER, returned INTEGER); INSERT INTO members VALUES (1,'Kate','premium'),(2,'Leo','premium'),(3,'Mia','premium'); INSERT INTO books VALUES (1,'Romance A','Romance'),(2,'Thriller A','Thriller'),(3,'Mystery A','Mystery'),(4,'SciFi A','SciFi'); INSERT INTO borrows VALUES (1,1,1,1),(2,1,2,1),(3,2,2,1),(4,2,3,1),(5,3,3,1),(6,3,4,1);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE members (id INTEGER, name TEXT, membership_type TEXT); CREATE TABLE books (id INTEGER, title TEXT, genre TEXT); CREATE TABLE borrows (id INTEGER, member_id INTEGER, book_id INTEGER, returned INTEGER); INSERT INTO members VALUES (1,'Noah','premium'),(2,'Olivia','basic'); INSERT INTO books VALUES (1,'History',  'History'),(2,'Geography','Geography'),(3,'Science','Science'); INSERT INTO borrows VALUES (1,1,1,1),(2,1,2,0),(3,2,1,1),(4,2,2,1),(5,2,3,1);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

@@ -3,7 +3,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;  
+import org.springframework.web.server.ResponseStatusException;
+
+import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
 import ch.uzh.ifi.hase.soprafs26.entity.Problem;
 import ch.uzh.ifi.hase.soprafs26.repository.ProblemRepository;
 import ch.uzh.ifi.hase.soprafs26.entity.TestCase;
@@ -56,10 +58,24 @@ public class ProblemService {
         } else { // no edge cases then we can save the problem and save its testcasees.
             for (int i = 0; i < newProblem.getTestCases().size(); i++) {
                 TestCase testCase = newProblem.getTestCases().get(i);
-                if (testCase.getInput() == null || testCase.getInput().isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an input.");
-                } else if (testCase.getExpectedOutput() == null || testCase.getExpectedOutput().isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an expected output.");
+                if (newProblem.getGameLanguage() != GameLanguage.SQLITE) {
+                    if (testCase.getInput() == null || testCase.getInput().isBlank()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an input.");
+                    }
+                } else {
+                    if (testCase.getSetupSql() == null || testCase.getSetupSql().isBlank()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each SQL test case must have a setup.");
+                    }
+                }
+                    
+                if (newProblem.getGameLanguage() == GameLanguage.SQLITE) {
+                    if (testCase.getExpectedOutput() == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an expected output.");
+                    }
+                } else {
+                    if (testCase.getExpectedOutput() == null || testCase.getExpectedOutput().isBlank()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each test case must have an expected output.");
+                    }
                 }
                 
                 testCase.setProblem(newProblem);

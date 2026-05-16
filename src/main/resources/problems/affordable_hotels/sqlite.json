@@ -1,0 +1,38 @@
+{
+    "title": "Affordable Hotels",
+    "description": "You are given three tables: hotels with their city, rooms in each hotel with prices, and reservations. Find names of hotels where the average room price is below 150, ordered alphabetically.",
+    "inputFormat": "hotels(id, name, city)\nrooms(id, hotel_id, type, price)\nreservations(id, room_id, guest_name)",
+    "outputFormat": "One hotel name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Use HAVING AVG(price) < 150. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT h.name FROM hotels h JOIN rooms r ON h.id = r.hotel_id GROUP BY h.id, h.name HAVING AVG(r.price) < 150 ORDER BY h.name;",
+    "hint": "Join hotels with rooms, GROUP BY hotel, and filter with HAVING AVG(r.price) < 150.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE hotels (id INTEGER, name TEXT, city TEXT); CREATE TABLE rooms (id INTEGER, hotel_id INTEGER, type TEXT, price INTEGER); CREATE TABLE reservations (id INTEGER, room_id INTEGER, guest_name TEXT); INSERT INTO hotels VALUES (1,'Grand Inn','Paris'),(2,'Budget Stay','London'),(3,'Classic Hotel','Rome'); INSERT INTO rooms VALUES (1,1,'Suite',300),(2,1,'Double',200),(3,2,'Single',80),(4,2,'Twin',100),(5,3,'Standard',120),(6,3,'Deluxe',180); INSERT INTO reservations VALUES (1,1,'Alice'),(2,3,'Bob');",
+            "expectedOutput": "Budget Stay\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE hotels (id INTEGER, name TEXT, city TEXT); CREATE TABLE rooms (id INTEGER, hotel_id INTEGER, type TEXT, price INTEGER); CREATE TABLE reservations (id INTEGER, room_id INTEGER, guest_name TEXT); INSERT INTO hotels VALUES (1,'Sunrise','Tokyo'),(2,'Harbor View','Sydney'),(3,'Mountain Lodge','Zurich'); INSERT INTO rooms VALUES (1,1,'Standard',90),(2,1,'Family',110),(3,2,'Suite',400),(4,2,'Single',60),(5,3,'Deluxe',250),(6,3,'Premium',300); INSERT INTO reservations VALUES (1,1,'Eve'),(2,3,'Frank');",
+            "expectedOutput": "Sunrise\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE hotels (id INTEGER, name TEXT, city TEXT); CREATE TABLE rooms (id INTEGER, hotel_id INTEGER, type TEXT, price INTEGER); CREATE TABLE reservations (id INTEGER, room_id INTEGER, guest_name TEXT); INSERT INTO hotels VALUES (1,'Luxury Palace','Dubai'),(2,'Five Stars','Monaco'); INSERT INTO rooms VALUES (1,1,'Suite',500),(2,1,'Penthouse',800),(3,2,'Deluxe',300),(4,2,'Suite',600); INSERT INTO reservations VALUES (1,1,'Grace');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE hotels (id INTEGER, name TEXT, city TEXT); CREATE TABLE rooms (id INTEGER, hotel_id INTEGER, type TEXT, price INTEGER); CREATE TABLE reservations (id INTEGER, room_id INTEGER, guest_name TEXT); INSERT INTO hotels VALUES (1,'Cozy Inn','Berlin'),(2,'City Hostel','Vienna'),(3,'River View','Prague'); INSERT INTO rooms VALUES (1,1,'Single',60),(2,1,'Double',80),(3,2,'Dorm',40),(4,2,'Twin',70),(5,3,'Standard',100),(6,3,'Deluxe',140); INSERT INTO reservations VALUES (1,1,'Hank'),(2,3,'Iris');",
+            "expectedOutput": "City Hostel\nCozy Inn\nRiver View\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE hotels (id INTEGER, name TEXT, city TEXT); CREATE TABLE rooms (id INTEGER, hotel_id INTEGER, type TEXT, price INTEGER); CREATE TABLE reservations (id INTEGER, room_id INTEGER, guest_name TEXT); INSERT INTO hotels VALUES (1,'Mid Range','NYC'),(2,'Pricey Stay','LA'); INSERT INTO rooms VALUES (1,1,'Standard',149),(2,2,'Standard',151); INSERT INTO reservations VALUES (1,1,'Jake');",
+            "expectedOutput": "Mid Range\n"
+        }
+    ]
+}

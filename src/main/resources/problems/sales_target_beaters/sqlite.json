@@ -1,0 +1,38 @@
+{
+    "title": "Consistent Overachievers",
+    "description": "You are given three tables: employees, sales targets per quarter, and actual sales per quarter. Find names of employees who beat their target (revenue > goal) in at least 2 quarters, ordered alphabetically.",
+    "inputFormat": "employees(id, name, dept)\ntargets(id, employee_id, quarter, goal)\nsales(id, employee_id, quarter, revenue)",
+    "outputFormat": "One employee name per line, ordered alphabetically.",
+    "constraints": "Use two JOINs. Join targets and sales on both employee_id AND quarter. Filter WHERE revenue > goal. Use HAVING COUNT(*) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT e.name FROM employees e JOIN targets t ON e.id = t.employee_id JOIN sales s ON e.id = s.employee_id AND t.quarter = s.quarter WHERE s.revenue > t.goal GROUP BY e.id, e.name HAVING COUNT(*) >= 2 ORDER BY e.name;",
+    "hint": "Join employees → targets → sales on BOTH employee_id AND quarter, filter revenue > goal, HAVING COUNT(*) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE employees (id INTEGER, name TEXT, dept TEXT); CREATE TABLE targets (id INTEGER, employee_id INTEGER, quarter TEXT, goal INTEGER); CREATE TABLE sales (id INTEGER, employee_id INTEGER, quarter TEXT, revenue INTEGER); INSERT INTO employees VALUES (1,'Alice','Sales'),(2,'Bob','Sales'),(3,'Carol','Sales'); INSERT INTO targets VALUES (1,1,'Q1',10000),(2,1,'Q2',12000),(3,2,'Q1',8000),(4,2,'Q2',9000),(5,3,'Q1',15000); INSERT INTO sales VALUES (1,1,'Q1',11000),(2,1,'Q2',13000),(3,2,'Q1',9000),(4,2,'Q2',8000),(5,3,'Q1',14000);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE employees (id INTEGER, name TEXT, dept TEXT); CREATE TABLE targets (id INTEGER, employee_id INTEGER, quarter TEXT, goal INTEGER); CREATE TABLE sales (id INTEGER, employee_id INTEGER, quarter TEXT, revenue INTEGER); INSERT INTO employees VALUES (1,'Dan','Sales'),(2,'Eve','Sales'),(3,'Frank','Sales'); INSERT INTO targets VALUES (1,1,'Q1',5000),(2,1,'Q2',6000),(3,1,'Q3',7000),(4,2,'Q1',4000),(5,2,'Q2',5000),(6,3,'Q1',8000); INSERT INTO sales VALUES (1,1,'Q1',6000),(2,1,'Q2',7000),(3,1,'Q3',6000),(4,2,'Q1',5000),(5,2,'Q2',4000),(6,3,'Q1',9000);",
+            "expectedOutput": "Dan\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE employees (id INTEGER, name TEXT, dept TEXT); CREATE TABLE targets (id INTEGER, employee_id INTEGER, quarter TEXT, goal INTEGER); CREATE TABLE sales (id INTEGER, employee_id INTEGER, quarter TEXT, revenue INTEGER); INSERT INTO employees VALUES (1,'Grace','Sales'),(2,'Hank','Sales'); INSERT INTO targets VALUES (1,1,'Q1',10000),(2,1,'Q2',12000),(3,2,'Q1',8000),(4,2,'Q2',9000); INSERT INTO sales VALUES (1,1,'Q1',9000),(2,1,'Q2',11000),(3,2,'Q1',7000),(4,2,'Q2',8000);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE employees (id INTEGER, name TEXT, dept TEXT); CREATE TABLE targets (id INTEGER, employee_id INTEGER, quarter TEXT, goal INTEGER); CREATE TABLE sales (id INTEGER, employee_id INTEGER, quarter TEXT, revenue INTEGER); INSERT INTO employees VALUES (1,'Iris','Sales'),(2,'Jack','Sales'),(3,'Kate','Sales'); INSERT INTO targets VALUES (1,1,'Q1',5000),(2,1,'Q2',5000),(3,2,'Q1',3000),(4,2,'Q2',4000),(5,3,'Q1',6000),(6,3,'Q2',7000); INSERT INTO sales VALUES (1,1,'Q1',6000),(2,1,'Q2',6000),(3,2,'Q1',4000),(4,2,'Q2',5000),(5,3,'Q1',7000),(6,3,'Q2',8000);",
+            "expectedOutput": "Iris\nJack\nKate\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE employees (id INTEGER, name TEXT, dept TEXT); CREATE TABLE targets (id INTEGER, employee_id INTEGER, quarter TEXT, goal INTEGER); CREATE TABLE sales (id INTEGER, employee_id INTEGER, quarter TEXT, revenue INTEGER); INSERT INTO employees VALUES (1,'Leo','Sales'),(2,'Mia','Sales'); INSERT INTO targets VALUES (1,1,'Q1',9000),(2,1,'Q2',9000),(3,2,'Q1',9000),(4,2,'Q2',9000); INSERT INTO sales VALUES (1,1,'Q1',10000),(2,1,'Q2',10000),(3,2,'Q1',8000),(4,2,'Q2',10000);",
+            "expectedOutput": "Leo\n"
+        }
+    ]
+}

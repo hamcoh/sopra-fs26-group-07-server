@@ -1,0 +1,38 @@
+{
+    "title": "Well-Sponsored Teams",
+    "description": "You are given three tables: sports leagues, teams, and sponsorship contracts. Find names of teams that have at least 2 active sponsorship contracts (active = 1), ordered alphabetically.",
+    "inputFormat": "leagues(id, name, sport)\nteams(id, name, league_id)\ncontracts(id, team_id, sponsor, active)",
+    "outputFormat": "One team name per line, ordered alphabetically.",
+    "constraints": "Use JOIN and GROUP BY. Filter WHERE active = 1. Use HAVING COUNT(*) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT t.name FROM teams t JOIN contracts c ON t.id = c.team_id WHERE c.active = 1 GROUP BY t.id, t.name HAVING COUNT(*) >= 2 ORDER BY t.name;",
+    "hint": "Join teams with contracts, filter active contracts, GROUP BY team, HAVING COUNT(*) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE leagues (id INTEGER, name TEXT, sport TEXT); CREATE TABLE teams (id INTEGER, name TEXT, league_id INTEGER); CREATE TABLE contracts (id INTEGER, team_id INTEGER, sponsor TEXT, active INTEGER); INSERT INTO leagues VALUES (1,'Premier','Football'),(2,'NBA','Basketball'); INSERT INTO teams VALUES (1,'Eagles',1),(2,'Lions',1),(3,'Bears',2); INSERT INTO contracts VALUES (1,1,'Nike',1),(2,1,'Adidas',1),(3,2,'Puma',1),(4,3,'Nike',1),(5,3,'Reebok',0),(6,2,'Under Armour',0);",
+            "expectedOutput": "Eagles\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE leagues (id INTEGER, name TEXT, sport TEXT); CREATE TABLE teams (id INTEGER, name TEXT, league_id INTEGER); CREATE TABLE contracts (id INTEGER, team_id INTEGER, sponsor TEXT, active INTEGER); INSERT INTO leagues VALUES (1,'League A','Tennis'),(2,'League B','Golf'); INSERT INTO teams VALUES (1,'Tigers',1),(2,'Wolves',1),(3,'Foxes',2),(4,'Hawks',2); INSERT INTO contracts VALUES (1,1,'SponsorX',1),(2,1,'SponsorY',1),(3,2,'SponsorZ',1),(4,3,'SponsorX',1),(5,3,'SponsorY',1),(6,4,'SponsorZ',0),(7,2,'SponsorW',1);",
+            "expectedOutput": "Foxes\nTigers\nWolves\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE leagues (id INTEGER, name TEXT, sport TEXT); CREATE TABLE teams (id INTEGER, name TEXT, league_id INTEGER); CREATE TABLE contracts (id INTEGER, team_id INTEGER, sponsor TEXT, active INTEGER); INSERT INTO leagues VALUES (1,'Minor League','Cricket'); INSERT INTO teams VALUES (1,'Ducks',1),(2,'Geese',1); INSERT INTO contracts VALUES (1,1,'Sponsor1',0),(2,2,'Sponsor2',1);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE leagues (id INTEGER, name TEXT, sport TEXT); CREATE TABLE teams (id INTEGER, name TEXT, league_id INTEGER); CREATE TABLE contracts (id INTEGER, team_id INTEGER, sponsor TEXT, active INTEGER); INSERT INTO leagues VALUES (1,'Pro League','Hockey'); INSERT INTO teams VALUES (1,'Sharks',1),(2,'Jets',1),(3,'Flames',1); INSERT INTO contracts VALUES (1,1,'BrandA',1),(2,1,'BrandB',1),(3,2,'BrandC',1),(4,2,'BrandD',1),(5,3,'BrandE',1),(6,3,'BrandF',1);",
+            "expectedOutput": "Flames\nJets\nSharks\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE leagues (id INTEGER, name TEXT, sport TEXT); CREATE TABLE teams (id INTEGER, name TEXT, league_id INTEGER); CREATE TABLE contracts (id INTEGER, team_id INTEGER, sponsor TEXT, active INTEGER); INSERT INTO leagues VALUES (1,'Champion Series','Swimming'); INSERT INTO teams VALUES (1,'Dolphins',1),(2,'Stingrays',1); INSERT INTO contracts VALUES (1,1,'AquaBrand',1),(2,1,'SpeedGear',1),(3,2,'AquaBrand',0),(4,2,'SwimPro',0);",
+            "expectedOutput": "Dolphins\n"
+        }
+    ]
+}

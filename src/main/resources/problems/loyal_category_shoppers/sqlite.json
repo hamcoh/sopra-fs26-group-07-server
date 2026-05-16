@@ -1,0 +1,38 @@
+{
+    "title": "Diverse Shoppers",
+    "description": "You are given four tables: customers, orders, order_items, and products. Find names of customers who have purchased products from at least 3 distinct categories, ordered alphabetically.",
+    "inputFormat": "customers(id, name, city)\norders(id, customer_id, date)\norder_items(id, order_id, product_id, quantity)\nproducts(id, name, category)",
+    "outputFormat": "One customer name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Use HAVING COUNT(DISTINCT category) >= 3. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT c.name FROM customers c JOIN orders o ON c.id = o.customer_id JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id GROUP BY c.id, c.name HAVING COUNT(DISTINCT p.category) >= 3 ORDER BY c.name;",
+    "hint": "Join customers → orders → order_items → products, GROUP BY customer, HAVING COUNT(DISTINCT p.category) >= 3.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, date TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT); INSERT INTO customers VALUES (1,'Alice','NY'),(2,'Bob','LA'),(3,'Carol','Chicago'); INSERT INTO products VALUES (1,'Phone','Electronics'),(2,'Shirt','Clothing'),(3,'Novel','Books'),(4,'Laptop','Electronics'); INSERT INTO orders VALUES (1,1,'2024-01'),(2,2,'2024-01'),(3,3,'2024-01'); INSERT INTO order_items VALUES (1,1,1,1),(2,1,2,1),(3,1,3,1),(4,2,1,1),(5,2,4,1),(6,3,2,2),(7,3,3,1);",
+            "expectedOutput": "Alice\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, date TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT); INSERT INTO customers VALUES (1,'Dan','NY'),(2,'Eve','LA'),(3,'Frank','Miami'); INSERT INTO products VALUES (1,'TV','Electronics'),(2,'Pants','Clothing'),(3,'Cookbook','Books'),(4,'Drill','Tools'),(5,'Headphones','Electronics'); INSERT INTO orders VALUES (1,1,'2024-02'),(2,1,'2024-03'),(3,2,'2024-02'),(4,3,'2024-02'); INSERT INTO order_items VALUES (1,1,1,1),(2,1,2,1),(3,2,3,1),(4,2,4,1),(5,3,1,2),(6,3,3,1),(7,4,2,1),(8,4,4,1),(9,4,5,1);",
+            "expectedOutput": "Dan\nFrank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, date TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT); INSERT INTO customers VALUES (1,'Grace','Boston'),(2,'Hank','Denver'); INSERT INTO products VALUES (1,'Laptop','Electronics'),(2,'Phone','Electronics'); INSERT INTO orders VALUES (1,1,'2024-01'),(2,2,'2024-01'); INSERT INTO order_items VALUES (1,1,1,1),(2,1,2,1),(3,2,1,2);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, date TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT); INSERT INTO customers VALUES (1,'Iris','Atlanta'),(2,'Jack','Seattle'),(3,'Kate','Portland'); INSERT INTO products VALUES (1,'Chair','Furniture'),(2,'Book','Books'),(3,'Shirt','Clothing'),(4,'Wrench','Tools'),(5,'Lamp','Furniture'); INSERT INTO orders VALUES (1,1,'2024-01'),(2,2,'2024-01'),(3,3,'2024-01'); INSERT INTO order_items VALUES (1,1,1,1),(2,1,2,1),(3,1,3,1),(4,1,4,1),(5,2,2,1),(6,2,3,1),(7,2,4,1),(8,3,1,1),(9,3,3,1),(10,3,4,1);",
+            "expectedOutput": "Iris\nJack\nKate\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE customers (id INTEGER, name TEXT, city TEXT); CREATE TABLE orders (id INTEGER, customer_id INTEGER, date TEXT); CREATE TABLE order_items (id INTEGER, order_id INTEGER, product_id INTEGER, quantity INTEGER); CREATE TABLE products (id INTEGER, name TEXT, category TEXT); INSERT INTO customers VALUES (1,'Leo','Houston'),(2,'Mia','Phoenix'); INSERT INTO products VALUES (1,'Hammer','Tools'),(2,'Screwdriver','Tools'),(3,'Paint','Decor'),(4,'Canvas','Decor'),(5,'Gloves','Safety'); INSERT INTO orders VALUES (1,1,'2024-01'),(2,1,'2024-02'),(3,2,'2024-01'); INSERT INTO order_items VALUES (1,1,1,1),(2,1,3,1),(3,2,5,1),(4,3,2,1),(5,3,4,1);",
+            "expectedOutput": "Leo\n"
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+{
+    "title": "Streaming Superstars",
+    "description": "You are given four tables: artists, albums, songs, and stream records per platform. Find names of artists whose songs have accumulated more than 1000000 total streams AND appear on at least 2 distinct streaming platforms, ordered alphabetically.",
+    "inputFormat": "artists(id, name, genre)\nalbums(id, title, artist_id)\nsongs(id, title, album_id)\nstreams(id, song_id, platform, count)",
+    "outputFormat": "One artist name per line, ordered alphabetically.",
+    "constraints": "Use three JOINs and GROUP BY. Use HAVING SUM(count) > 1000000 AND COUNT(DISTINCT platform) >= 2. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT a.name FROM artists a JOIN albums al ON a.id = al.artist_id JOIN songs s ON al.id = s.album_id JOIN streams st ON s.id = st.song_id GROUP BY a.id, a.name HAVING SUM(st.count) > 1000000 AND COUNT(DISTINCT st.platform) >= 2 ORDER BY a.name;",
+    "hint": "Join artists → albums → songs → streams, GROUP BY artist, HAVING SUM(count) > 1000000 AND COUNT(DISTINCT platform) >= 2.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE artists (id INTEGER, name TEXT, genre TEXT); CREATE TABLE albums (id INTEGER, title TEXT, artist_id INTEGER); CREATE TABLE songs (id INTEGER, title TEXT, album_id INTEGER); CREATE TABLE streams (id INTEGER, song_id INTEGER, platform TEXT, count INTEGER); INSERT INTO artists VALUES (1,'Artist A','Pop'),(2,'Artist B','Rock'),(3,'Artist C','Jazz'); INSERT INTO albums VALUES (1,'Album 1',1),(2,'Album 2',2),(3,'Album 3',3); INSERT INTO songs VALUES (1,'Song 1',1),(2,'Song 2',1),(3,'Song 3',2),(4,'Song 4',3); INSERT INTO streams VALUES (1,1,'Spotify',600000),(2,1,'Apple',500000),(3,2,'Spotify',200000),(4,3,'YouTube',800000),(5,3,'Spotify',300000),(6,4,'Spotify',100000);",
+            "expectedOutput": "Artist A\nArtist B\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE artists (id INTEGER, name TEXT, genre TEXT); CREATE TABLE albums (id INTEGER, title TEXT, artist_id INTEGER); CREATE TABLE songs (id INTEGER, title TEXT, album_id INTEGER); CREATE TABLE streams (id INTEGER, song_id INTEGER, platform TEXT, count INTEGER); INSERT INTO artists VALUES (1,'Melody X','Electronic'),(2,'Beat Y','Hip-Hop'),(3,'Sound Z','Classical'); INSERT INTO albums VALUES (1,'Waves',1),(2,'Rhythm',2),(3,'Symphony',3); INSERT INTO songs VALUES (1,'Wave 1',1),(2,'Wave 2',1),(3,'Beat 1',2),(4,'Symphony 1',3); INSERT INTO streams VALUES (1,1,'Spotify',700000),(2,1,'Apple',400000),(3,2,'YouTube',200000),(4,2,'Spotify',100000),(5,3,'Spotify',900000),(6,3,'YouTube',200000),(7,4,'Apple',2000000);",
+            "expectedOutput": "Beat Y\nMelody X\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE artists (id INTEGER, name TEXT, genre TEXT); CREATE TABLE albums (id INTEGER, title TEXT, artist_id INTEGER); CREATE TABLE songs (id INTEGER, title TEXT, album_id INTEGER); CREATE TABLE streams (id INTEGER, song_id INTEGER, platform TEXT, count INTEGER); INSERT INTO artists VALUES (1,'Indie Folk','Folk'),(2,'Jazz Cat','Jazz'); INSERT INTO albums VALUES (1,'Quiet',1),(2,'Smooth',2); INSERT INTO songs VALUES (1,'Quiet Song',1),(2,'Jazz Song',2); INSERT INTO streams VALUES (1,1,'Spotify',500000),(2,2,'Apple',500000);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE artists (id INTEGER, name TEXT, genre TEXT); CREATE TABLE albums (id INTEGER, title TEXT, artist_id INTEGER); CREATE TABLE songs (id INTEGER, title TEXT, album_id INTEGER); CREATE TABLE streams (id INTEGER, song_id INTEGER, platform TEXT, count INTEGER); INSERT INTO artists VALUES (1,'Alpha Band','Rock'),(2,'Beta Solo','Pop'),(3,'Gamma DJ','EDM'); INSERT INTO albums VALUES (1,'Rocked',1),(2,'Charted',2),(3,'Dropped',3); INSERT INTO songs VALUES (1,'Rock Hit',1),(2,'Pop Star',2),(3,'EDM Drop',3); INSERT INTO streams VALUES (1,1,'Spotify',700000),(2,1,'Apple',500000),(3,2,'Spotify',800000),(4,2,'YouTube',400000),(5,3,'Apple',600000),(6,3,'TikTok',600000);",
+            "expectedOutput": "Alpha Band\nBeta Solo\nGamma DJ\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE artists (id INTEGER, name TEXT, genre TEXT); CREATE TABLE albums (id INTEGER, title TEXT, artist_id INTEGER); CREATE TABLE songs (id INTEGER, title TEXT, album_id INTEGER); CREATE TABLE streams (id INTEGER, song_id INTEGER, platform TEXT, count INTEGER); INSERT INTO artists VALUES (1,'Nova Star','Pop'),(2,'Dark Wave','Gothic'); INSERT INTO albums VALUES (1,'Nova Album',1),(2,'Dark Album',2); INSERT INTO songs VALUES (1,'Nova Hit',1),(2,'Dark Song',2); INSERT INTO streams VALUES (1,1,'Spotify',600000),(2,1,'Apple',500000),(3,2,'Spotify',2000000);",
+            "expectedOutput": "Nova Star\n"
+        }
+    ]
+}

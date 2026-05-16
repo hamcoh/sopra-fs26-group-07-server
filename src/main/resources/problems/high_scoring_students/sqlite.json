@@ -1,0 +1,38 @@
+{
+    "title": "Funded Researchers",
+    "description": "You are given four tables: departments, researchers, their projects (with budgets), and their publications (with citation counts). Return names of researchers who have at least one project with a budget above 50000 AND at least one publication with more than 20 citations. Order alphabetically.",
+    "inputFormat": "departments(id, name, university)\nresearchers(id, name, dept_id)\nprojects(id, title, researcher_id, budget)\npublications(id, researcher_id, journal, citations)",
+    "outputFormat": "One researcher name per line, ordered alphabetically.",
+    "constraints": "Use JOIN on both projects and publications with WHERE conditions. Include DISTINCT and ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "HARD",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT r.name FROM researchers r JOIN projects p ON r.id = p.researcher_id JOIN publications pub ON r.id = pub.researcher_id WHERE p.budget > 50000 AND pub.citations > 20 ORDER BY r.name;",
+    "hint": "Join researchers with projects AND publications separately. Filter with WHERE budget > 50000 AND citations > 20, then use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, university TEXT); CREATE TABLE researchers (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, researcher_id INTEGER, budget INTEGER); CREATE TABLE publications (id INTEGER, researcher_id INTEGER, journal TEXT, citations INTEGER); INSERT INTO departments VALUES (1,'Physics','MIT'),(2,'CS','Stanford'),(3,'Biology','Harvard'); INSERT INTO researchers VALUES (1,'Alice',1),(2,'Bob',2),(3,'Charlie',3),(4,'Diana',1); INSERT INTO projects VALUES (1,'Quantum Study',1,80000),(2,'AI Research',2,30000),(3,'Gene Mapping',3,60000),(4,'Particle Physics',4,10000); INSERT INTO publications VALUES (1,1,'Nature',50),(2,2,'IEEE',15),(3,3,'Cell',25),(4,4,'Science',30);",
+            "expectedOutput": "Alice\nCharlie\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, university TEXT); CREATE TABLE researchers (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, researcher_id INTEGER, budget INTEGER); CREATE TABLE publications (id INTEGER, researcher_id INTEGER, journal TEXT, citations INTEGER); INSERT INTO departments VALUES (1,'Math','Cambridge'),(2,'Chemistry','Oxford'),(3,'Economics','LSE'); INSERT INTO researchers VALUES (1,'Eve',1),(2,'Frank',2),(3,'Grace',3),(4,'Hank',2); INSERT INTO projects VALUES (1,'Number Theory',1,20000),(2,'Catalyst Study',2,90000),(3,'Market Analysis',3,75000),(4,'Polymer Research',4,55000); INSERT INTO publications VALUES (1,1,'Math Journal',40),(2,2,'ChemSoc',35),(3,3,'Economics',10),(4,4,'ChemSoc',25);",
+            "expectedOutput": "Frank\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, university TEXT); CREATE TABLE researchers (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, researcher_id INTEGER, budget INTEGER); CREATE TABLE publications (id INTEGER, researcher_id INTEGER, journal TEXT, citations INTEGER); INSERT INTO departments VALUES (1,'History','Yale'); INSERT INTO researchers VALUES (1,'Iris',1),(2,'Jack',1); INSERT INTO projects VALUES (1,'Medieval Study',1,60000),(2,'Modern History',2,5000); INSERT INTO publications VALUES (1,1,'Hist Review',15),(2,2,'Hist Journal',30);",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, university TEXT); CREATE TABLE researchers (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, researcher_id INTEGER, budget INTEGER); CREATE TABLE publications (id INTEGER, researcher_id INTEGER, journal TEXT, citations INTEGER); INSERT INTO departments VALUES (1,'Astro','Caltech'),(2,'Geology','USGS'); INSERT INTO researchers VALUES (1,'Kate',1),(2,'Leo',2),(3,'Mia',1); INSERT INTO projects VALUES (1,'Black Holes',1,100000),(2,'Plate Tectonics',2,80000),(3,'Exoplanets',3,70000); INSERT INTO publications VALUES (1,1,'Nature',50),(2,2,'GeoSci',40),(3,3,'Astrophys',30);",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE departments (id INTEGER, name TEXT, university TEXT); CREATE TABLE researchers (id INTEGER, name TEXT, dept_id INTEGER); CREATE TABLE projects (id INTEGER, title TEXT, researcher_id INTEGER, budget INTEGER); CREATE TABLE publications (id INTEGER, researcher_id INTEGER, journal TEXT, citations INTEGER); INSERT INTO departments VALUES (1,'CS','ETH'); INSERT INTO researchers VALUES (1,'Noah',1),(2,'Olivia',1); INSERT INTO projects VALUES (1,'ML Systems',1,55000),(2,'Low Budget',2,10000); INSERT INTO publications VALUES (1,1,'ICML',25),(2,2,'NeurIPS',100);",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}

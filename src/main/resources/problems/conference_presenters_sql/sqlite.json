@@ -1,0 +1,38 @@
+{
+    "title": "Berlin Conference Speakers",
+    "description": "You are given three tables: conferences with a city, speakers, and presentations linking speakers to conferences. Find distinct names of speakers who presented at a conference held in 'Berlin', ordered alphabetically.",
+    "inputFormat": "conferences(id, name, city)\nspeakers(id, name, country)\npresentations(id, speaker_id, conference_id, title)",
+    "outputFormat": "One speaker name per line, ordered alphabetically. No duplicates.",
+    "constraints": "Use two JOINs and DISTINCT. Filter WHERE city = 'Berlin'. Include ORDER BY name. Only SELECT queries are allowed.",
+    "gameDifficulty": "EASY",
+    "gameLanguage": "SQLITE",
+    "sampleSolution": "SELECT DISTINCT s.name FROM speakers s JOIN presentations p ON s.id = p.speaker_id JOIN conferences c ON p.conference_id = c.id WHERE c.city = 'Berlin' ORDER BY s.name;",
+    "hint": "Join speakers → presentations → conferences, filter by city = 'Berlin', use DISTINCT.",
+    "testCases": [
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE conferences (id INTEGER, name TEXT, city TEXT); CREATE TABLE speakers (id INTEGER, name TEXT, country TEXT); CREATE TABLE presentations (id INTEGER, speaker_id INTEGER, conference_id INTEGER, title TEXT); INSERT INTO conferences VALUES (1,'TechSummit','Berlin'),(2,'DataWorld','Paris'),(3,'AIConf','Berlin'); INSERT INTO speakers VALUES (1,'Alice','DE'),(2,'Bob','FR'),(3,'Carol','US'),(4,'Dan','UK'); INSERT INTO presentations VALUES (1,1,1,'ML Basics'),(2,2,2,'Stats 101'),(3,3,1,'Deep Learning'),(4,3,3,'Neural Nets'),(5,4,2,'Privacy');",
+            "expectedOutput": "Alice\nCarol\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE conferences (id INTEGER, name TEXT, city TEXT); CREATE TABLE speakers (id INTEGER, name TEXT, country TEXT); CREATE TABLE presentations (id INTEGER, speaker_id INTEGER, conference_id INTEGER, title TEXT); INSERT INTO conferences VALUES (1,'BerlinOpen','Berlin'),(2,'LondonTech','London'),(3,'BerlinAI','Berlin'); INSERT INTO speakers VALUES (1,'Eva','DE'),(2,'Frank','UK'),(3,'Grace','US'),(4,'Hank','DE'); INSERT INTO presentations VALUES (1,1,1,'Robotics'),(2,2,2,'Cloud'),(3,3,2,'DevOps'),(4,4,3,'Vision'),(5,1,3,'NLP');",
+            "expectedOutput": "Eva\nHank\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE conferences (id INTEGER, name TEXT, city TEXT); CREATE TABLE speakers (id INTEGER, name TEXT, country TEXT); CREATE TABLE presentations (id INTEGER, speaker_id INTEGER, conference_id INTEGER, title TEXT); INSERT INTO conferences VALUES (1,'ParisTech','Paris'),(2,'LondonSummit','London'); INSERT INTO speakers VALUES (1,'Iris','FR'),(2,'Jack','UK'); INSERT INTO presentations VALUES (1,1,1,'AI Ethics'),(2,2,2,'Cloud Ops');",
+            "expectedOutput": ""
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE conferences (id INTEGER, name TEXT, city TEXT); CREATE TABLE speakers (id INTEGER, name TEXT, country TEXT); CREATE TABLE presentations (id INTEGER, speaker_id INTEGER, conference_id INTEGER, title TEXT); INSERT INTO conferences VALUES (1,'BerlinDev','Berlin'); INSERT INTO speakers VALUES (1,'Kate','DE'),(2,'Leo','AT'),(3,'Mia','CH'); INSERT INTO presentations VALUES (1,1,1,'Microservices'),(2,2,1,'Kubernetes'),(3,3,1,'DevOps');",
+            "expectedOutput": "Kate\nLeo\nMia\n"
+        },
+        {
+            "input": "",
+            "setupSql": "CREATE TABLE conferences (id INTEGER, name TEXT, city TEXT); CREATE TABLE speakers (id INTEGER, name TEXT, country TEXT); CREATE TABLE presentations (id INTEGER, speaker_id INTEGER, conference_id INTEGER, title TEXT); INSERT INTO conferences VALUES (1,'BerlinConf','Berlin'),(2,'ViennaConf','Vienna'),(3,'ZurichConf','Zurich'); INSERT INTO speakers VALUES (1,'Noah','DE'),(2,'Olivia','AT'); INSERT INTO presentations VALUES (1,1,1,'Security'),(2,1,2,'Security'),(3,2,3,'Privacy');",
+            "expectedOutput": "Noah\n"
+        }
+    ]
+}
