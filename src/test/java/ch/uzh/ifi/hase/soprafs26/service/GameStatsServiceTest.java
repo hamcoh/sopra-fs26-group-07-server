@@ -19,9 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.SubmissionRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerWrappedDTO;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -229,5 +232,45 @@ class GameStatsServiceTest {
 
         assertThrows(ResponseStatusException.class,
                 () -> gameStatsService.getMostPopularProblemsAndPlayerResults(testUser.getId()));
+    }
+
+    @Test
+    void getGameplaySummary_validInputs_success() {
+        
+        Object[] mockWrappedStats = new Object[]{"username", 10, 5, 100L, 200L, 3, 75.0};
+        List<Object[]> mockResult = new ArrayList<>();
+        mockResult.add(mockWrappedStats);
+        when(submissionRepository.findPlayerWrappedStats(1L)).thenReturn(mockResult);
+
+        Object[] mockEnumRow1 = new Object[]{"JAVA", "EASY", "SPRINT_ARCADE"};
+        Object[] mockEnumRow2 = new Object[]{"PYTHON", "HARD", "SPRINT_CLASSIC"};
+        Object[] mockEnumRow3 = new Object[]{"PYTHON", "HARD", "SPRINT_CLASSIC"};
+
+        List<Object[]> mockEnumResult = new ArrayList<>();
+        mockEnumResult.add(mockEnumRow1);
+        mockEnumResult.add(mockEnumRow2);
+        mockEnumResult.add(mockEnumRow3);
+        when(submissionRepository.findPlayerEnumStats(1L)).thenReturn(mockEnumResult);
+
+        PlayerWrappedDTO result = gameStatsService.getGameplaySummary(1L);
+
+        assertEquals("username", result.getUsername());
+        assertEquals(10, result.getTotalGamesPlayed());
+        assertEquals(5, result.getWinCount());
+        assertEquals(100L, result.getPlayerSumPassedTestCases());
+        assertEquals(200L, result.getPlayerSumTotalTestCases());
+        assertEquals(3, result.getTotalProblemsSolvedFullyCorrect());
+        assertEquals(75.0, result.getPercentileRank());
+        assertEquals(GameLanguage.PYTHON, result.getFavGameLanguage());
+        assertEquals(GameDifficulty.HARD, result.getFavGameDifficulty());
+        assertEquals(GameMode.SPRINT_CLASSIC, result.getFavGameMode());
+    }
+
+    @Test
+    void getGameplaySummary_noSubmissions_throwsNotFound() {
+        when(submissionRepository.findPlayerWrappedStats(1L)).thenReturn(List.of());
+
+        assertThrows(ResponseStatusException.class, () -> 
+            gameStatsService.getGameplaySummary(1L));
     }
 }

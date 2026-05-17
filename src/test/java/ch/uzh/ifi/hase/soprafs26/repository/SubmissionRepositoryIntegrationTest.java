@@ -230,7 +230,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s1.getPassedTestCases()+s4.getPassedTestCases()+s10.getPassedTestCases()+s11.getPassedTestCases()+s12.getPassedTestCases()), ((Number) hardest[4]).longValue());
         assertEquals((s1.getTotalTestCases()+s4.getTotalTestCases()+s10.getTotalTestCases()+s11.getTotalTestCases()+s12.getTotalTestCases()), ((Number) hardest[5]).longValue());
         assertEquals(5, ((Number) hardest[6]).longValue());
-        assertNotNull(((Number) hardest[7]).doubleValue());
+        assertTrue(((Number) hardest[7]).doubleValue() > 0);
 
         assertNotNull(secondHardest);
         assertEquals(p2.getProblemId(), ((Number) secondHardest[0]).longValue());
@@ -240,7 +240,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s2.getPassedTestCases()+s5.getPassedTestCases()+s7.getPassedTestCases()+s13.getPassedTestCases()), ((Number) secondHardest[4]).longValue());
         assertEquals((s2.getTotalTestCases()+s5.getTotalTestCases()+s7.getTotalTestCases()+s13.getTotalTestCases()), ((Number) secondHardest[5]).longValue());
         assertEquals(4, ((Number) secondHardest[6]).longValue());
-        assertNotNull(((Number) secondHardest[7]).doubleValue());
+        assertTrue(((Number) secondHardest[7]).doubleValue() > 0);
 
         assertNotNull(thirdHardest);
         assertEquals(p3.getProblemId(), ((Number) thirdHardest[0]).longValue());
@@ -251,7 +251,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s3.getPassedTestCases()+s6.getPassedTestCases()+s8.getPassedTestCases()), ((Number) thirdHardest[4]).longValue());
         assertEquals((s3.getTotalTestCases()+s6.getTotalTestCases()+s8.getTotalTestCases()), ((Number) thirdHardest[5]).longValue());
         assertEquals(3, ((Number) thirdHardest[6]).longValue());
-        assertNotNull(((Number) thirdHardest[7]).doubleValue());
+        assertTrue(((Number) thirdHardest[7]).doubleValue() > 0);
 
         assertTrue(hardestRate < secondHardestRate);
         assertTrue(secondHardestRate < thirdHardestRate);
@@ -284,7 +284,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s1.getPassedTestCases()+s4.getPassedTestCases()+s10.getPassedTestCases()+s11.getPassedTestCases()+s12.getPassedTestCases()), ((Number) mostPlayed[4]).longValue());
         assertEquals((s1.getTotalTestCases()+s4.getTotalTestCases()+s10.getTotalTestCases()+s11.getTotalTestCases()+s12.getTotalTestCases()), ((Number) mostPlayed[5]).longValue());
         assertEquals(5, ((Number) mostPlayed[6]).longValue());
-        assertNotNull(((Number) mostPlayed[7]).doubleValue());
+        assertTrue(((Number) mostPlayed[7]).doubleValue() > 0);
 
         assertNotNull(secondMostPlayed);
         assertEquals(p2.getProblemId(), ((Number) secondMostPlayed[0]).longValue());
@@ -294,7 +294,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s2.getPassedTestCases()+s5.getPassedTestCases()+s7.getPassedTestCases()+s13.getPassedTestCases()), ((Number) secondMostPlayed[4]).longValue());
         assertEquals((s2.getTotalTestCases()+s5.getTotalTestCases()+s7.getTotalTestCases()+s13.getTotalTestCases()), ((Number) secondMostPlayed[5]).longValue());
         assertEquals(4, ((Number) secondMostPlayed[6]).longValue());
-        assertNotNull(((Number) secondMostPlayed[7]).doubleValue());
+        assertTrue(((Number) secondMostPlayed[7]).doubleValue() > 0);
 
         assertNotNull(thirdMostPlayed);
         assertEquals(p3.getProblemId(), ((Number) thirdMostPlayed[0]).longValue());
@@ -304,7 +304,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s3.getPassedTestCases()+s6.getPassedTestCases()+s8.getPassedTestCases()), ((Number) thirdMostPlayed[4]).longValue());
         assertEquals((s3.getTotalTestCases()+s6.getTotalTestCases()+s8.getTotalTestCases()), ((Number) thirdMostPlayed[5]).longValue());
         assertEquals(3, ((Number) thirdMostPlayed[6]).longValue());
-        assertNotNull(((Number) thirdMostPlayed[7]).doubleValue());
+        assertTrue(((Number) thirdMostPlayed[7]).doubleValue() > 0);
 
         assertNotNull(leastPlayed);
         assertEquals(p4.getProblemId(), ((Number) leastPlayed[0]).longValue());
@@ -314,7 +314,7 @@ public class SubmissionRepositoryIntegrationTest {
         assertEquals((s9.getPassedTestCases()), ((Number) leastPlayed[4]).longValue());
         assertEquals((s9.getTotalTestCases()), ((Number) leastPlayed[5]).longValue());
         assertEquals(1, ((Number) leastPlayed[6]).longValue());
-        assertNotNull(((Number) leastPlayed[7]).doubleValue());
+        assertTrue(((Number) leastPlayed[7]).doubleValue() > 0);
 
         assertEquals(5L, mostPlayedSubmissionCount);   
         assertEquals(4L, secondMostPlayedSubmissionCount); 

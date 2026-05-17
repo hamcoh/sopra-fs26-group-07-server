@@ -1,17 +1,15 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerWrappedDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameStatsService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 @RestController
@@ -50,6 +48,19 @@ public class GameStatsController {
         List<GameStatsDTO> gameStatsDTO = gameStatsService.getMostPopularProblemsAndPlayerResults(userId);
 
         return gameStatsDTO;
+    }
+
+    @GetMapping("/stats/gameplay-summary/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public PlayerWrappedDTO getGameplaySummary(
+        @PathVariable("userId") Long userId, 
+        @RequestHeader(value = "token", required = false) String token) {
+
+        userService.verifyTokenAndUserId(token, userId);
+
+        PlayerWrappedDTO playerWrappedDTO = gameStatsService.getGameplaySummary(userId);
+
+        return playerWrappedDTO;
     }
     
 }

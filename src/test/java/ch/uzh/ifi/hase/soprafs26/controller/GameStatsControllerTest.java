@@ -23,8 +23,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.GameLanguage;
+import ch.uzh.ifi.hase.soprafs26.constant.GameDifficulty;
+import ch.uzh.ifi.hase.soprafs26.constant.GameMode;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameStatsDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.PlayerWrappedDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameStatsService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
@@ -49,6 +52,7 @@ public class GameStatsControllerTest {
     private GameStatsDTO gameStatsDTO1;
     private GameStatsDTO gameStatsDTO2;
     private GameStatsDTO gameStatsDTO3;
+    private PlayerWrappedDTO testPlayerWrappedDTO;
 
     @BeforeEach
     void setup() {
@@ -93,6 +97,19 @@ public class GameStatsControllerTest {
         gameStatsDTO3.setSumTotalTestCases(180L);
         gameStatsDTO3.setTotalSubmissionCount(30L);
         gameStatsDTO3.setTotalSuccessRate((double) 1 / 180);
+
+        testPlayerWrappedDTO = new PlayerWrappedDTO();
+        testPlayerWrappedDTO.setUsername("testUser");
+        testPlayerWrappedDTO.setTotalGamesPlayed(10);
+        testPlayerWrappedDTO.setWinCount(5);
+        testPlayerWrappedDTO.setPlayerSumPassedTestCases(50L);
+        testPlayerWrappedDTO.setPlayerSumTotalTestCases(100L);
+        testPlayerWrappedDTO.setTotalProblemsSolvedFullyCorrect(10);
+        testPlayerWrappedDTO.setPercentileRank(50.0);
+        testPlayerWrappedDTO.setFavGameLanguage(GameLanguage.PYTHON);
+        testPlayerWrappedDTO.setFavGameDifficulty(GameDifficulty.HARD);
+        testPlayerWrappedDTO.setFavGameMode(GameMode.SPRINT_ARCADE);
+
     }
 
     @Test
@@ -268,4 +285,50 @@ public class GameStatsControllerTest {
 				        .andExpect(status().isNotFound())
 				        .andExpect(jsonPath("$.detail", is(errorReason)));
                     }
-}
+
+
+    @Test
+    void getGameplaySummary_validRequest_success() throws Exception {
+
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        Mockito.when(gameStatsService.getGameplaySummary(Mockito.any())).thenReturn(testPlayerWrappedDTO);
+        
+        MockHttpServletRequestBuilder getRequest = get("/stats/gameplay-summary/{userId}", testUser.getId())
+                                                    .header("token", testUser.getToken())
+                                                    .header("userId", testUser.getId())
+                                                    .contentType(MediaType.APPLICATION_JSON);
+        
+        mockMvc.perform(getRequest)
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.username", is(testPlayerWrappedDTO.getUsername())))
+                        .andExpect(jsonPath("$.totalGamesPlayed", is(testPlayerWrappedDTO.getTotalGamesPlayed())))
+                        .andExpect(jsonPath("$.winCount", is(testPlayerWrappedDTO.getWinCount())))
+                        .andExpect(jsonPath("$.playerSumPassedTestCases", is(testPlayerWrappedDTO.getPlayerSumPassedTestCases().intValue())))
+                        .andExpect(jsonPath("$.playerSumTotalTestCases", is(testPlayerWrappedDTO.getPlayerSumTotalTestCases().intValue())))
+                        .andExpect(jsonPath("$.totalProblemsSolvedFullyCorrect", is(testPlayerWrappedDTO.getTotalProblemsSolvedFullyCorrect())))
+                        .andExpect(jsonPath("$.percentileRank").exists())
+                        .andExpect(jsonPath("$.favGameLanguage", is(testPlayerWrappedDTO.getFavGameLanguage().toString())))
+                        .andExpect(jsonPath("$.favGameDifficulty", is(testPlayerWrappedDTO.getFavGameDifficulty().toString())))
+                        .andExpect(jsonPath("$.favGameMode", is(testPlayerWrappedDTO.getFavGameMode().toString())));
+                    }
+
+    @Test
+    void getGameplaySummary_noSubmissionsYet_throwsNotFound() throws Exception {
+
+        doNothing().when(userService).verifyTokenAndUserId(testUser.getToken(), testUser.getId());
+        
+        String errorReason = "Statistics unavailable: player has no submissions yet!";
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorReason)).when(gameStatsService).getGameplaySummary(Mockito.any());
+
+        MockHttpServletRequestBuilder getRequest = get("/stats/gameplay-summary/{userId}", testUser.getId())
+                                                    .header("token", testUser.getToken())
+                                                    .header("userId", testUser.getId())
+                                                    .contentType(MediaType.APPLICATION_JSON);
+        
+        mockMvc.perform(getRequest)
+				        .andExpect(status().isNotFound())
+				        .andExpect(jsonPath("$.detail", is(errorReason)));
+                    }
+
+    }
+
