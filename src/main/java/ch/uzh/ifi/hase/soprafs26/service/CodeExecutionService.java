@@ -420,7 +420,10 @@ public class CodeExecutionService {
     private String wrapJavaCode(String userCode) {
         String safeCode = userCode.replace("public class Solution", "class Solution");
 
-        return safeCode + "\n\n"
+        return "import java.util.Arrays;\n"
+                + "import java.util.HashMap;\n"
+                + "import java.util.HashSet;\n\n"
+                + safeCode + "\n\n"
                 + "class Main {\n"
                 + "    public static void main(String[] args) {\n"
                 + "        java.util.Scanner scanner = new java.util.Scanner(System.in);\n"
